@@ -14,6 +14,7 @@ import Dashboard from "@/components/Dashboard";
 import TransactionsView from "@/components/TransactionsView";
 import GoalTracker from "@/components/GoalTracker";
 import BudgetsView from "@/components/BudgetsView";
+import ReportsView from "@/components/ReportsView";
 import Header from "@/components/Header";
 
 const Index = () => {
@@ -121,12 +122,7 @@ const Index = () => {
               {activeView === "transactions" && <TransactionsView />}
               {activeView === "goals" && <GoalTracker />}
               {activeView === "budgets" && <BudgetsView />}
-              {activeView === "reports" && (
-                <div className="p-6 text-center">
-                  <h2 className="text-2xl font-bold mb-4 text-finsight-purple">Reports View</h2>
-                  <p className="text-gray-500">This section is under development.</p>
-                </div>
-              )}
+              {activeView === "reports" && <ReportsView />}
               {activeView === "settings" && (
                 <div className="p-6 text-center">
                   <h2 className="text-2xl font-bold mb-4 text-finsight-purple">Settings View</h2>
@@ -161,9 +157,8 @@ const Index = () => {
                   </div>
                 </TabsContent>
                 <TabsContent value="reports">
-                  <div className="p-4 text-center">
-                    <h2 className="text-xl font-bold mb-2">Reports View</h2>
-                    <p className="text-gray-500">This section is under development.</p>
+                  <div className="p-4">
+                    <ReportsView />
                   </div>
                 </TabsContent>
                 <TabsContent value="settings">
