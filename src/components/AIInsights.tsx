@@ -6,7 +6,7 @@ const insights = [
   {
     id: 1,
     type: 'success',
-    message: 'You've reduced dining expenses by 15% this month. Keep it up!',
+    message: "You've reduced dining expenses by 15% this month. Keep it up!",
     icon: <Award className="h-5 w-5" />,
     bgColor: 'bg-green-50',
     iconColor: 'text-finsight-green',
