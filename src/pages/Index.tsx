@@ -19,9 +19,18 @@ import Header from "@/components/Header";
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeView, setActiveView] = useState("dashboard");
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const handleNavigation = (view: string) => {
+    setActiveView(view);
+    // On mobile, close the sidebar after selection
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
   };
 
   return (
@@ -37,23 +46,43 @@ const Index = () => {
         >
           <div className="p-4 flex-1">
             <div className="space-y-1">
-              <Button variant="ghost" className="w-full justify-start gap-3">
+              <Button 
+                variant={activeView === "dashboard" ? "default" : "ghost"} 
+                className={`w-full justify-start gap-3 ${activeView === "dashboard" ? "bg-finsight-purple text-white" : ""}`}
+                onClick={() => handleNavigation("dashboard")}
+              >
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
               </Button>
-              <Button variant="ghost" className="w-full justify-start gap-3 text-gray-500">
+              <Button 
+                variant={activeView === "transactions" ? "default" : "ghost"} 
+                className={`w-full justify-start gap-3 ${activeView === "transactions" ? "bg-finsight-purple text-white" : "text-gray-500"}`}
+                onClick={() => handleNavigation("transactions")}
+              >
                 <CreditCard className="h-5 w-5" />
                 Transactions
               </Button>
-              <Button variant="ghost" className="w-full justify-start gap-3 text-gray-500">
+              <Button 
+                variant={activeView === "budgets" ? "default" : "ghost"} 
+                className={`w-full justify-start gap-3 ${activeView === "budgets" ? "bg-finsight-purple text-white" : "text-gray-500"}`}
+                onClick={() => handleNavigation("budgets")}
+              >
                 <ListChecks className="h-5 w-5" />
                 Budgets
               </Button>
-              <Button variant="ghost" className="w-full justify-start gap-3 text-gray-500">
+              <Button 
+                variant={activeView === "goals" ? "default" : "ghost"} 
+                className={`w-full justify-start gap-3 ${activeView === "goals" ? "bg-finsight-purple text-white" : "text-gray-500"}`}
+                onClick={() => handleNavigation("goals")}
+              >
                 <Target className="h-5 w-5" />
                 Goals
               </Button>
-              <Button variant="ghost" className="w-full justify-start gap-3 text-gray-500">
+              <Button 
+                variant={activeView === "reports" ? "default" : "ghost"} 
+                className={`w-full justify-start gap-3 ${activeView === "reports" ? "bg-finsight-purple text-white" : "text-gray-500"}`}
+                onClick={() => handleNavigation("reports")}
+              >
                 <LineChart className="h-5 w-5" />
                 Reports
               </Button>
@@ -62,11 +91,18 @@ const Index = () => {
           
           <div className="p-4 border-t border-gray-100">
             <div className="space-y-1">
-              <Button variant="ghost" className="w-full justify-start gap-3 text-gray-500">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start gap-3 text-gray-500"
+                onClick={() => handleNavigation("settings")}
+              >
                 <Settings className="h-5 w-5" />
                 Settings
               </Button>
-              <Button variant="ghost" className="w-full justify-start gap-3 text-gray-500">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start gap-3 text-gray-500"
+              >
                 <LogOut className="h-5 w-5" />
                 Logout
               </Button>
@@ -86,11 +122,19 @@ const Index = () => {
         <main className="flex-1 overflow-auto">
           <div className="max-w-[1600px] mx-auto">
             <div className="hidden md:block">
-              <Dashboard />
+              {activeView === "dashboard" && <Dashboard />}
+              {activeView === "transactions" && <TransactionsView />}
+              {activeView === "goals" && <GoalTracker />}
+              {(activeView === "budgets" || activeView === "reports" || activeView === "settings") && (
+                <div className="p-6 text-center">
+                  <h2 className="text-2xl font-bold mb-4 text-finsight-purple">{activeView.charAt(0).toUpperCase() + activeView.slice(1)} View</h2>
+                  <p className="text-gray-500">This section is under development.</p>
+                </div>
+              )}
             </div>
             
             <div className="md:hidden">
-              <Tabs defaultValue="dashboard" className="w-full">
+              <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
                 <TabsList className="w-full grid grid-cols-3 mb-4">
                   <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                   <TabsTrigger value="transactions">Transactions</TabsTrigger>
@@ -109,17 +153,37 @@ const Index = () => {
                     <GoalTracker />
                   </div>
                 </TabsContent>
+                <TabsContent value="budgets">
+                  <div className="p-4 text-center">
+                    <h2 className="text-xl font-bold mb-2">Budgets View</h2>
+                    <p className="text-gray-500">This section is under development.</p>
+                  </div>
+                </TabsContent>
+                <TabsContent value="reports">
+                  <div className="p-4 text-center">
+                    <h2 className="text-xl font-bold mb-2">Reports View</h2>
+                    <p className="text-gray-500">This section is under development.</p>
+                  </div>
+                </TabsContent>
+                <TabsContent value="settings">
+                  <div className="p-4 text-center">
+                    <h2 className="text-xl font-bold mb-2">Settings View</h2>
+                    <p className="text-gray-500">This section is under development.</p>
+                  </div>
+                </TabsContent>
               </Tabs>
             </div>
 
-            <div className="hidden md:grid md:grid-cols-1 lg:grid-cols-3 gap-6 p-4 md:p-6">
-              <div className="lg:col-span-2">
-                <TransactionsView />
+            {activeView === "dashboard" && (
+              <div className="hidden md:grid md:grid-cols-1 lg:grid-cols-3 gap-6 p-4 md:p-6">
+                <div className="lg:col-span-2">
+                  <TransactionsView />
+                </div>
+                <div>
+                  <GoalTracker />
+                </div>
               </div>
-              <div>
-                <GoalTracker />
-              </div>
-            </div>
+            )}
           </div>
         </main>
       </div>
