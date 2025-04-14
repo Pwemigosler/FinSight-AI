@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,11 +9,11 @@ import {
   CreditCard, 
   Settings, 
   LogOut,
-  Menu
 } from "lucide-react";
 import Dashboard from "@/components/Dashboard";
 import TransactionsView from "@/components/TransactionsView";
 import GoalTracker from "@/components/GoalTracker";
+import BudgetsView from "@/components/BudgetsView";
 import Header from "@/components/Header";
 
 const Index = () => {
@@ -27,7 +26,6 @@ const Index = () => {
 
   const handleNavigation = (view: string) => {
     setActiveView(view);
-    // On mobile, close the sidebar after selection
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
@@ -38,7 +36,6 @@ const Index = () => {
       <Header toggleSidebar={toggleSidebar} />
       
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
         <aside 
           className={`bg-white border-r border-gray-100 w-64 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col 
                      ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} 
@@ -110,7 +107,6 @@ const Index = () => {
           </div>
         </aside>
         
-        {/* Sidebar overlay */}
         {isSidebarOpen && (
           <div 
             className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
@@ -118,16 +114,22 @@ const Index = () => {
           />
         )}
         
-        {/* Main content */}
         <main className="flex-1 overflow-auto">
           <div className="max-w-[1600px] mx-auto">
             <div className="hidden md:block">
               {activeView === "dashboard" && <Dashboard />}
               {activeView === "transactions" && <TransactionsView />}
               {activeView === "goals" && <GoalTracker />}
-              {(activeView === "budgets" || activeView === "reports" || activeView === "settings") && (
+              {activeView === "budgets" && <BudgetsView />}
+              {activeView === "reports" && (
                 <div className="p-6 text-center">
-                  <h2 className="text-2xl font-bold mb-4 text-finsight-purple">{activeView.charAt(0).toUpperCase() + activeView.slice(1)} View</h2>
+                  <h2 className="text-2xl font-bold mb-4 text-finsight-purple">Reports View</h2>
+                  <p className="text-gray-500">This section is under development.</p>
+                </div>
+              )}
+              {activeView === "settings" && (
+                <div className="p-6 text-center">
+                  <h2 className="text-2xl font-bold mb-4 text-finsight-purple">Settings View</h2>
                   <p className="text-gray-500">This section is under development.</p>
                 </div>
               )}
@@ -154,9 +156,8 @@ const Index = () => {
                   </div>
                 </TabsContent>
                 <TabsContent value="budgets">
-                  <div className="p-4 text-center">
-                    <h2 className="text-xl font-bold mb-2">Budgets View</h2>
-                    <p className="text-gray-500">This section is under development.</p>
+                  <div className="p-4">
+                    <BudgetsView />
                   </div>
                 </TabsContent>
                 <TabsContent value="reports">
@@ -173,17 +174,6 @@ const Index = () => {
                 </TabsContent>
               </Tabs>
             </div>
-
-            {activeView === "dashboard" && (
-              <div className="hidden md:grid md:grid-cols-1 lg:grid-cols-3 gap-6 p-4 md:p-6">
-                <div className="lg:col-span-2">
-                  <TransactionsView />
-                </div>
-                <div>
-                  <GoalTracker />
-                </div>
-              </div>
-            )}
           </div>
         </main>
       </div>
