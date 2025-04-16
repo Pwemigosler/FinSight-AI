@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -91,8 +92,8 @@ const Index = () => {
           <div className="p-4 border-t border-gray-100">
             <div className="space-y-1">
               <Button 
-                variant="ghost" 
-                className="w-full justify-start gap-3 text-gray-500"
+                variant={activeView === "settings" ? "default" : "ghost"}
+                className={`w-full justify-start gap-3 ${activeView === "settings" ? "bg-finsight-purple text-white" : "text-gray-500"}`}
                 onClick={() => handleNavigation("settings")}
               >
                 <Settings className="h-5 w-5" />

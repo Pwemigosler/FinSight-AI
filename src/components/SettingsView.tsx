@@ -23,11 +23,22 @@ import {
   User,
   Moon,
   Sun,
-  PencilLine
+  PencilLine,
+  Check,
+  AlertCircle
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const SettingsView = () => {
+  // User profile state
+  const [profile, setProfile] = useState({
+    name: "Alex Johnson",
+    email: "alex.johnson@example.com",
+    currency: "usd",
+    language: "en"
+  });
+
+  // Notification preferences state
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -35,23 +46,97 @@ const SettingsView = () => {
     newFeatures: true
   });
   
+  // Appearance preferences state
   const [appearance, setAppearance] = useState({
     darkMode: false,
     compactView: false
   });
+
+  // Security state
+  const [security, setSecurity] = useState({
+    twoFactor: false,
+    passwordUpdated: false
+  });
+
+  // Form submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleSaveSettings = () => {
+  // Handle profile field changes
+  const handleProfileChange = (e) => {
+    const { id, value } = e.target;
+    setProfile(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  // Handle notification toggles
+  const handleNotificationChange = (key, checked) => {
+    setNotifications(prev => ({
+      ...prev,
+      [key]: checked
+    }));
+  };
+
+  // Handle appearance toggles
+  const handleAppearanceChange = (key, checked) => {
+    setAppearance(prev => ({
+      ...prev,
+      [key]: checked
+    }));
+  };
+
+  // Handle password change
+  const handlePasswordChange = () => {
+    setSecurity(prev => ({ ...prev, passwordUpdated: true }));
     toast({
-      title: "Settings saved",
-      description: "Your preferences have been updated successfully.",
+      title: "Password updated",
+      description: "Your password has been successfully changed.",
     });
+  };
+
+  // Handle 2FA toggle
+  const handle2FAToggle = () => {
+    setSecurity(prev => ({ ...prev, twoFactor: !prev.twoFactor }));
+    
+    if (!security.twoFactor) {
+      toast({
+        title: "Two-Factor Authentication Enabled",
+        description: "Your account is now more secure with 2FA.",
+      });
+    } else {
+      toast({
+        title: "Two-Factor Authentication Disabled",
+        description: "2FA has been turned off for your account.",
+      });
+    }
+  };
+
+  // Handle saving all settings
+  const handleSaveSettings = () => {
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmitting(false);
+      toast({
+        title: "Settings saved",
+        description: "Your preferences have been updated successfully.",
+        icon: <Check className="h-4 w-4 text-green-500" />,
+      });
+    }, 800);
   };
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-finsight-purple">Settings</h1>
-        <Button onClick={handleSaveSettings}>Save Changes</Button>
+        <Button 
+          onClick={handleSaveSettings}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Saving..." : "Save Changes"}
+        </Button>
       </div>
 
       <Tabs defaultValue="account" className="w-full">
@@ -90,7 +175,8 @@ const SettingsView = () => {
                     <div className="flex mt-1.5">
                       <input 
                         id="name"
-                        defaultValue="Alex Johnson"
+                        value={profile.name}
+                        onChange={handleProfileChange}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       />
                     </div>
@@ -101,7 +187,8 @@ const SettingsView = () => {
                       <input 
                         id="email"
                         type="email"
-                        defaultValue="alex.johnson@example.com"
+                        value={profile.email}
+                        onChange={handleProfileChange}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       />
                     </div>
@@ -123,7 +210,8 @@ const SettingsView = () => {
                     <Label htmlFor="currency">Default Currency</Label>
                     <select 
                       id="currency" 
-                      defaultValue="usd"
+                      value={profile.currency}
+                      onChange={handleProfileChange}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="usd">USD - US Dollar</option>
@@ -138,7 +226,8 @@ const SettingsView = () => {
                       <Globe className="h-5 w-5 text-muted-foreground" />
                       <select 
                         id="language" 
-                        defaultValue="en"
+                        value={profile.language}
+                        onChange={handleProfileChange}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <option value="en">English</option>
@@ -175,7 +264,7 @@ const SettingsView = () => {
                     id="email-notifications" 
                     checked={notifications.email}
                     onCheckedChange={(checked) => 
-                      setNotifications({...notifications, email: checked})
+                      handleNotificationChange('email', checked)
                     }
                   />
                 </div>
@@ -190,7 +279,7 @@ const SettingsView = () => {
                     id="push-notifications" 
                     checked={notifications.push}
                     onCheckedChange={(checked) => 
-                      setNotifications({...notifications, push: checked})
+                      handleNotificationChange('push', checked)
                     }
                   />
                 </div>
@@ -205,7 +294,7 @@ const SettingsView = () => {
                     id="monthly-report" 
                     checked={notifications.monthlyReport}
                     onCheckedChange={(checked) => 
-                      setNotifications({...notifications, monthlyReport: checked})
+                      handleNotificationChange('monthlyReport', checked)
                     }
                   />
                 </div>
@@ -220,7 +309,7 @@ const SettingsView = () => {
                     id="new-features" 
                     checked={notifications.newFeatures}
                     onCheckedChange={(checked) => 
-                      setNotifications({...notifications, newFeatures: checked})
+                      handleNotificationChange('newFeatures', checked)
                     }
                   />
                 </div>
@@ -253,7 +342,7 @@ const SettingsView = () => {
                     id="dark-mode" 
                     checked={appearance.darkMode}
                     onCheckedChange={(checked) => 
-                      setAppearance({...appearance, darkMode: checked})
+                      handleAppearanceChange('darkMode', checked)
                     }
                   />
                 </div>
@@ -271,7 +360,7 @@ const SettingsView = () => {
                     id="compact-view" 
                     checked={appearance.compactView}
                     onCheckedChange={(checked) => 
-                      setAppearance({...appearance, compactView: checked})
+                      handleAppearanceChange('compactView', checked)
                     }
                   />
                 </div>
@@ -299,7 +388,7 @@ const SettingsView = () => {
                       readOnly
                       className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex-1"
                     />
-                    <Button variant="outline">Change Password</Button>
+                    <Button variant="outline" onClick={handlePasswordChange}>Change Password</Button>
                   </div>
                 </div>
                 
@@ -314,7 +403,12 @@ const SettingsView = () => {
                             Add an extra layer of security by requiring a verification code when you sign in.
                           </p>
                         </div>
-                        <Button variant="secondary">Enable 2FA</Button>
+                        <Button 
+                          variant={security.twoFactor ? "outline" : "secondary"} 
+                          onClick={handle2FAToggle}
+                        >
+                          {security.twoFactor ? "Disable 2FA" : "Enable 2FA"}
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -346,4 +440,3 @@ const SettingsView = () => {
 };
 
 export default SettingsView;
-
