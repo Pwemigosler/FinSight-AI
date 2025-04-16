@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +11,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
+  signup: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -33,15 +33,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock login functionality - in a real app this would call an API
     try {
-      // Simple validation
       if (!email || !password) {
         toast("Please enter both email and password");
         return false;
       }
       
-      // Mock successful login
       const mockUser = {
         id: "user-123",
         name: "John Doe",
@@ -60,6 +57,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
+    try {
+      if (!name || !email || !password) {
+        toast("Please fill in all fields");
+        return false;
+      }
+      
+      if (password.length < 6) {
+        toast("Password must be at least 6 characters long");
+        return false;
+      }
+      
+      const mockUser = {
+        id: `user-${Date.now()}`,
+        name,
+        email,
+        avatar: "",
+      };
+      
+      setUser(mockUser);
+      localStorage.setItem("finsight_user", JSON.stringify(mockUser));
+      toast("Successfully signed up!");
+      return true;
+    } catch (error) {
+      console.error("Signup failed:", error);
+      toast("Signup failed. Please try again.");
+      return false;
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("finsight_user");
@@ -69,6 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     user,
     login,
+    signup,
     logout,
     isAuthenticated: !!user,
   };
