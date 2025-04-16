@@ -1,8 +1,16 @@
 
-import { Bell, ChevronDown, Menu } from "lucide-react";
+import { Bell, ChevronDown, Menu, LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   toggleSidebar?: () => void;
@@ -10,6 +18,18 @@ interface HeaderProps {
 
 const Header = ({ toggleSidebar }: HeaderProps) => {
   const isMobile = useIsMobile();
+  const { user, logout } = useAuth();
+  
+  // Get initials for avatar fallback
+  const getInitials = () => {
+    if (!user?.name) return "JD";
+    return user.name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
     <header className="bg-white border-b border-gray-100 p-4 flex justify-between items-center sticky top-0 z-10">
@@ -31,14 +51,30 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <Bell className="h-5 w-5" />
           <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-finsight-red"></span>
         </Button>
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="" />
-            <AvatarFallback className="bg-finsight-purple text-white">JD</AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-medium hidden md:inline">John Doe</span>
-          <ChevronDown className="h-4 w-4 text-gray-500" />
-        </div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-2 cursor-pointer">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.avatar || ""} />
+                <AvatarFallback className="bg-finsight-purple text-white">{getInitials()}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium hidden md:inline">{user?.name || "John Doe"}</span>
+              <ChevronDown className="h-4 w-4 text-gray-500" />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>Profile</DropdownMenuItem>
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="text-red-500"
+              onClick={logout}
+            >
+              <LogOut className="h-4 w-4 mr-2" /> Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

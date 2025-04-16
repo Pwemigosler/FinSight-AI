@@ -8,8 +8,7 @@ import {
   ListChecks, 
   Target, 
   CreditCard, 
-  Settings, 
-  LogOut,
+  Settings
 } from "lucide-react";
 import Dashboard from "@/components/Dashboard";
 import TransactionsView from "@/components/TransactionsView";
@@ -98,13 +97,6 @@ const Index = () => {
               >
                 <Settings className="h-5 w-5" />
                 Settings
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start gap-3 text-gray-500"
-              >
-                <LogOut className="h-5 w-5" />
-                Logout
               </Button>
             </div>
           </div>
