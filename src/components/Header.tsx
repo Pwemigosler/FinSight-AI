@@ -1,9 +1,10 @@
 
-import { Bell, ChevronDown, Menu, LogOut } from "lucide-react";
+import { Bell, ChevronDown, Menu, LogOut, User, Settings } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,7 @@ interface HeaderProps {
 const Header = ({ toggleSidebar }: HeaderProps) => {
   const isMobile = useIsMobile();
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -64,11 +66,21 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => navigate('/profile')}
+              className="cursor-pointer"
+            >
+              <User className="h-4 w-4 mr-2" /> Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => navigate('/settings')}
+              className="cursor-pointer"
+            >
+              <Settings className="h-4 w-4 mr-2" /> Settings
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem 
-              className="text-red-500"
+              className="text-red-500 cursor-pointer"
               onClick={logout}
             >
               <LogOut className="h-4 w-4 mr-2" /> Sign out
