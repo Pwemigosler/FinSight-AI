@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Card, 
@@ -122,7 +121,6 @@ const SettingsView = () => {
       toast({
         title: "Settings saved",
         description: "Your preferences have been updated successfully.",
-        icon: <Check className="h-4 w-4 text-green-500" />,
       });
     }, 800);
   };
