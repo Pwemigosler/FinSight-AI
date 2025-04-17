@@ -89,9 +89,8 @@ const SettingsView = () => {
   // Handle password change
   const handlePasswordChange = () => {
     setSecurity(prev => ({ ...prev, passwordUpdated: true }));
-    toast({
-      title: "Password updated",
-      description: "Your password has been successfully changed.",
+    toast("Password updated", {
+      description: "Your password has been successfully changed."
     });
   };
 
@@ -100,14 +99,12 @@ const SettingsView = () => {
     setSecurity(prev => ({ ...prev, twoFactor: !prev.twoFactor }));
     
     if (!security.twoFactor) {
-      toast({
-        title: "Two-Factor Authentication Enabled",
-        description: "Your account is now more secure with 2FA.",
+      toast("Two-Factor Authentication Enabled", {
+        description: "Your account is now more secure with 2FA."
       });
     } else {
-      toast({
-        title: "Two-Factor Authentication Disabled",
-        description: "2FA has been turned off for your account.",
+      toast("Two-Factor Authentication Disabled", {
+        description: "2FA has been turned off for your account."
       });
     }
   };
@@ -119,9 +116,8 @@ const SettingsView = () => {
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      toast({
-        title: "Settings saved",
-        description: "Your preferences have been updated successfully.",
+      toast("Settings saved", {
+        description: "Your preferences have been updated successfully."
       });
     }, 800);
   };
