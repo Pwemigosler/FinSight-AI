@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, LogIn, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login, signup } = useAuth();
   const navigate = useNavigate();
@@ -25,6 +27,15 @@ const Login = () => {
       if (isLogin) {
         success = await login(email, password);
       } else {
+        // Verify passwords match for signup
+        if (password !== confirmPassword) {
+          toast("Passwords don't match", {
+            description: "Please make sure your passwords match."
+          });
+          setIsLoading(false);
+          return;
+        }
+        
         success = await signup(name, email, password);
       }
       
@@ -109,6 +120,22 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+
+            {!isLogin && (
+              <div className="space-y-2">
+                <label htmlFor="confirmPassword" className="text-sm font-medium">
+                  Confirm Password
+                </label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  required={!isLogin}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+            )}
             
             <Button
               type="submit"
@@ -148,6 +175,7 @@ const Login = () => {
               setName("");
               setEmail("");
               setPassword("");
+              setConfirmPassword("");
             }}
           >
             {isLogin ? "Need an account? Sign up" : "Already have an account? Login"}
