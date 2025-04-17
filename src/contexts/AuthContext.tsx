@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -14,6 +15,7 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
+  updateUserProfile: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +34,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
+  // Function to update user profile
+  const updateUserProfile = (updates: Partial<User>) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...updates };
+    setUser(updatedUser);
+    localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
+    toast("Profile updated successfully");
+  };
+
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       if (!email || !password) {
@@ -41,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const mockUser = {
         id: "user-123",
-        name: "John Doe",
+        name: email.split('@')[0] || "User",
         email: email,
         avatar: "",
       };
@@ -99,6 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signup,
     logout,
     isAuthenticated: !!user,
+    updateUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

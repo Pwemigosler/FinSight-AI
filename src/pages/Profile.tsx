@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
@@ -12,19 +12,44 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PencilLine, Mail, User } from "lucide-react";
 import Header from "@/components/Header";
+import { toast } from "sonner";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [profileName, setProfileName] = useState(user?.name || "");
+  const [profileEmail, setProfileEmail] = useState(user?.email || "");
   
   // Get initials for avatar fallback
   const getInitials = () => {
-    if (!user?.name) return "JD";
+    if (!user?.name) return "U";
     return user.name
       .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
       .substring(0, 2);
+  };
+
+  const handleSave = () => {
+    if (!profileName.trim()) {
+      toast("Name cannot be empty");
+      return;
+    }
+    
+    updateUserProfile({
+      name: profileName,
+      email: profileEmail,
+    });
+    
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setProfileName(user?.name || "");
+    setProfileEmail(user?.email || "");
+    setIsEditing(false);
   };
 
   return (
@@ -71,7 +96,8 @@ const Profile = () => {
                       </div>
                       <input 
                         type="text" 
-                        defaultValue={user?.name}
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
                         className="flex h-10 w-full rounded-r-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       />
                     </div>
@@ -84,15 +110,16 @@ const Profile = () => {
                       </div>
                       <input 
                         type="email" 
-                        defaultValue={user?.email}
+                        value={profileEmail}
+                        onChange={(e) => setProfileEmail(e.target.value)}
                         className="flex h-10 w-full rounded-r-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       />
                     </div>
                   </div>
                 </div>
                 <div className="flex justify-end">
-                  <Button variant="outline" className="mr-2">Cancel</Button>
-                  <Button>Save Changes</Button>
+                  <Button variant="outline" className="mr-2" onClick={handleCancel}>Cancel</Button>
+                  <Button onClick={handleSave}>Save Changes</Button>
                 </div>
               </CardContent>
             </Card>

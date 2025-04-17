@@ -24,7 +24,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   
   // Get initials for avatar fallback
   const getInitials = () => {
-    if (!user?.name) return "JD";
+    if (!user?.name) return "U";
     return user.name
       .split(" ")
       .map((n) => n[0])
@@ -61,7 +61,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                 <AvatarImage src={user?.avatar || ""} />
                 <AvatarFallback className="bg-finsight-purple text-white">{getInitials()}</AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium hidden md:inline">{user?.name || "John Doe"}</span>
+              <span className="text-sm font-medium hidden md:inline">{user?.name || "User"}</span>
               <ChevronDown className="h-4 w-4 text-gray-500" />
             </div>
           </DropdownMenuTrigger>
