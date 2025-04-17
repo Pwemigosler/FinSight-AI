@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -28,15 +29,29 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SettingsView = () => {
+  const { user } = useAuth();
+  
   // User profile state
   const [profile, setProfile] = useState({
-    name: "Alex Johnson",
-    email: "alex.johnson@example.com",
+    name: user?.name || "Alex Johnson",
+    email: user?.email || "alex.johnson@example.com",
     currency: "usd",
     language: "en"
   });
+
+  // Update profile when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfile(prev => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email
+      }));
+    }
+  }, [user]);
 
   // Notification preferences state
   const [notifications, setNotifications] = useState({
