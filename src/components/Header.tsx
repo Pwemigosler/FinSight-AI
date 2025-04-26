@@ -33,6 +33,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       .substring(0, 2);
   };
 
+  const handleLogoClick = () => {
+    navigate('/');
+  };
+
   return (
     <header className="bg-white border-b border-gray-100 p-4 flex justify-between items-center sticky top-0 z-10">
       <div className="flex items-center gap-2">
@@ -41,7 +45,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <Menu className="h-5 w-5" />
           </Button>
         )}
-        <div className="flex items-center">
+        <div 
+          className="flex items-center cursor-pointer" 
+          onClick={handleLogoClick}
+        >
           <h1 className="text-xl font-bold text-finsight-purple-dark">
             FinSight<span className="ml-1 text-finsight-purple">AI</span>
           </h1>
