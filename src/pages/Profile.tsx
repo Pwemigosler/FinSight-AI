@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
@@ -13,13 +13,25 @@ import { Button } from "@/components/ui/button";
 import { PencilLine, Mail, User } from "lucide-react";
 import Header from "@/components/Header";
 import { toast } from "sonner";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const Profile = () => {
   const { user, updateUserProfile } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isEditing, setIsEditing] = useState(false);
   const [profileName, setProfileName] = useState(user?.name || "");
   const [profileEmail, setProfileEmail] = useState(user?.email || "");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -52,6 +64,55 @@ const Profile = () => {
     setIsEditing(false);
   };
 
+  const handleProfilePictureClick = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast("Please select an image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast("Image size should be less than 5MB");
+      return;
+    }
+
+    // Create a preview
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setPreviewImage(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUpload = () => {
+    if (!previewImage) return;
+    
+    updateUserProfile({
+      avatar: previewImage
+    });
+    
+    setIsDialogOpen(false);
+    setPreviewImage(null);
+    toast("Profile picture updated successfully");
+  };
+
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    setPreviewImage(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -70,7 +131,10 @@ const Profile = () => {
                 </Avatar>
                 <h2 className="text-xl font-semibold">{user?.name}</h2>
                 <p className="text-gray-500 mb-4">{user?.email}</p>
-                <Button className="w-full flex items-center gap-2">
+                <Button 
+                  className="w-full flex items-center gap-2"
+                  onClick={handleProfilePictureClick}
+                >
                   <PencilLine className="h-4 w-4" />
                   Edit Profile Picture
                 </Button>
@@ -126,6 +190,66 @@ const Profile = () => {
           </div>
         </div>
       </main>
+
+      {/* Profile Picture Upload Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Profile Picture</DialogTitle>
+            <DialogDescription>
+              Upload a new profile picture. Square images work best.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+            
+            {previewImage ? (
+              <AspectRatio ratio={1 / 1} className="bg-muted">
+                <img
+                  src={previewImage}
+                  alt="Preview"
+                  className="rounded-md object-cover h-full w-full"
+                />
+              </AspectRatio>
+            ) : (
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-md p-8 text-center cursor-pointer"
+                onClick={handleFileSelect}
+              >
+                <div className="flex flex-col items-center">
+                  <User className="h-10 w-10 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500">
+                    Click to select an image or drag and drop
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    PNG, JPG or GIF up to 5MB
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="flex space-x-2 sm:justify-between">
+            <Button type="button" variant="outline" onClick={handleDialogClose}>
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={handleUpload}
+              disabled={!previewImage}
+            >
+              Upload Picture
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
