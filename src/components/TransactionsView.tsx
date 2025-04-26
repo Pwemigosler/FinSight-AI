@@ -1,12 +1,36 @@
-
 import { useState } from 'react';
-import { Search, Filter, ShoppingCart, Home, CreditCard, Coffee, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { Search, Filter, ShoppingCart, Home, CreditCard, Coffee, ArrowDownToLine, ArrowUpFromLine, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { toast } from "@/hooks/use-toast";
 
-// Mock transaction data
 const transactions = [
   {
     id: 't1',
@@ -70,13 +94,54 @@ const transactions = [
   },
 ];
 
+const formSchema = z.object({
+  name: z.string().min(1, "Transaction name is required"),
+  amount: z.string().regex(/^-?\d*\.?\d+$/, "Must be a valid number"),
+  category: z.string().min(1, "Category is required"),
+  date: z.string().min(1, "Date is required"),
+});
+
 const TransactionsView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [transactionsList, setTransactionsList] = useState(transactions);
 
-  const categories = [...new Set(transactions.map(t => t.category))];
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      amount: "",
+      category: "",
+      date: new Date().toISOString().split('T')[0],
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const newTransaction = {
+      id: `t${transactionsList.length + 1}`,
+      name: values.name,
+      category: values.category,
+      date: values.date,
+      amount: parseFloat(values.amount),
+      icon: <ShoppingCart className="h-4 w-4" />,
+      iconBg: 'bg-green-100',
+      iconColor: 'text-green-600',
+    };
+
+    setTransactionsList([newTransaction, ...transactionsList]);
+    setIsDialogOpen(false);
+    form.reset();
+    
+    toast({
+      title: "Transaction added",
+      description: "Your transaction has been successfully added.",
+    });
+  };
+
+  const categories = [...new Set(transactionsList.map(t => t.category))];
   
-  const filteredTransactions = transactions.filter(transaction => {
+  const filteredTransactions = transactionsList.filter(transaction => {
     const matchesSearch = transaction.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory ? transaction.category === selectedCategory : true;
     return matchesSearch && matchesCategory;
@@ -98,7 +163,101 @@ const TransactionsView = () => {
   return (
     <Card>
       <CardContent className="p-6">
-        <h2 className="text-lg font-bold mb-4">Recent Transactions</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">Recent Transactions</h2>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Transaction
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Transaction</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Transaction Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter transaction name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Amount</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter amount (use - for expenses)" 
+                            {...field} 
+                            type="number"
+                            step="0.01"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex justify-end pt-4">
+                    <Button type="submit">Add Transaction</Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
         
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="relative flex-grow">
