@@ -9,6 +9,14 @@ interface User {
   avatar?: string;
 }
 
+interface BankCard {
+  id: string;
+  last4: string;
+  bank: string;
+  type: string;
+  isDefault: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
@@ -16,6 +24,10 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   updateUserProfile: (updates: Partial<User>) => void;
+  linkedCards: BankCard[];
+  addBankCard: (card: Omit<BankCard, "id">) => void;
+  removeBankCard: (cardId: string) => void;
+  setDefaultCard: (cardId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +46,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
+  const [linkedCards, setLinkedCards] = useState<BankCard[]>(() => {
+    const savedCards = localStorage.getItem("finsight_linked_cards");
+    return savedCards ? JSON.parse(savedCards) : [];
+  });
+
   // Function to update user profile
   const updateUserProfile = (updates: Partial<User>) => {
     if (!user) return;
@@ -42,6 +59,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(updatedUser);
     localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
     toast("Profile updated successfully");
+  };
+
+  // Function to add a new bank card
+  const addBankCard = (card: Omit<BankCard, "id">) => {
+    const newCard = {
+      ...card,
+      id: `card-${Date.now()}` // Generate a unique ID
+    };
+    
+    const updatedCards = [...linkedCards];
+    
+    // If this is the first card or isDefault is true, make it the default
+    if (updatedCards.length === 0 || newCard.isDefault) {
+      // Set all other cards to non-default
+      updatedCards.forEach(c => c.isDefault = false);
+    }
+    
+    updatedCards.push(newCard);
+    setLinkedCards(updatedCards);
+    localStorage.setItem("finsight_linked_cards", JSON.stringify(updatedCards));
+    toast("Bank card linked successfully");
+  };
+
+  // Function to remove a bank card
+  const removeBankCard = (cardId: string) => {
+    const updatedCards = linkedCards.filter(card => card.id !== cardId);
+    
+    // If we removed the default card and there are other cards, set a new default
+    if (linkedCards.find(c => c.id === cardId)?.isDefault && updatedCards.length > 0) {
+      updatedCards[0].isDefault = true;
+    }
+    
+    setLinkedCards(updatedCards);
+    localStorage.setItem("finsight_linked_cards", JSON.stringify(updatedCards));
+    toast("Bank card removed");
+  };
+
+  // Function to set a card as default
+  const setDefaultCard = (cardId: string) => {
+    const updatedCards = linkedCards.map(card => ({
+      ...card,
+      isDefault: card.id === cardId
+    }));
+    
+    setLinkedCards(updatedCards);
+    localStorage.setItem("finsight_linked_cards", JSON.stringify(updatedCards));
+    toast("Default payment method updated");
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -112,6 +176,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
     isAuthenticated: !!user,
     updateUserProfile,
+    linkedCards,
+    addBankCard,
+    removeBankCard,
+    setDefaultCard,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
