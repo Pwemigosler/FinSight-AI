@@ -1,13 +1,13 @@
-
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, Upload, User } from "lucide-react";
 import { toast } from "sonner";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 // Define the setup steps
 type SetupStep = {
@@ -47,6 +47,10 @@ const AccountSetup = () => {
     emailNotifications: true,
     appNotifications: true
   });
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -56,6 +60,58 @@ const AccountSetup = () => {
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processSelectedFile(file);
+  };
+
+  const processSelectedFile = (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast("Please select an image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast("Image size should be less than 5MB");
+      return;
+    }
+
+    // Create a preview
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imageDataUrl = event.target?.result as string;
+      setPreviewImage(imageDataUrl);
+      setFormData(prev => ({ ...prev, avatar: imageDataUrl }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      processSelectedFile(files[0]);
     }
   };
 
@@ -133,27 +189,48 @@ const AccountSetup = () => {
               />
             </div>
             <div>
-              <Label htmlFor="avatar">Profile Picture URL (Optional)</Label>
-              <Input
-                id="avatar"
-                name="avatar"
-                placeholder="https://example.com/your-photo.jpg"
-                value={formData.avatar}
-                onChange={handleInputChange}
-                className="mt-1"
+              <Label htmlFor="avatar" className="block mb-1">Profile Picture</Label>
+              <input 
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileChange}
+                id="avatarFile"
               />
-              {formData.avatar && (
-                <div className="mt-2 flex justify-center">
-                  <img 
-                    src={formData.avatar} 
-                    alt="Preview" 
-                    className="h-16 w-16 rounded-full object-cover border" 
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150';
-                    }}
-                  />
-                </div>
-              )}
+              
+              <div 
+                className={`border-2 border-dashed rounded-md p-6 transition-colors ${isDragging ? 'border-finsight-purple bg-finsight-purple bg-opacity-5' : 'border-gray-300'}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={handleFileSelect}
+              >
+                {previewImage ? (
+                  <div className="flex flex-col items-center">
+                    <AspectRatio ratio={1 / 1} className="w-32 mb-2">
+                      <img 
+                        src={previewImage} 
+                        alt="Profile Preview" 
+                        className="rounded-full object-cover h-full w-full"
+                      />
+                    </AspectRatio>
+                    <p className="text-sm text-center text-gray-600">
+                      Click or drop a new image to change
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center cursor-pointer">
+                    <User className="h-12 w-12 text-gray-400 mb-2" />
+                    <p className="text-sm text-center text-gray-600">
+                      Click to select or drag and drop an image here
+                    </p>
+                    <p className="text-xs text-center text-gray-400 mt-1">
+                      PNG, JPG or GIF up to 5MB
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );

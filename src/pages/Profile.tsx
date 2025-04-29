@@ -32,6 +32,7 @@ const Profile = () => {
   const [profileEmail, setProfileEmail] = useState(user?.email || "");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -75,7 +76,10 @@ const Profile = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    processFile(file);
+  };
 
+  const processFile = (file: File) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast("Please select an image file");
@@ -94,6 +98,25 @@ const Profile = () => {
       setPreviewImage(event.target?.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      processFile(files[0]);
+    }
   };
 
   const handleUpload = () => {
@@ -210,19 +233,22 @@ const Profile = () => {
               onChange={handleFileChange}
             />
             
-            {previewImage ? (
-              <AspectRatio ratio={1 / 1} className="bg-muted">
-                <img
-                  src={previewImage}
-                  alt="Preview"
-                  className="rounded-md object-cover h-full w-full"
-                />
-              </AspectRatio>
-            ) : (
-              <div 
-                className="border-2 border-dashed border-gray-300 rounded-md p-8 text-center cursor-pointer"
-                onClick={handleFileSelect}
-              >
+            <div
+              className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-colors ${isDragging ? 'border-finsight-purple bg-finsight-purple bg-opacity-5' : 'border-gray-300'}`}
+              onClick={handleFileSelect}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {previewImage ? (
+                <AspectRatio ratio={1 / 1}>
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="rounded-md object-cover h-full w-full"
+                  />
+                </AspectRatio>
+              ) : (
                 <div className="flex flex-col items-center">
                   <User className="h-10 w-10 text-gray-400 mb-2" />
                   <p className="text-sm text-gray-500">
@@ -232,8 +258,8 @@ const Profile = () => {
                     PNG, JPG or GIF up to 5MB
                   </p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
           
           <DialogFooter className="flex space-x-2 sm:justify-between">
