@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   avatar?: string;
+  hasCompletedSetup?: boolean;
 }
 
 interface BankCard {
@@ -28,6 +29,8 @@ interface AuthContextType {
   addBankCard: (card: Omit<BankCard, "id">) => void;
   removeBankCard: (cardId: string) => void;
   setDefaultCard: (cardId: string) => void;
+  completeAccountSetup: () => void;
+  needsAccountSetup: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,6 +83,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
     toast("Profile updated successfully");
   };
+
+  // Function to mark account setup as complete
+  const completeAccountSetup = () => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, hasCompletedSetup: true };
+    setUser(updatedUser);
+    localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
+    toast("Account setup completed!");
+  };
+
+  // Check if user needs to complete account setup
+  const needsAccountSetup = user !== null && user.hasCompletedSetup !== true;
 
   // Function to add a new bank card
   const addBankCard = (card: Omit<BankCard, "id">) => {
@@ -178,6 +194,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         name,
         email,
         avatar: "",
+        hasCompletedSetup: false // New users haven't completed setup
       };
       
       setUser(mockUser);
@@ -219,6 +236,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     addBankCard,
     removeBankCard,
     setDefaultCard,
+    completeAccountSetup,
+    needsAccountSetup,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

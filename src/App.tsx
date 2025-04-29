@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import AccountSetup from "./pages/AccountSetup";
 import SettingsView from "./components/SettingsView";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -15,10 +16,31 @@ const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, needsAccountSetup } = useAuth();
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+  
+  // Redirect users who need to complete account setup
+  if (needsAccountSetup) {
+    return <Navigate to="/setup" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Setup route component
+const SetupRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, needsAccountSetup } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // If setup is already completed, redirect to home
+  if (!needsAccountSetup) {
+    return <Navigate to="/" replace />;
   }
   
   return <>{children}</>;
@@ -60,6 +82,14 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Settings />
           </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/setup" 
+        element={
+          <SetupRoute>
+            <AccountSetup />
+          </SetupRoute>
         } 
       />
       <Route 
