@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useContext, ReactNode } from "react";
+import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { toast } from "sonner";
 
 interface User {
@@ -41,15 +41,35 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem("finsight_user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [linkedCards, setLinkedCards] = useState<BankCard[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
-  const [linkedCards, setLinkedCards] = useState<BankCard[]>(() => {
-    const savedCards = localStorage.getItem("finsight_linked_cards");
-    return savedCards ? JSON.parse(savedCards) : [];
-  });
+  // Load user data and linked cards from localStorage on mount
+  useEffect(() => {
+    const loadStoredData = () => {
+      try {
+        // Load user data
+        const savedUser = localStorage.getItem("finsight_user");
+        const parsedUser = savedUser ? JSON.parse(savedUser) : null;
+        setUser(parsedUser);
+        
+        // Load linked cards
+        const savedCards = localStorage.getItem("finsight_linked_cards");
+        const parsedCards = savedCards ? JSON.parse(savedCards) : [];
+        setLinkedCards(parsedCards);
+      } catch (error) {
+        console.error("Error loading stored auth data:", error);
+        // If there's an error parsing, reset the storage
+        localStorage.removeItem("finsight_user");
+        localStorage.removeItem("finsight_linked_cards");
+      } finally {
+        setInitialized(true);
+      }
+    };
+
+    loadStoredData();
+  }, []);
 
   // Function to update user profile
   const updateUserProfile = (updates: Partial<User>) => {
@@ -115,6 +135,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
+      // In a real app, this would validate against a backend service
+      // For now, we're just simulating login with mock data
       const mockUser = {
         id: "user-123",
         name: email.split('@')[0] || "User",
@@ -124,6 +146,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       setUser(mockUser);
       localStorage.setItem("finsight_user", JSON.stringify(mockUser));
+      
+      // Also store a login timestamp to potentially expire the session after some time
+      localStorage.setItem("finsight_login_timestamp", Date.now().toString());
+      
       toast("Successfully logged in");
       return true;
     } catch (error) {
@@ -145,6 +171,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
+      // In a real app, this would create a user in a backend service
+      // For now, we're just simulating signup with mock data
       const mockUser = {
         id: `user-${Date.now()}`,
         name,
@@ -154,6 +182,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       setUser(mockUser);
       localStorage.setItem("finsight_user", JSON.stringify(mockUser));
+      
+      // Store login timestamp
+      localStorage.setItem("finsight_login_timestamp", Date.now().toString());
+      
       toast("Successfully signed up!");
       return true;
     } catch (error) {
@@ -165,9 +197,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setUser(null);
+    // Don't remove linked cards on logout to preserve user preferences
     localStorage.removeItem("finsight_user");
+    localStorage.removeItem("finsight_login_timestamp");
     toast("You have been logged out");
   };
+
+  // Only render children once we've checked localStorage
+  if (!initialized) {
+    return null; // Or a loading spinner
+  }
 
   const value = {
     user,
