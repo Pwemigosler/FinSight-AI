@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, ChevronRight, Crop, User } from "lucide-react";
+import { Check, ChevronRight, Crop, User, Move } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
 
@@ -52,6 +53,10 @@ const AccountSetup = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(100); // Default zoom level (100%)
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 }); // Image position
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -93,8 +98,9 @@ const AccountSetup = () => {
       const imageDataUrl = event.target?.result as string;
       setPreviewImage(imageDataUrl);
       setFormData(prev => ({ ...prev, avatar: imageDataUrl }));
-      // Reset zoom level when loading a new image
+      // Reset zoom level and position when loading a new image
       setZoomLevel(100);
+      setImagePosition({ x: 0, y: 0 });
     };
     reader.readAsDataURL(file);
   };
@@ -119,7 +125,37 @@ const AccountSetup = () => {
   };
 
   const handleZoomChange = (value: number[]) => {
+    // Prevent propagation to avoid triggering image reupload
     setZoomLevel(value[0]);
+  };
+
+  // Image dragging handlers
+  const handleImageMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent triggering file selector
+    setIsDraggingImage(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingImage) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    
+    setDragStart({ x: e.clientX, y: e.clientY });
+    setImagePosition(prev => ({ 
+      x: prev.x + dx, 
+      y: prev.y + dy 
+    }));
+  };
+
+  const handleImageMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingImage(false);
   };
 
   const currentStep = setupSteps[currentStepIndex];
@@ -216,17 +252,33 @@ const AccountSetup = () => {
               >
                 {previewImage ? (
                   <div className="flex flex-col items-center space-y-3">
-                    <div className="w-32 h-32 rounded-full overflow-hidden mb-2">
+                    <div 
+                      ref={imageContainerRef}
+                      className="w-32 h-32 rounded-full overflow-hidden mb-2 cursor-move relative"
+                      onMouseDown={handleImageMouseDown}
+                      onMouseMove={handleImageMouseMove}
+                      onMouseUp={handleImageMouseUp}
+                      onMouseLeave={handleImageMouseUp}
+                      onClick={(e) => e.stopPropagation()} // Prevent triggering file select
+                    >
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-70 bg-black bg-opacity-40 text-white transition-opacity">
+                        <Move className="h-6 w-6" />
+                      </div>
                       <img 
                         src={previewImage} 
                         alt="Profile Preview" 
                         className="object-cover w-full h-full"
-                        style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'center' }}
+                        style={{ 
+                          transform: `scale(${zoomLevel / 100})`,
+                          transformOrigin: 'center',
+                          marginLeft: `${imagePosition.x}px`,
+                          marginTop: `${imagePosition.y}px`
+                        }}
                       />
                     </div>
                     
                     {/* Image adjustment controls */}
-                    <div className="w-full max-w-xs space-y-1">
+                    <div className="w-full max-w-xs space-y-1" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">
                           <Crop className="h-3 w-3 inline mr-1" />
@@ -240,6 +292,7 @@ const AccountSetup = () => {
                         max={200}
                         step={1}
                         onValueChange={handleZoomChange}
+                        onClick={(e) => e.stopPropagation()}
                       />
                     </div>
                     
