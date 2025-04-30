@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
@@ -38,6 +38,18 @@ const Profile = () => {
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 }); // Image position
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  // Update local state when user changes
+  useEffect(() => {
+    if (user) {
+      setProfileName(user.name || "");
+      setProfileEmail(user.email || "");
+      // Initialize preview image from user avatar if available
+      if (user.avatar && !previewImage) {
+        setPreviewImage(user.avatar);
+      }
+    }
+  }, [user]);
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -72,13 +84,20 @@ const Profile = () => {
 
   const handleProfilePictureClick = () => {
     setIsDialogOpen(true);
+    // Initialize preview image from user avatar if available
+    if (user?.avatar && !previewImage) {
+      setPreviewImage(user.avatar);
+    }
     // Reset zoom level and position when opening the dialog
     setZoomLevel(100);
     setImagePosition({ x: 0, y: 0 });
   };
 
-  const handleFileSelect = () => {
-    fileInputRef.current?.click();
+  const handleFileSelect = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Only trigger file selection if there's no image already
+    if (!previewImage) {
+      fileInputRef.current?.click();
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,18 +185,27 @@ const Profile = () => {
   const handleUpload = () => {
     if (!previewImage) return;
     
+    // Apply transformations to the image before saving
+    // In a real app, you would process the image on the server
+    // Here we're just saving the preview with position/zoom info
     updateUserProfile({
       avatar: previewImage
     });
     
     setIsDialogOpen(false);
-    setPreviewImage(null);
     toast("Profile picture updated successfully");
   };
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
-    setPreviewImage(null);
+  };
+
+  // Handle clicking the empty image container or "change image" text
+  const handleImageContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (!previewImage) {
+      fileInputRef.current?.click();
+    }
   };
 
   return (
@@ -278,11 +306,11 @@ const Profile = () => {
             />
             
             <div
-              className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition-colors ${isDragging ? 'border-finsight-purple bg-finsight-purple bg-opacity-5' : 'border-gray-300'}`}
-              onClick={handleFileSelect}
+              className={`border-2 border-dashed rounded-md p-6 text-center ${isDragging ? 'border-finsight-purple bg-finsight-purple bg-opacity-5' : 'border-gray-300'}`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
+              onClick={handleFileSelect}
             >
               {previewImage ? (
                 <div className="space-y-4">
@@ -329,9 +357,13 @@ const Profile = () => {
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
+                  
+                  <p className="text-xs text-center text-gray-500">
+                    Drag the image to reposition
+                  </p>
                 </div>
               ) : (
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center" onClick={handleImageContainerClick}>
                   <div className="w-48 h-48 rounded-full bg-gray-100 flex items-center justify-center mb-2">
                     <User className="h-16 w-16 text-gray-400" />
                   </div>

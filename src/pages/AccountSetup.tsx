@@ -1,5 +1,4 @@
-
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -58,6 +57,21 @@ const AccountSetup = () => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
+  // Update local state when user changes
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: user.name || "",
+        avatar: user.avatar || ""
+      }));
+      // Initialize preview image from user avatar if available
+      if (user.avatar && !previewImage) {
+        setPreviewImage(user.avatar);
+      }
+    }
+  }, [user]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
     
@@ -69,8 +83,11 @@ const AccountSetup = () => {
     }
   };
 
-  const handleFileSelect = () => {
-    fileInputRef.current?.click();
+  const handleFileSelect = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Only trigger file selection if there's no image already
+    if (!previewImage) {
+      fileInputRef.current?.click();
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,6 +173,14 @@ const AccountSetup = () => {
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingImage(false);
+  };
+
+  // Handle clicking the empty image container or "change image" text
+  const handleImageContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (!previewImage) {
+      fileInputRef.current?.click();
+    }
   };
 
   const currentStep = setupSteps[currentStepIndex];
@@ -248,7 +273,6 @@ const AccountSetup = () => {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                onClick={handleFileSelect}
               >
                 {previewImage ? (
                   <div className="flex flex-col items-center space-y-3">
@@ -297,11 +321,11 @@ const AccountSetup = () => {
                     </div>
                     
                     <p className="text-xs text-center text-gray-600">
-                      Click or drop a new image to change
+                      Drag the image to reposition
                     </p>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center cursor-pointer">
+                  <div className="flex flex-col items-center cursor-pointer" onClick={handleFileSelect}>
                     <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center mb-2">
                       <User className="h-12 w-12 text-gray-400" />
                     </div>
