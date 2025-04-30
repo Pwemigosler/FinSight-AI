@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { PencilLine, Mail, User } from "lucide-react";
+import { PencilLine, Mail, User, Crop } from "lucide-react";
 import Header from "@/components/Header";
 import { toast } from "sonner";
 import { 
@@ -21,11 +21,12 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Slider } from "@/components/ui/slider";
 
 const Profile = () => {
   const { user, updateUserProfile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
   
   const [isEditing, setIsEditing] = useState(false);
   const [profileName, setProfileName] = useState(user?.name || "");
@@ -33,6 +34,7 @@ const Profile = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(100); // Default zoom level (100%)
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -67,6 +69,8 @@ const Profile = () => {
 
   const handleProfilePictureClick = () => {
     setIsDialogOpen(true);
+    // Reset zoom level when opening the dialog
+    setZoomLevel(100);
   };
 
   const handleFileSelect = () => {
@@ -96,6 +100,8 @@ const Profile = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       setPreviewImage(event.target?.result as string);
+      // Reset zoom level when loading a new image
+      setZoomLevel(100);
     };
     reader.readAsDataURL(file);
   };
@@ -117,6 +123,10 @@ const Profile = () => {
     if (files.length > 0) {
       processFile(files[0]);
     }
+  };
+
+  const handleZoomChange = (value: number[]) => {
+    setZoomLevel(value[0]);
   };
 
   const handleUpload = () => {
@@ -241,12 +251,34 @@ const Profile = () => {
               onDrop={handleDrop}
             >
               {previewImage ? (
-                <div className="w-48 h-48 mx-auto rounded-full overflow-hidden">
-                  <img
-                    src={previewImage}
-                    alt="Preview"
-                    className="object-cover h-full w-full"
-                  />
+                <div className="space-y-4">
+                  <div className="w-48 h-48 mx-auto rounded-full overflow-hidden">
+                    <img
+                      ref={imageRef}
+                      src={previewImage}
+                      alt="Preview"
+                      className="object-cover h-full w-full"
+                      style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'center' }}
+                    />
+                  </div>
+                  
+                  {/* Image adjustment controls */}
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">
+                        <Crop className="h-4 w-4 inline mr-1" />
+                        Adjust Image
+                      </span>
+                      <span className="text-xs text-gray-400">{zoomLevel}%</span>
+                    </div>
+                    <Slider
+                      value={[zoomLevel]}
+                      min={100} 
+                      max={200}
+                      step={1}
+                      onValueChange={handleZoomChange}
+                    />
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center">

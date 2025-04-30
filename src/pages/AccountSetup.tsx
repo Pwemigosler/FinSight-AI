@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, ChevronRight, Upload, User } from "lucide-react";
+import { Check, ChevronRight, Crop, User } from "lucide-react";
 import { toast } from "sonner";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Slider } from "@/components/ui/slider";
 
 // Define the setup steps
 type SetupStep = {
@@ -51,6 +51,7 @@ const AccountSetup = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(100); // Default zoom level (100%)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -92,6 +93,8 @@ const AccountSetup = () => {
       const imageDataUrl = event.target?.result as string;
       setPreviewImage(imageDataUrl);
       setFormData(prev => ({ ...prev, avatar: imageDataUrl }));
+      // Reset zoom level when loading a new image
+      setZoomLevel(100);
     };
     reader.readAsDataURL(file);
   };
@@ -113,6 +116,10 @@ const AccountSetup = () => {
     if (files.length > 0) {
       processSelectedFile(files[0]);
     }
+  };
+
+  const handleZoomChange = (value: number[]) => {
+    setZoomLevel(value[0]);
   };
 
   const currentStep = setupSteps[currentStepIndex];
@@ -208,15 +215,35 @@ const AccountSetup = () => {
                 onClick={handleFileSelect}
               >
                 {previewImage ? (
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center space-y-3">
                     <div className="w-32 h-32 rounded-full overflow-hidden mb-2">
                       <img 
                         src={previewImage} 
                         alt="Profile Preview" 
                         className="object-cover w-full h-full"
+                        style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'center' }}
                       />
                     </div>
-                    <p className="text-sm text-center text-gray-600">
+                    
+                    {/* Image adjustment controls */}
+                    <div className="w-full max-w-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          <Crop className="h-3 w-3 inline mr-1" />
+                          Adjust Image
+                        </span>
+                        <span className="text-xs text-gray-400">{zoomLevel}%</span>
+                      </div>
+                      <Slider
+                        value={[zoomLevel]}
+                        min={100} 
+                        max={200}
+                        step={1}
+                        onValueChange={handleZoomChange}
+                      />
+                    </div>
+                    
+                    <p className="text-xs text-center text-gray-600">
                       Click or drop a new image to change
                     </p>
                   </div>
