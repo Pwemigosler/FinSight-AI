@@ -220,7 +220,7 @@ const Profile = () => {
           <DialogHeader>
             <DialogTitle>Update Profile Picture</DialogTitle>
             <DialogDescription>
-              Upload a new profile picture. Square images work best.
+              Upload a headshot image for your profile. A square image centered on your face works best.
             </DialogDescription>
           </DialogHeader>
           
@@ -241,18 +241,20 @@ const Profile = () => {
               onDrop={handleDrop}
             >
               {previewImage ? (
-                <AspectRatio ratio={1 / 1}>
+                <div className="w-48 h-48 mx-auto rounded-full overflow-hidden">
                   <img
                     src={previewImage}
                     alt="Preview"
-                    className="rounded-md object-cover h-full w-full"
+                    className="object-cover h-full w-full"
                   />
-                </AspectRatio>
+                </div>
               ) : (
                 <div className="flex flex-col items-center">
-                  <User className="h-10 w-10 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-500">
-                    Click to select an image or drag and drop
+                  <div className="w-48 h-48 rounded-full bg-gray-100 flex items-center justify-center mb-2">
+                    <User className="h-16 w-16 text-gray-400" />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Click to select a headshot image or drag and drop
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
                     PNG, JPG or GIF up to 5MB

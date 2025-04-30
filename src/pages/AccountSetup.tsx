@@ -190,6 +190,7 @@ const AccountSetup = () => {
             </div>
             <div>
               <Label htmlFor="avatar" className="block mb-1">Profile Picture</Label>
+              <p className="text-sm text-gray-500 mb-2">Upload a headshot photo for your profile picture</p>
               <input 
                 type="file"
                 ref={fileInputRef}
@@ -208,22 +209,24 @@ const AccountSetup = () => {
               >
                 {previewImage ? (
                   <div className="flex flex-col items-center">
-                    <AspectRatio ratio={1 / 1} className="w-32 mb-2">
+                    <div className="w-32 h-32 rounded-full overflow-hidden mb-2">
                       <img 
                         src={previewImage} 
                         alt="Profile Preview" 
-                        className="rounded-full object-cover h-full w-full"
+                        className="object-cover w-full h-full"
                       />
-                    </AspectRatio>
+                    </div>
                     <p className="text-sm text-center text-gray-600">
                       Click or drop a new image to change
                     </p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center cursor-pointer">
-                    <User className="h-12 w-12 text-gray-400 mb-2" />
+                    <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center mb-2">
+                      <User className="h-12 w-12 text-gray-400" />
+                    </div>
                     <p className="text-sm text-center text-gray-600">
-                      Click to select or drag and drop an image here
+                      Click to select or drag and drop a headshot image
                     </p>
                     <p className="text-xs text-center text-gray-400 mt-1">
                       PNG, JPG or GIF up to 5MB
