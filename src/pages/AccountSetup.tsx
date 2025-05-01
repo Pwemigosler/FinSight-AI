@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, ChevronRight, Crop, User, Move } from "lucide-react";
+import { Check, ChevronRight, Crop, User as UserIcon, Move } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
 
-// Import or define the User type
+// Import User type
 import type { User } from "../types/user";
 
 // Define the setup steps
