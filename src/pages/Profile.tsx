@@ -40,23 +40,38 @@ const Profile = () => {
   });
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [avatarKey, setAvatarKey] = useState(0);
 
   // Update local state when user changes
   useEffect(() => {
     if (user) {
+      console.log("[Profile] User updated:", 
+        "Name:", user.name,
+        "Avatar exists:", !!user.avatar,
+        "Avatar length:", user.avatar?.length || 0,
+        "Avatar settings:", user.avatarSettings ? 
+          `zoom:${user.avatarSettings.zoom}, pos:(${user.avatarSettings.position.x},${user.avatarSettings.position.y})` : 
+          "none"
+      );
+      
       setProfileName(user.name || "");
       setProfileEmail(user.email || "");
       
       // Always update preview image when user avatar changes
       if (user.avatar) {
         setPreviewImage(user.avatar);
+        console.log("[Profile] Setting preview image from user avatar");
       }
       
       // Initialize zoom and position from user settings if available
       if (user.avatarSettings) {
         setZoomLevel(user.avatarSettings.zoom);
         setImagePosition(user.avatarSettings.position);
+        console.log("[Profile] Setting zoom and position from user settings");
       }
+      
+      // Force re-render of avatar
+      setAvatarKey(prev => prev + 1);
     }
   }, [user]);
   
@@ -94,6 +109,7 @@ const Profile = () => {
   const handleProfilePictureClick = () => {
     // Make sure we're using any existing avatar when opening the dialog
     if (user?.avatar && !previewImage) {
+      console.log("[Profile] Setting preview image from user avatar before dialog");
       setPreviewImage(user.avatar);
     }
     setIsDialogOpen(true);
@@ -102,6 +118,10 @@ const Profile = () => {
     if (!user?.avatarSettings) {
       setZoomLevel(100);
       setImagePosition({ x: 0, y: 0 });
+    } else {
+      // Use existing settings
+      setZoomLevel(user.avatarSettings.zoom);
+      setImagePosition(user.avatarSettings.position);
     }
   };
 
@@ -197,6 +217,11 @@ const Profile = () => {
   const handleUpload = () => {
     if (!previewImage) return;
     
+    console.log("[Profile] Uploading profile picture with settings:",
+      "Zoom:", zoomLevel,
+      "Position:", imagePosition
+    );
+    
     // Save the image with transformation settings
     updateUserProfile({
       avatar: previewImage,
@@ -204,10 +229,14 @@ const Profile = () => {
         zoom: zoomLevel,
         position: imagePosition
       }
+    }).then(() => {
+      console.log("[Profile] Profile picture updated successfully");
+      setIsDialogOpen(false);
+      toast("Profile picture updated successfully");
+    }).catch(error => {
+      console.error("[Profile] Error updating profile picture:", error);
+      toast("Failed to update profile picture");
     });
-    
-    setIsDialogOpen(false);
-    toast("Profile picture updated successfully");
   };
 
   const handleDialogClose = () => {
@@ -232,8 +261,19 @@ const Profile = () => {
           <div className="md:col-span-1">
             <Card>
               <CardContent className="pt-6 flex flex-col items-center">
-                <Avatar className="h-24 w-24 mb-4">
-                  <AvatarImage src={user?.avatar || ""} alt={user?.name} />
+                <Avatar className="h-24 w-24 mb-4" key={`profile-avatar-${avatarKey}`}>
+                  {user?.avatar ? (
+                    <AvatarImage 
+                      src={user.avatar} 
+                      alt={user.name || "Profile"} 
+                      style={{ 
+                        transform: user.avatarSettings ? `scale(${user.avatarSettings.zoom / 100})` : undefined,
+                        marginLeft: user.avatarSettings ? `${user.avatarSettings.position.x * 0.25}px` : undefined,
+                        marginTop: user.avatarSettings ? `${user.avatarSettings.position.y * 0.25}px` : undefined,
+                      }}
+                      onError={() => console.error("[Profile] Failed to load avatar image")}
+                    />
+                  ) : null}
                   <AvatarFallback className="bg-finsight-purple text-white text-xl">
                     {getInitials()}
                   </AvatarFallback>

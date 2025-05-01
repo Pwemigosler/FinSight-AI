@@ -95,6 +95,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             console.log("[Header] Detected avatar change in localStorage");
             setCachedAvatarData(savedUser.avatar);
             setAvatarKey(prev => prev + 1);
+            setAvatarError(false); // Reset error state when we get new avatar data
           }
         }
       } catch (error) {
@@ -149,7 +150,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer">
-              <Avatar className="h-8 w-8" key={avatarKey}>
+              <Avatar className="h-8 w-8" key={`avatar-${avatarKey}`}>
                 {(cachedAvatarData || user?.avatar) && !avatarError ? (
                   <AvatarImage 
                     src={cachedAvatarData || user?.avatar} 

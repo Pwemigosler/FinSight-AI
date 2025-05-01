@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Function to mark account setup as complete - now preserves avatar data
+  // Function to mark account setup as complete - fixed to preserve avatar data
   const completeAccountSetup = async (): Promise<void> => {
     return new Promise((resolve, reject) => {
       try {
