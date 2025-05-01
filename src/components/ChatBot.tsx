@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -58,7 +57,7 @@ const ChatBot = () => {
       return {
         action: {
           type: "allocation",
-          status: result.success ? "success" : "error",
+          status: result.success ? "success" as const : "error" as const,
           details: result
         },
         response: result.message
@@ -76,7 +75,7 @@ const ChatBot = () => {
       return {
         action: {
           type: "transfer",
-          status: result.success ? "success" : "error",
+          status: result.success ? "success" as const : "error" as const,
           details: result
         },
         response: result.message
@@ -91,7 +90,7 @@ const ChatBot = () => {
       return {
         action: {
           type: "view",
-          status: "success",
+          status: "success" as const,
           details: { categories }
         },
         response: `Here are your current budget categories:\n\n${categoryList}`
