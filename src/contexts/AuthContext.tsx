@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { toast } from "sonner";
 import { User } from "../types/user";
@@ -153,7 +154,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Function to mark account setup as complete - fixed to preserve avatar data
+  // FIXED: Fixed completeAccountSetup to properly preserve avatar data
   const completeAccountSetup = async (): Promise<void> => {
     return new Promise((resolve, reject) => {
       try {
@@ -163,28 +164,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
-        // Create a complete copy of the user to ensure we don't lose any data
-        const updatedUser = { 
-          ...user,
-          hasCompletedSetup: true
-        };
+        // IMPORTANT: Create a full copy of ALL user data
+        const updatedUser = JSON.parse(JSON.stringify(user));
+        
+        // Only update the hasCompletedSetup flag
+        updatedUser.hasCompletedSetup = true;
 
-        console.log("[AuthContext] Completing setup.", 
+        console.log("[AuthContext] Completing setup with FULL user data:", 
           "User has avatar:", !!updatedUser.avatar,
           "Avatar length:", updatedUser.avatar?.length || 0,
           "Avatar settings:", updatedUser.avatarSettings ? 
             `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
             "none");
         
-        // Save to localStorage first with full user data
+        // Save to localStorage with full data, ensuring nothing is lost
         localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
         
-        // Then update state with the complete user object
+        // Update state with the complete object that includes all data
         setUser(updatedUser);
+        
+        console.log("[AuthContext] Account setup completed successfully, state updated");
         toast("Account setup completed!");
         
         // Give the browser a moment to process localStorage changes
-        setTimeout(() => resolve(), 50);
+        setTimeout(() => resolve(), 100);
       } catch (error) {
         console.error("[AuthContext] Error completing setup:", error);
         reject(error);

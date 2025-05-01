@@ -52,6 +52,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       // Update cached avatar data
       if (user.avatar) {
         setCachedAvatarData(user.avatar);
+        console.log("[Header] User avatar updated, length:", user.avatar.length);
+      } else {
+        console.log("[Header] User updated but no avatar present");
       }
       
       // Force re-render by updating key
@@ -150,7 +153,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer">
-              <Avatar className="h-8 w-8" key={`avatar-${avatarKey}`}>
+              <Avatar className="h-8 w-8" key={`avatar-${avatarKey}-${Date.now()}`}>
                 {(cachedAvatarData || user?.avatar) && !avatarError ? (
                   <AvatarImage 
                     src={cachedAvatarData || user?.avatar} 
@@ -161,6 +164,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                       marginTop: user?.avatarSettings ? `${user.avatarSettings.position.y * 0.25}px` : undefined,
                     }}
                     onError={handleAvatarError}
+                    data-avatar-length={user?.avatar?.length || 0}
                   />
                 ) : null}
                 <AvatarFallback className="bg-finsight-purple text-white">{getInitials()}</AvatarFallback>

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -40,7 +41,7 @@ const Profile = () => {
   });
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [avatarKey, setAvatarKey] = useState(0);
+  const [avatarKey, setAvatarKey] = useState(Date.now());
 
   // Update local state when user changes
   useEffect(() => {
@@ -60,7 +61,10 @@ const Profile = () => {
       // Always update preview image when user avatar changes
       if (user.avatar) {
         setPreviewImage(user.avatar);
-        console.log("[Profile] Setting preview image from user avatar");
+        console.log("[Profile] Setting preview image from user avatar, length:", user.avatar.length);
+      } else {
+        console.log("[Profile] No avatar found in user data");
+        setPreviewImage(null);
       }
       
       // Initialize zoom and position from user settings if available
@@ -71,7 +75,7 @@ const Profile = () => {
       }
       
       // Force re-render of avatar
-      setAvatarKey(prev => prev + 1);
+      setAvatarKey(Date.now());
     }
   }, [user]);
   
@@ -154,7 +158,9 @@ const Profile = () => {
     // Create a preview
     const reader = new FileReader();
     reader.onload = (event) => {
-      setPreviewImage(event.target?.result as string);
+      const imageData = event.target?.result as string;
+      console.log("[Profile] New image loaded, length:", imageData.length);
+      setPreviewImage(imageData);
       // Reset zoom level when loading a new image
       setZoomLevel(100);
       setImagePosition({ x: 0, y: 0 });
@@ -219,7 +225,7 @@ const Profile = () => {
     
     console.log("[Profile] Uploading profile picture with settings:",
       "Zoom:", zoomLevel,
-      "Position:", imagePosition
+      "Position:", JSON.stringify(imagePosition)
     );
     
     // Save the image with transformation settings
@@ -233,6 +239,9 @@ const Profile = () => {
       console.log("[Profile] Profile picture updated successfully");
       setIsDialogOpen(false);
       toast("Profile picture updated successfully");
+      
+      // Force a re-render of the avatar after update
+      setAvatarKey(Date.now());
     }).catch(error => {
       console.error("[Profile] Error updating profile picture:", error);
       toast("Failed to update profile picture");
@@ -271,7 +280,10 @@ const Profile = () => {
                         marginLeft: user.avatarSettings ? `${user.avatarSettings.position.x * 0.25}px` : undefined,
                         marginTop: user.avatarSettings ? `${user.avatarSettings.position.y * 0.25}px` : undefined,
                       }}
-                      onError={() => console.error("[Profile] Failed to load avatar image")}
+                      onError={() => {
+                        console.error("[Profile] Failed to load avatar image in profile display");
+                      }}
+                      data-avatar-length={user.avatar.length || 0}
                     />
                   ) : null}
                   <AvatarFallback className="bg-finsight-purple text-white text-xl">
