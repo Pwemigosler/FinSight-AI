@@ -31,7 +31,7 @@ const Profile = () => {
   const [profileName, setProfileName] = useState(user?.name || "");
   const [profileEmail, setProfileEmail] = useState(user?.email || "");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(user?.avatar || null);
   const [isDragging, setIsDragging] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(user?.avatarSettings?.zoom || 100);
   const [imagePosition, setImagePosition] = useState({ 
@@ -46,10 +46,12 @@ const Profile = () => {
     if (user) {
       setProfileName(user.name || "");
       setProfileEmail(user.email || "");
-      // Initialize preview image from user avatar if available
-      if (user.avatar && !previewImage) {
+      
+      // Always update preview image when user avatar changes
+      if (user.avatar) {
         setPreviewImage(user.avatar);
       }
+      
       // Initialize zoom and position from user settings if available
       if (user.avatarSettings) {
         setZoomLevel(user.avatarSettings.zoom);
@@ -90,11 +92,12 @@ const Profile = () => {
   };
 
   const handleProfilePictureClick = () => {
-    setIsDialogOpen(true);
-    // Initialize preview image from user avatar if available
+    // Make sure we're using any existing avatar when opening the dialog
     if (user?.avatar && !previewImage) {
       setPreviewImage(user.avatar);
     }
+    setIsDialogOpen(true);
+    
     // Reset zoom level and position when opening the dialog if no existing settings
     if (!user?.avatarSettings) {
       setZoomLevel(100);

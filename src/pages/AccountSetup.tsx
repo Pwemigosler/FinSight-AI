@@ -49,7 +49,7 @@ const AccountSetup = () => {
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(user?.avatar || null);
   const [isDragging, setIsDragging] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(user?.avatarSettings?.zoom || 100);
   const [imagePosition, setImagePosition] = useState({
@@ -68,10 +68,12 @@ const AccountSetup = () => {
         fullName: user.name || "",
         avatar: user.avatar || ""
       }));
-      // Initialize preview image from user avatar if available
-      if (user.avatar && !previewImage) {
+      
+      // Always update preview image when user avatar changes
+      if (user.avatar) {
         setPreviewImage(user.avatar);
       }
+      
       // Initialize zoom and position from user settings if available
       if (user.avatarSettings) {
         setZoomLevel(user.avatarSettings.zoom);
@@ -223,10 +225,10 @@ const AccountSetup = () => {
   const completeSetup = async () => {
     setLoading(true);
     try {
-      // Update user profile with form data including avatar settings
+      // Make sure we save all image data including the actual image
       await updateUserProfile({
         name: formData.fullName,
-        avatar: formData.avatar,
+        avatar: previewImage, // Use the actual preview image not formData.avatar
         avatarSettings: {
           zoom: zoomLevel,
           position: imagePosition

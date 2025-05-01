@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -61,6 +62,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Load user data
         const savedUser = localStorage.getItem("finsight_user");
         const parsedUser = savedUser ? JSON.parse(savedUser) : null;
+        
+        // Ensure avatar settings are initialized properly
+        if (parsedUser && parsedUser.avatar && !parsedUser.avatarSettings) {
+          parsedUser.avatarSettings = {
+            zoom: 100,
+            position: { x: 0, y: 0 }
+          };
+        }
+        
         setUser(parsedUser);
         
         // Load linked cards
@@ -85,6 +95,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     const updatedUser = { ...user, ...updates };
+    
+    // Ensure avatar settings exist if we have an avatar
+    if (updatedUser.avatar && !updatedUser.avatarSettings) {
+      updatedUser.avatarSettings = {
+        zoom: 100,
+        position: { x: 0, y: 0 }
+      };
+    }
+    
     setUser(updatedUser);
     localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
     toast("Profile updated successfully");
@@ -206,13 +225,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id: `user-${Date.now()}`,
         name,
         email,
-        avatar: "",
+        avatar: "", // Initialize with empty avatar
         avatarSettings: {
-          zoom: 1.0,
-          position: {
-            x: 0,
-            y: 0
-          }
+          zoom: 100,
+          position: { x: 0, y: 0 }
         },
         hasCompletedSetup: false // New users haven't completed setup
       };
