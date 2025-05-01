@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -368,7 +367,7 @@ const AccountSetup = () => {
                 ) : (
                   <div className="flex flex-col items-center cursor-pointer" onClick={handleFileSelect}>
                     <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center mb-2">
-                      <User className="h-12 w-12 text-gray-400" />
+                      <UserIcon className="h-12 w-12 text-gray-400" />
                     </div>
                     <p className="text-sm text-center text-gray-600">
                       Click to select or drag and drop a headshot image
