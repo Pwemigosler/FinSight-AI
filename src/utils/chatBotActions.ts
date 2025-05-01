@@ -96,7 +96,7 @@ export const processActionRequest = (message: string): ActionResult | null => {
       action: {
         type: "view",
         status: "success" as const,
-        details: { categories }
+        details: categories  // Fixed: Changed from { categories } to just categories
       },
       response: `Here are your current budget categories:\n\n${categoryList}`
     };
