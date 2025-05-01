@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -65,6 +66,8 @@ const AccountSetup = () => {
   
   // Track if avatar has been modified during setup
   const [avatarModified, setAvatarModified] = useState(false);
+  // New flag to track if avatar position or zoom has been modified
+  const [avatarAdjusted, setAvatarAdjusted] = useState(false);
 
   // Update local state when user changes
   useEffect(() => {
@@ -164,6 +167,8 @@ const AccountSetup = () => {
   const handleZoomChange = (value: number[]) => {
     // Prevent propagation to avoid triggering image reupload
     setZoomLevel(value[0]);
+    // Mark avatar as adjusted when zoom changes
+    setAvatarAdjusted(true);
   };
 
   // Image dragging handlers
@@ -193,6 +198,9 @@ const AccountSetup = () => {
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingImage(false);
+    // Mark avatar as adjusted when position changes are completed
+    setAvatarAdjusted(true);
+    console.log("[AccountSetup] Image position updated and marked as adjusted");
   };
 
   // Handle clicking the empty image container or "change image" text
@@ -232,7 +240,7 @@ const AccountSetup = () => {
     return true;
   };
 
-  // Modified completeSetup function with improved avatar handling
+  // Modified completeSetup function to handle avatar adjustments properly
   const completeSetup = async () => {
     setLoading(true);
     try {
@@ -244,10 +252,15 @@ const AccountSetup = () => {
         hasCompletedSetup: true
       };
       
-      // Add avatar data if it was modified
+      // Add avatar data if it was uploaded or modified
       if (avatarModified && previewImage) {
         console.log("[AccountSetup] Including modified avatar in final data, length:", previewImage.length);
         finalUserData.avatar = previewImage;
+      }
+      
+      // Add avatar settings if either the avatar was modified or its position/zoom was adjusted
+      if ((avatarModified || avatarAdjusted) && previewImage) {
+        console.log("[AccountSetup] Including avatar settings - zoom:", zoomLevel, "position:", imagePosition);
         finalUserData.avatarSettings = {
           zoom: zoomLevel,
           position: imagePosition
@@ -255,7 +268,8 @@ const AccountSetup = () => {
       }
       
       // Save all user data in one operation to avoid losing the avatar
-      console.log("[AccountSetup] Saving complete user profile with avatar:", !!finalUserData.avatar);
+      console.log("[AccountSetup] Saving complete user profile with avatar:", !!finalUserData.avatar, 
+                 "and settings:", !!finalUserData.avatarSettings);
       await updateUserProfile(finalUserData);
       
       // Mark setup as complete (this should now preserve the avatar)
