@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +7,13 @@ interface User {
   email: string;
   avatar?: string;
   hasCompletedSetup?: boolean;
+  avatarSettings?: {
+    zoom: number;
+    position: {
+      x: number;
+      y: number;
+    };
+  };
 }
 
 interface BankCard {
@@ -158,6 +164,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         name: email.split('@')[0] || "User",
         email: email,
         avatar: "",
+        avatarSettings: {
+          zoom: 1.0,
+          position: {
+            x: 0,
+            y: 0
+          }
+        }
       };
       
       setUser(mockUser);
@@ -194,6 +207,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         name,
         email,
         avatar: "",
+        avatarSettings: {
+          zoom: 1.0,
+          position: {
+            x: 0,
+            y: 0
+          }
+        },
         hasCompletedSetup: false // New users haven't completed setup
       };
       

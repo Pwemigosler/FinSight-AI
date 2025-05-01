@@ -51,8 +51,11 @@ const AccountSetup = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(100); // Default zoom level (100%)
-  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 }); // Image position
+  const [zoomLevel, setZoomLevel] = useState(user?.avatarSettings?.zoom || 100);
+  const [imagePosition, setImagePosition] = useState({
+    x: user?.avatarSettings?.position?.x || 0,
+    y: user?.avatarSettings?.position?.y || 0
+  });
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -68,6 +71,11 @@ const AccountSetup = () => {
       // Initialize preview image from user avatar if available
       if (user.avatar && !previewImage) {
         setPreviewImage(user.avatar);
+      }
+      // Initialize zoom and position from user settings if available
+      if (user.avatarSettings) {
+        setZoomLevel(user.avatarSettings.zoom);
+        setImagePosition(user.avatarSettings.position);
       }
     }
   }, [user]);
@@ -115,7 +123,7 @@ const AccountSetup = () => {
       const imageDataUrl = event.target?.result as string;
       setPreviewImage(imageDataUrl);
       setFormData(prev => ({ ...prev, avatar: imageDataUrl }));
-      // Reset zoom level and position when loading a new image
+      // Initialize zoom level and position for new images
       setZoomLevel(100);
       setImagePosition({ x: 0, y: 0 });
     };
@@ -215,10 +223,14 @@ const AccountSetup = () => {
   const completeSetup = async () => {
     setLoading(true);
     try {
-      // Update user profile with form data
+      // Update user profile with form data including avatar settings
       await updateUserProfile({
         name: formData.fullName,
         avatar: formData.avatar,
+        avatarSettings: {
+          zoom: zoomLevel,
+          position: imagePosition
+        }
       });
       
       // Mark setup as complete

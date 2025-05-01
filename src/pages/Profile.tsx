@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -34,8 +33,11 @@ const Profile = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(100); // Default zoom level (100%)
-  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 }); // Image position
+  const [zoomLevel, setZoomLevel] = useState(user?.avatarSettings?.zoom || 100);
+  const [imagePosition, setImagePosition] = useState({ 
+    x: user?.avatarSettings?.position?.x || 0, 
+    y: user?.avatarSettings?.position?.y || 0 
+  });
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
@@ -47,6 +49,11 @@ const Profile = () => {
       // Initialize preview image from user avatar if available
       if (user.avatar && !previewImage) {
         setPreviewImage(user.avatar);
+      }
+      // Initialize zoom and position from user settings if available
+      if (user.avatarSettings) {
+        setZoomLevel(user.avatarSettings.zoom);
+        setImagePosition(user.avatarSettings.position);
       }
     }
   }, [user]);
@@ -88,9 +95,11 @@ const Profile = () => {
     if (user?.avatar && !previewImage) {
       setPreviewImage(user.avatar);
     }
-    // Reset zoom level and position when opening the dialog
-    setZoomLevel(100);
-    setImagePosition({ x: 0, y: 0 });
+    // Reset zoom level and position when opening the dialog if no existing settings
+    if (!user?.avatarSettings) {
+      setZoomLevel(100);
+      setImagePosition({ x: 0, y: 0 });
+    }
   };
 
   const handleFileSelect = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -185,11 +194,13 @@ const Profile = () => {
   const handleUpload = () => {
     if (!previewImage) return;
     
-    // Apply transformations to the image before saving
-    // In a real app, you would process the image on the server
-    // Here we're just saving the preview with position/zoom info
+    // Save the image with transformation settings
     updateUserProfile({
-      avatar: previewImage
+      avatar: previewImage,
+      avatarSettings: {
+        zoom: zoomLevel,
+        position: imagePosition
+      }
     });
     
     setIsDialogOpen(false);
