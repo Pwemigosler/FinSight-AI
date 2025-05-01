@@ -226,14 +226,23 @@ const AccountSetup = () => {
     setLoading(true);
     try {
       // Make sure we save all image data including the actual image
-      await updateUserProfile({
-        name: formData.fullName,
-        avatar: previewImage, // Use the actual preview image not formData.avatar
-        avatarSettings: {
-          zoom: zoomLevel,
-          position: imagePosition
-        }
-      });
+      // This is critical - ensure the avatar is properly set before completing setup
+      if (previewImage) {
+        console.log("Saving profile image in setup:", previewImage.substring(0, 100) + "...");
+        
+        await updateUserProfile({
+          name: formData.fullName,
+          avatar: previewImage,
+          avatarSettings: {
+            zoom: zoomLevel,
+            position: imagePosition
+          }
+        });
+      } else {
+        await updateUserProfile({
+          name: formData.fullName
+        });
+      }
       
       // Mark setup as complete
       completeAccountSetup();

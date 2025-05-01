@@ -71,6 +71,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           };
         }
         
+        // Debug log for avatar
+        if (parsedUser && parsedUser.avatar) {
+          console.log("Loading user from storage with avatar:", 
+            parsedUser.avatar.substring(0, 20) + "...", 
+            "length:", parsedUser.avatar.length);
+        }
+        
         setUser(parsedUser);
         
         // Load linked cards
@@ -96,7 +103,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     console.log("Updating user profile with:", updates);
     
-    const updatedUser = { ...user, ...updates };
+    // Create a deep copy of the user object
+    const updatedUser = { ...user };
+    
+    // Apply all updates
+    Object.keys(updates).forEach(key => {
+      // Need to use any here since we're accessing dynamic properties
+      (updatedUser as any)[key] = (updates as any)[key];
+    });
     
     // Ensure avatar settings exist if we have an avatar
     if (updatedUser.avatar && !updatedUser.avatarSettings) {
@@ -107,6 +121,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     console.log("Updated user:", updatedUser);
+    
+    // Debug log for avatar
+    if (updatedUser.avatar) {
+      console.log("Saving avatar to storage, length:", updatedUser.avatar.length);
+    }
     
     setUser(updatedUser);
     localStorage.setItem("finsight_user", JSON.stringify(updatedUser));

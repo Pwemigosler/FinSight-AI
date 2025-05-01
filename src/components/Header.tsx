@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface HeaderProps {
   toggleSidebar?: () => void;
@@ -23,11 +23,16 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [avatarImage, setAvatarImage] = useState<string>("");
+  const avatarImageLoaded = useRef(false);
   
   // Update avatar image whenever user changes
   useEffect(() => {
     if (user?.avatar) {
+      console.log("Header: Setting avatar image from user object");
       setAvatarImage(user.avatar);
+      avatarImageLoaded.current = true;
+    } else {
+      console.log("Header: No avatar image in user object");
     }
   }, [user]);
   
@@ -45,6 +50,18 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const handleLogoClick = () => {
     navigate('/');
   };
+
+  // Force rerender for avatar after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (user?.avatar && !avatarImage) {
+        console.log("Header: Forced avatar update");
+        setAvatarImage(user.avatar);
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [user, avatarImage]);
 
   return (
     <header className="bg-white border-b border-gray-100 p-4 flex justify-between items-center sticky top-0 z-10">
@@ -74,14 +91,17 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer">
               <Avatar className="h-8 w-8">
-                <AvatarImage 
-                  src={avatarImage} 
-                  style={{ 
-                    transform: user?.avatarSettings ? `scale(${user.avatarSettings.zoom / 100})` : undefined,
-                    marginLeft: user?.avatarSettings ? `${user.avatarSettings.position.x * 0.25}px` : undefined,
-                    marginTop: user?.avatarSettings ? `${user.avatarSettings.position.y * 0.25}px` : undefined,
-                  }}
-                />
+                {avatarImage ? (
+                  <AvatarImage 
+                    src={avatarImage} 
+                    style={{ 
+                      transform: user?.avatarSettings ? `scale(${user.avatarSettings.zoom / 100})` : undefined,
+                      marginLeft: user?.avatarSettings ? `${user.avatarSettings.position.x * 0.25}px` : undefined,
+                      marginTop: user?.avatarSettings ? `${user.avatarSettings.position.y * 0.25}px` : undefined,
+                    }}
+                    onError={() => console.error("Failed to load avatar image")}
+                  />
+                ) : null}
                 <AvatarFallback className="bg-finsight-purple text-white">{getInitials()}</AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium hidden md:inline">{user?.name || "User"}</span>
