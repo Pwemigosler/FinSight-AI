@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -230,41 +229,39 @@ const AccountSetup = () => {
     return true;
   };
 
+  // Modified completeSetup function with improved avatar handling
   const completeSetup = async () => {
     setLoading(true);
     try {
       console.log("[AccountSetup] Starting setup completion process");
       
-      // Step 1: If avatar was modified during setup, save it first
+      // Prepare the final user data with all fields
+      const finalUserData: Partial<User> = {
+        name: formData.fullName,
+        hasCompletedSetup: true
+      };
+      
+      // Add avatar data if it was modified
       if (avatarModified && previewImage) {
-        console.log("[AccountSetup] Saving modified avatar, length:", previewImage.length);
-        
-        await updateUserProfile({
-          avatar: previewImage,
-          avatarSettings: {
-            zoom: zoomLevel,
-            position: imagePosition
-          }
-        });
-        
-        console.log("[AccountSetup] Avatar saved successfully");
+        console.log("[AccountSetup] Including modified avatar in final data, length:", previewImage.length);
+        finalUserData.avatar = previewImage;
+        finalUserData.avatarSettings = {
+          zoom: zoomLevel,
+          position: imagePosition
+        };
       }
       
-      // Step 2: Update name separately
-      console.log("[AccountSetup] Updating user name:", formData.fullName);
-      await updateUserProfile({
-        name: formData.fullName
-      });
+      // Save all user data in one operation to avoid losing the avatar
+      console.log("[AccountSetup] Saving complete user profile with avatar:", !!finalUserData.avatar);
+      await updateUserProfile(finalUserData);
       
-      console.log("[AccountSetup] Name updated successfully");
-      
-      // Step 3: Mark setup as complete
+      // Mark setup as complete (this should now preserve the avatar)
       console.log("[AccountSetup] Marking setup as complete");
       await completeAccountSetup();
       
       console.log("[AccountSetup] Setup completed successfully, redirecting to home");
       
-      // Step 4: Navigate to home page
+      // Navigate to home page
       navigate("/");
     } catch (error) {
       console.error("[AccountSetup] Error completing setup:", error);

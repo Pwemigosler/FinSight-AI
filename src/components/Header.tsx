@@ -25,6 +25,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const [avatarKey, setAvatarKey] = useState<number>(0);
   const [avatarError, setAvatarError] = useState(false);
   const avatarRetryCount = useRef(0);
+  const [cachedAvatarData, setCachedAvatarData] = useState<string | undefined>(user?.avatar);
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -48,6 +49,11 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       setAvatarError(false);
       avatarRetryCount.current = 0;
       
+      // Update cached avatar data
+      if (user.avatar) {
+        setCachedAvatarData(user.avatar);
+      }
+      
       // Force re-render by updating key
       setAvatarKey(prev => prev + 1);
       
@@ -67,6 +73,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     const handleAvatarUpdate = () => {
       if (user?.avatar) {
         console.log("[Header] Avatar changed, length:", user.avatar.length);
+        setCachedAvatarData(user.avatar);
         setAvatarError(false);
         avatarRetryCount.current = 0;
         setAvatarKey(prev => prev + 1);
@@ -84,8 +91,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           const savedUser = JSON.parse(savedUserJson);
           
           // If localStorage has an avatar but we don't, update
-          if (savedUser?.avatar && (!user?.avatar || savedUser.avatar.length !== user.avatar.length)) {
+          if (savedUser?.avatar && (!cachedAvatarData || savedUser.avatar.length !== cachedAvatarData.length)) {
             console.log("[Header] Detected avatar change in localStorage");
+            setCachedAvatarData(savedUser.avatar);
             setAvatarKey(prev => prev + 1);
           }
         }
@@ -95,7 +103,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     }, 2000);
     
     return () => clearInterval(checkAvatarInterval);
-  }, [user?.avatar]);
+  }, [user?.avatar, cachedAvatarData]);
 
   const handleAvatarError = () => {
     avatarRetryCount.current += 1;
@@ -142,9 +150,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer">
               <Avatar className="h-8 w-8" key={avatarKey}>
-                {user?.avatar && !avatarError ? (
+                {(cachedAvatarData || user?.avatar) && !avatarError ? (
                   <AvatarImage 
-                    src={user.avatar} 
+                    src={cachedAvatarData || user?.avatar} 
                     alt={user?.name || "User avatar"}
                     style={{ 
                       transform: user?.avatarSettings ? `scale(${user.avatarSettings.zoom / 100})` : undefined,

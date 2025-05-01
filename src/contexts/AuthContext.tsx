@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -99,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loadStoredData();
   }, []);
 
-  // Function to update user profile - MODIFIED: now returns a promise
+  // Function to update user profile - now with more robust avatar handling
   const updateUserProfile = async (updates: Partial<User>): Promise<void> => {
     return new Promise((resolve, reject) => {
       try {
@@ -114,10 +115,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           updates.avatarSettings ? `avatarSettings zoom:${updates.avatarSettings.zoom}` : "no avatarSettings",
           "other fields:", Object.keys(updates).filter(k => k !== "avatar" && k !== "avatarSettings").join(", "));
         
-        // Create a deep copy of the user object
+        // Create a deep copy of the user object to avoid mutation issues
         const updatedUser = { ...user };
         
-        // Special handling for avatar and its settings to ensure they're updated together
+        // Special handling for avatar and its settings
         if (updates.avatar !== undefined) {
           updatedUser.avatar = updates.avatar;
           
@@ -130,6 +131,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               position: { x: 0, y: 0 }
             };
           }
+        } else if (updates.avatarSettings && updatedUser.avatar) {
+          // If only updating settings but we have an avatar, update settings
+          updatedUser.avatarSettings = { ...updates.avatarSettings };
         }
         
         // Apply all other updates
@@ -164,7 +168,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Function to mark account setup as complete - MODIFIED: now returns a promise
+  // Function to mark account setup as complete - now preserves avatar data
   const completeAccountSetup = async (): Promise<void> => {
     return new Promise((resolve, reject) => {
       try {
@@ -174,10 +178,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
-        // Make sure we preserve the avatar and its settings
+        // Create a complete copy of the user to ensure we don't lose any data
         const updatedUser = { 
-          ...user, 
-          hasCompletedSetup: true 
+          ...user,
+          hasCompletedSetup: true
         };
 
         console.log("[AuthContext] Completing setup.", 
@@ -187,10 +191,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
             "none");
         
-        // Save to localStorage first
+        // Save to localStorage first with full user data
         localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
         
-        // Then update state
+        // Then update state with the complete user object
         setUser(updatedUser);
         toast("Account setup completed!");
         
