@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useEffect, useState } from "react";
 
 interface HeaderProps {
   toggleSidebar?: () => void;
@@ -21,6 +22,14 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const isMobile = useIsMobile();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [avatarImage, setAvatarImage] = useState<string>("");
+  
+  // Update avatar image whenever user changes
+  useEffect(() => {
+    if (user?.avatar) {
+      setAvatarImage(user.avatar);
+    }
+  }, [user]);
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -65,7 +74,14 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.avatar || ""} />
+                <AvatarImage 
+                  src={avatarImage} 
+                  style={{ 
+                    transform: user?.avatarSettings ? `scale(${user.avatarSettings.zoom / 100})` : undefined,
+                    marginLeft: user?.avatarSettings ? `${user.avatarSettings.position.x * 0.25}px` : undefined,
+                    marginTop: user?.avatarSettings ? `${user.avatarSettings.position.y * 0.25}px` : undefined,
+                  }}
+                />
                 <AvatarFallback className="bg-finsight-purple text-white">{getInitials()}</AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium hidden md:inline">{user?.name || "User"}</span>

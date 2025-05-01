@@ -94,6 +94,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const updateUserProfile = (updates: Partial<User>) => {
     if (!user) return;
     
+    console.log("Updating user profile with:", updates);
+    
     const updatedUser = { ...user, ...updates };
     
     // Ensure avatar settings exist if we have an avatar
@@ -103,6 +105,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         position: { x: 0, y: 0 }
       };
     }
+    
+    console.log("Updated user:", updatedUser);
     
     setUser(updatedUser);
     localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
@@ -184,7 +188,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: email,
         avatar: "",
         avatarSettings: {
-          zoom: 1.0,
+          zoom: 100,
           position: {
             x: 0,
             y: 0
