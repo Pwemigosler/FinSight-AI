@@ -23,7 +23,18 @@ export interface ActionResult {
       category?: BudgetCategory;
       fromCategory?: BudgetCategory;
       toCategory?: BudgetCategory;
+    } | {
+      insights: FinancialInsight[];
     };
   };
   response: string;
+}
+
+export interface FinancialInsight {
+  type: "saving" | "spending" | "budget" | "suggestion";
+  title: string;
+  description: string;
+  impact?: "positive" | "negative" | "neutral";
+  value?: number;
+  category?: string;
 }

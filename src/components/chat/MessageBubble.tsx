@@ -1,8 +1,8 @@
 
-import { Message } from "@/types/chat";
+import { Message, FinancialInsight } from "@/types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "@/types/user";
-import { Wallet, CreditCard, PiggyBank } from "lucide-react";
+import { Wallet, CreditCard, PiggyBank, LineChart, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
 
 interface MessageBubbleProps {
   message: Message;
@@ -19,12 +19,72 @@ export const getActionIcon = (action?: Message["action"]) => {
       return <CreditCard className="h-5 w-5 text-finsight-purple" />;
     case "view":
       return <PiggyBank className="h-5 w-5 text-finsight-blue" />;
+    case "analysis":
+      return <LineChart className="h-5 w-5 text-finsight-blue" />;
     default:
       return null;
   }
 };
 
+const getInsightIcon = (type: string, impact?: string) => {
+  switch (type) {
+    case "saving":
+      return <PiggyBank className="h-4 w-4 text-finsight-green" />;
+    case "spending":
+      return impact === "negative" 
+        ? <TrendingUp className="h-4 w-4 text-finsight-red" />
+        : <TrendingDown className="h-4 w-4 text-finsight-green" />;
+    case "budget":
+      return <Wallet className="h-4 w-4 text-finsight-blue" />;
+    case "suggestion":
+      return <AlertCircle className="h-4 w-4 text-finsight-purple" />;
+    default:
+      return <LineChart className="h-4 w-4 text-finsight-blue" />;
+  }
+};
+
+const FinancialInsightCard = ({ insight }: { insight: FinancialInsight }) => {
+  const getBgColor = () => {
+    switch (insight.impact) {
+      case "positive": return "bg-green-50";
+      case "negative": return "bg-red-50";
+      case "neutral": return "bg-blue-50";
+      default: return "bg-gray-50";
+    }
+  };
+
+  const getTextColor = () => {
+    switch (insight.impact) {
+      case "positive": return "text-green-700";
+      case "negative": return "text-red-700";
+      case "neutral": return "text-blue-700";
+      default: return "text-gray-700";
+    }
+  };
+
+  return (
+    <div className={`${getBgColor()} rounded-md p-3 mb-2`}>
+      <div className="flex items-start gap-2">
+        <div className="mt-1">{getInsightIcon(insight.type, insight.impact)}</div>
+        <div>
+          <h4 className={`font-medium text-sm ${getTextColor()}`}>{insight.title}</h4>
+          <p className="text-sm">{insight.description}</p>
+          {insight.category && (
+            <span className="text-xs text-gray-500">Category: {insight.category}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MessageBubble = ({ message, user }: MessageBubbleProps) => {
+  // Get insights from message action details if they exist
+  const insights = message.action?.type === "analysis" && 
+                  message.action.details?.insights ? 
+                  message.action.details.insights as FinancialInsight[] : 
+                  [];
+
   return (
     <div
       className={`flex ${
@@ -77,6 +137,16 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
             </div>
           )}
           <div className="whitespace-pre-line break-words">{message.content}</div>
+          
+          {/* Render financial insights if they exist */}
+          {insights.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {insights.map((insight, index) => (
+                <FinancialInsightCard key={index} insight={insight} />
+              ))}
+            </div>
+          )}
+          
           <p className="text-xs opacity-70 mt-1">
             {message.timestamp.toLocaleTimeString([], {
               hour: "2-digit",

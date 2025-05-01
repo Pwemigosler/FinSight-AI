@@ -5,6 +5,7 @@ import {
   getBudgetCategories,
   BudgetCategory
 } from "@/services/fundAllocationService";
+import { ActionResult, FinancialInsight } from "@/types/chat";
 
 export interface ChatAction {
   type: string;
@@ -12,10 +13,41 @@ export interface ChatAction {
   details?: any;
 }
 
-export interface ActionResult {
-  action: ChatAction;
-  response: string;
-}
+// Mock financial data - in a real app, this would come from your data service
+const generateFinancialInsights = (): FinancialInsight[] => {
+  return [
+    {
+      type: "saving",
+      title: "Saving Opportunity",
+      description: "You could save $125 monthly by reducing dining expenses.",
+      impact: "positive",
+      value: 125,
+      category: "dining"
+    },
+    {
+      type: "spending",
+      title: "Spending Alert",
+      description: "Your entertainment spending is 30% higher than last month.",
+      impact: "negative",
+      value: 30,
+      category: "entertainment"
+    },
+    {
+      type: "budget",
+      title: "Budget Status",
+      description: "You're on track with your savings goal this month.",
+      impact: "positive"
+    },
+    {
+      type: "suggestion",
+      title: "Recommendation",
+      description: "Consider allocating 15% more to your emergency fund.",
+      impact: "neutral",
+      value: 15,
+      category: "emergency"
+    }
+  ];
+};
 
 export const processActionRequest = (message: string): ActionResult | null => {
   const lowerMessage = message.toLowerCase();
@@ -70,6 +102,22 @@ export const processActionRequest = (message: string): ActionResult | null => {
     };
   }
   
+  // Check for financial analysis request
+  if ((lowerMessage.includes("analyze") || lowerMessage.includes("analysis")) && 
+      (lowerMessage.includes("finance") || lowerMessage.includes("spending") || 
+       lowerMessage.includes("budget") || lowerMessage.includes("money"))) {
+    const insights = generateFinancialInsights();
+    
+    return {
+      action: {
+        type: "analysis",
+        status: "success" as const,
+        details: { insights }
+      },
+      response: "Here's my analysis of your financial situation:"
+    };
+  }
+  
   // No action detected
   return null;
 };
@@ -80,11 +128,12 @@ export const getDefaultResponse = (inputMessage: string): string => {
     "invest": "For investment advice, I recommend diversifying your portfolio. Would you like me to allocate some funds to your investment category?",
     "save": "To improve your savings, try allocating more funds there. Try saying 'Allocate $300 to savings' or 'Transfer $100 from entertainment to savings'.",
     "debt": "To tackle debt, allocate more funds to paying it off. Try saying 'Allocate $400 to bills' to set aside money for debt payments.",
+    "analyze": "I can analyze your finances to help identify saving opportunities and spending patterns. Try asking me to 'Analyze my finances' or 'Give me a spending analysis'.",
   };
   
   // Generate a response based on keywords or use a default
   const lowerInput = inputMessage.toLowerCase();
-  let botContent = "I can help you allocate your funds to different categories. Try saying 'Allocate $500 to bills', 'Transfer $200 from entertainment to savings', or 'Show my budget categories'.";
+  let botContent = "I can help you allocate your funds to different categories. Try saying 'Allocate $500 to bills', 'Transfer $200 from entertainment to savings', 'Show my budget categories', or 'Analyze my finances'.";
   
   // Check if message contains any keywords
   for (const [keyword, response] of Object.entries(botResponses)) {

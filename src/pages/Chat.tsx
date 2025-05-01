@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import ChatBot from "@/components/ChatBot";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
-import { Wallet, PiggyBank, CreditCard } from "lucide-react";
+import { Wallet, PiggyBank, CreditCard, LineChart } from "lucide-react";
 
 const Chat = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -57,6 +57,18 @@ const Chat = () => {
               <div>
                 <p className="text-sm font-medium">View Categories</p>
                 <p className="text-xs text-gray-500">"Show my budget categories"</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white shadow-sm">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="bg-finsight-blue bg-opacity-20 p-2 rounded-full">
+                <LineChart className="h-5 w-5 text-finsight-blue" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Analyze Finances</p>
+                <p className="text-xs text-gray-500">"Analyze my finances"</p>
               </div>
             </CardContent>
           </Card>
