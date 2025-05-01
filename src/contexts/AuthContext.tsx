@@ -65,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Ensure avatar settings are initialized properly
         if (parsedUser && parsedUser.avatar && !parsedUser.avatarSettings) {
+          console.log("[AuthContext] Initializing default avatarSettings for existing avatar");
           parsedUser.avatarSettings = {
             zoom: 100,
             position: { x: 0, y: 0 }
@@ -75,7 +76,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (parsedUser && parsedUser.avatar) {
           console.log("[AuthContext] Loading user from storage with avatar:", 
             parsedUser.avatar.substring(0, 20) + "...", 
-            "length:", parsedUser.avatar.length);
+            "length:", parsedUser.avatar.length,
+            "settings:", parsedUser.avatarSettings ? "present" : "missing");
         } else {
           console.log("[AuthContext] No avatar found in stored user data");
         }
@@ -104,32 +106,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     console.log("[AuthContext] Updating user profile with:", 
-      updates.avatar ? "avatar included" : "no avatar", 
-      updates.avatarSettings ? "avatarSettings included" : "no avatarSettings");
+      updates.avatar ? `avatar (length: ${updates.avatar.length})` : "no avatar", 
+      updates.avatarSettings ? `avatarSettings zoom:${updates.avatarSettings.zoom}` : "no avatarSettings",
+      "other fields:", Object.keys(updates).filter(k => k !== "avatar" && k !== "avatarSettings").join(", "));
     
     // Create a deep copy of the user object
     const updatedUser = { ...user };
     
-    // Apply all updates
-    Object.keys(updates).forEach(key => {
-      // Need to use any here since we're accessing dynamic properties
-      (updatedUser as any)[key] = (updates as any)[key];
-    });
-    
-    // Ensure avatar settings exist if we have an avatar
-    if (updatedUser.avatar && !updatedUser.avatarSettings) {
-      console.log("[AuthContext] Adding default avatarSettings");
-      updatedUser.avatarSettings = {
-        zoom: 100,
-        position: { x: 0, y: 0 }
-      };
+    // Special handling for avatar and its settings to ensure they're updated together
+    if (updates.avatar !== undefined) {
+      updatedUser.avatar = updates.avatar;
+      
+      // When setting avatar, always ensure avatar settings exist
+      if (updates.avatarSettings) {
+        updatedUser.avatarSettings = { ...updates.avatarSettings };
+      } else if (!updatedUser.avatarSettings) {
+        updatedUser.avatarSettings = {
+          zoom: 100,
+          position: { x: 0, y: 0 }
+        };
+      }
     }
     
-    console.log("[AuthContext] Updated user has avatar:", !!updatedUser.avatar);
+    // Apply all other updates
+    Object.keys(updates).forEach(key => {
+      if (key !== "avatar" && key !== "avatarSettings") {
+        // Need to use any here since we're accessing dynamic properties
+        (updatedUser as any)[key] = (updates as any)[key];
+      }
+    });
+    
+    console.log("[AuthContext] Saving updated user:", 
+      "Name:", updatedUser.name,
+      "Avatar exists:", !!updatedUser.avatar, 
+      "Avatar length:", updatedUser.avatar?.length || 0,
+      "Avatar settings:", updatedUser.avatarSettings ? 
+        `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
+        "none");
     
     // Save to state and localStorage
-    setUser(updatedUser);
     localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
     toast("Profile updated successfully");
   };
 
@@ -143,10 +160,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       hasCompletedSetup: true 
     };
 
-    console.log("[AuthContext] Completing setup. User has avatar:", !!updatedUser.avatar);
+    console.log("[AuthContext] Completing setup.", 
+      "User has avatar:", !!updatedUser.avatar,
+      "Avatar length:", updatedUser.avatar?.length || 0,
+      "Avatar settings:", updatedUser.avatarSettings ? 
+        `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
+        "none");
     
-    setUser(updatedUser);
     localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
     toast("Account setup completed!");
   };
 

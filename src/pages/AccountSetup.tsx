@@ -226,12 +226,14 @@ const AccountSetup = () => {
   const completeSetup = async () => {
     setLoading(true);
     try {
-      // Critical: Make sure we save the image with transformation settings first
+      console.log("[AccountSetup] Starting setup completion process");
+      
+      // CRITICAL FIX: Save the profile data first, including avatar
       if (previewImage) {
-        console.log("[AccountSetup] Saving profile image in setup:", previewImage.substring(0, 20) + "...");
+        console.log("[AccountSetup] Saving avatar image, length:", previewImage.length);
         
+        // Important: Save avatar and settings FIRST in a separate update to ensure it's processed
         await updateUserProfile({
-          name: formData.fullName,
           avatar: previewImage,
           avatarSettings: {
             zoom: zoomLevel,
@@ -239,16 +241,27 @@ const AccountSetup = () => {
           }
         });
         
-        // Add a short delay to ensure the avatar is saved before completing setup
-        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log("[AccountSetup] Avatar saved, now updating name and other details");
+        // Add a delay to ensure the avatar update is processed
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Update name in a separate operation
+        await updateUserProfile({
+          name: formData.fullName
+        });
       } else {
+        // No avatar, just update the name
         await updateUserProfile({
           name: formData.fullName
         });
       }
       
+      // Add another delay before completing setup
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // Mark setup as complete
       completeAccountSetup();
+      console.log("[AccountSetup] Setup completed successfully");
       
       // Navigate to home page
       navigate("/");

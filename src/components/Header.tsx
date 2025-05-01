@@ -22,7 +22,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const isMobile = useIsMobile();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [avatarKey, setAvatarKey] = useState<number>(0); // Key to force re-render
+  const [avatarKey, setAvatarKey] = useState<number>(0);
+  const [avatarError, setAvatarError] = useState(false);
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -42,10 +43,35 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   // Force re-render of avatar when user changes
   useEffect(() => {
     if (user) {
+      // Reset error state when user changes
+      setAvatarError(false);
+      
+      // Force re-render by updating key
       setAvatarKey(prev => prev + 1);
-      console.log("Header: User changed, avatar URL:", user.avatar ? "exists" : "doesn't exist");
+      
+      console.log("[Header] User updated:", 
+        "Name:", user.name,
+        "Avatar exists:", !!user.avatar, 
+        "Avatar length:", user.avatar?.length || 0,
+        "Avatar settings:", user.avatarSettings ? 
+          `zoom:${user.avatarSettings.zoom}, pos:(${user.avatarSettings.position.x},${user.avatarSettings.position.y})` : 
+          "none"
+      );
     }
   }, [user]);
+
+  // Also update if just the avatar changes
+  useEffect(() => {
+    if (user?.avatar) {
+      setAvatarError(false);
+      setAvatarKey(prev => prev + 1);
+    }
+  }, [user?.avatar]);
+
+  const handleAvatarError = () => {
+    console.error("[Header] Failed to load avatar image");
+    setAvatarError(true);
+  };
 
   return (
     <header className="bg-white border-b border-gray-100 p-4 flex justify-between items-center sticky top-0 z-10">
@@ -75,7 +101,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer">
               <Avatar className="h-8 w-8" key={avatarKey}>
-                {user?.avatar && (
+                {user?.avatar && !avatarError ? (
                   <AvatarImage 
                     src={user.avatar} 
                     alt={user?.name || "User avatar"}
@@ -84,9 +110,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                       marginLeft: user?.avatarSettings ? `${user.avatarSettings.position.x * 0.25}px` : undefined,
                       marginTop: user?.avatarSettings ? `${user.avatarSettings.position.y * 0.25}px` : undefined,
                     }}
-                    onError={() => console.error("Failed to load avatar image in Header")}
+                    onError={handleAvatarError}
                   />
-                )}
+                ) : null}
                 <AvatarFallback className="bg-finsight-purple text-white">{getInitials()}</AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium hidden md:inline">{user?.name || "User"}</span>
