@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -8,6 +9,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check, ChevronRight, Crop, User, Move } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
+
+// Import or define the User type
+import type { User } from "../types/user";
 
 // Define the setup steps
 type SetupStep = {
