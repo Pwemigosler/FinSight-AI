@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -59,6 +60,9 @@ const AccountSetup = () => {
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Track if avatar has been modified during setup
+  const [avatarModified, setAvatarModified] = useState(false);
 
   // Update local state when user changes
   useEffect(() => {
@@ -72,6 +76,7 @@ const AccountSetup = () => {
       // Always update preview image when user avatar changes
       if (user.avatar) {
         setPreviewImage(user.avatar);
+        console.log("[AccountSetup] Setting preview image from user, length:", user.avatar.length);
       }
       
       // Initialize zoom and position from user settings if available
@@ -126,6 +131,8 @@ const AccountSetup = () => {
       console.log("[AccountSetup] Image loaded, length:", imageDataUrl.length);
       setPreviewImage(imageDataUrl);
       setFormData(prev => ({ ...prev, avatar: imageDataUrl }));
+      // Mark avatar as modified
+      setAvatarModified(true);
       // Initialize zoom level and position for new images
       setZoomLevel(100);
       setImagePosition({ x: 0, y: 0 });
@@ -228,11 +235,10 @@ const AccountSetup = () => {
     try {
       console.log("[AccountSetup] Starting setup completion process");
       
-      // CRITICAL FIX: Save the profile data first, including avatar
-      if (previewImage) {
-        console.log("[AccountSetup] Saving avatar image, length:", previewImage.length);
+      // Step 1: If avatar was modified during setup, save it first
+      if (avatarModified && previewImage) {
+        console.log("[AccountSetup] Saving modified avatar, length:", previewImage.length);
         
-        // Important: Save avatar and settings FIRST in a separate update to ensure it's processed
         await updateUserProfile({
           avatar: previewImage,
           avatarSettings: {
@@ -241,29 +247,24 @@ const AccountSetup = () => {
           }
         });
         
-        console.log("[AccountSetup] Avatar saved, now updating name and other details");
-        // Add a delay to ensure the avatar update is processed
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Update name in a separate operation
-        await updateUserProfile({
-          name: formData.fullName
-        });
-      } else {
-        // No avatar, just update the name
-        await updateUserProfile({
-          name: formData.fullName
-        });
+        console.log("[AccountSetup] Avatar saved successfully");
       }
       
-      // Add another delay before completing setup
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Step 2: Update name separately
+      console.log("[AccountSetup] Updating user name:", formData.fullName);
+      await updateUserProfile({
+        name: formData.fullName
+      });
       
-      // Mark setup as complete
-      completeAccountSetup();
-      console.log("[AccountSetup] Setup completed successfully");
+      console.log("[AccountSetup] Name updated successfully");
       
-      // Navigate to home page
+      // Step 3: Mark setup as complete
+      console.log("[AccountSetup] Marking setup as complete");
+      await completeAccountSetup();
+      
+      console.log("[AccountSetup] Setup completed successfully, redirecting to home");
+      
+      // Step 4: Navigate to home page
       navigate("/");
     } catch (error) {
       console.error("[AccountSetup] Error completing setup:", error);

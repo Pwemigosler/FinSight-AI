@@ -24,6 +24,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const navigate = useNavigate();
   const [avatarKey, setAvatarKey] = useState<number>(0);
   const [avatarError, setAvatarError] = useState(false);
+  const avatarRetryCount = useRef(0);
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -43,8 +44,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   // Force re-render of avatar when user changes
   useEffect(() => {
     if (user) {
-      // Reset error state when user changes
+      // Reset error state and retry count when user changes
       setAvatarError(false);
+      avatarRetryCount.current = 0;
       
       // Force re-render by updating key
       setAvatarKey(prev => prev + 1);
@@ -60,17 +62,56 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     }
   }, [user]);
 
-  // Also update if just the avatar changes
+  // Update specifically when avatar changes
   useEffect(() => {
-    if (user?.avatar) {
-      setAvatarError(false);
-      setAvatarKey(prev => prev + 1);
-    }
+    const handleAvatarUpdate = () => {
+      if (user?.avatar) {
+        console.log("[Header] Avatar changed, length:", user.avatar.length);
+        setAvatarError(false);
+        avatarRetryCount.current = 0;
+        setAvatarKey(prev => prev + 1);
+      }
+    };
+    
+    handleAvatarUpdate();
+    
+    // Poll for avatar changes from localStorage
+    // This helps catch changes that might have happened in another component
+    const checkAvatarInterval = setInterval(() => {
+      try {
+        const savedUserJson = localStorage.getItem("finsight_user");
+        if (savedUserJson) {
+          const savedUser = JSON.parse(savedUserJson);
+          
+          // If localStorage has an avatar but we don't, update
+          if (savedUser?.avatar && (!user?.avatar || savedUser.avatar.length !== user.avatar.length)) {
+            console.log("[Header] Detected avatar change in localStorage");
+            setAvatarKey(prev => prev + 1);
+          }
+        }
+      } catch (error) {
+        console.error("[Header] Error checking localStorage for avatar changes:", error);
+      }
+    }, 2000);
+    
+    return () => clearInterval(checkAvatarInterval);
   }, [user?.avatar]);
 
   const handleAvatarError = () => {
-    console.error("[Header] Failed to load avatar image");
-    setAvatarError(true);
+    avatarRetryCount.current += 1;
+    console.error(`[Header] Failed to load avatar image (attempt ${avatarRetryCount.current})`);
+    
+    // Only set error after a few retries
+    if (avatarRetryCount.current >= 3) {
+      setAvatarError(true);
+      console.log("[Header] Avatar load failed after multiple attempts, showing fallback");
+    } else {
+      // Try again with a new key after a short delay
+      setTimeout(() => {
+        console.log("[Header] Retrying avatar load...");
+        setAvatarKey(prev => prev + 1);
+      }, 500);
+    }
   };
 
   return (

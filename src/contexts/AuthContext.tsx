@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -31,12 +30,12 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
-  updateUserProfile: (updates: Partial<User>) => void;
+  updateUserProfile: (updates: Partial<User>) => Promise<void>;
   linkedCards: BankCard[];
   addBankCard: (card: Omit<BankCard, "id">) => void;
   removeBankCard: (cardId: string) => void;
   setDefaultCard: (cardId: string) => void;
-  completeAccountSetup: () => void;
+  completeAccountSetup: () => Promise<void>;
   needsAccountSetup: boolean;
 }
 
@@ -75,7 +74,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Debug log for avatar
         if (parsedUser && parsedUser.avatar) {
           console.log("[AuthContext] Loading user from storage with avatar:", 
-            parsedUser.avatar.substring(0, 20) + "...", 
             "length:", parsedUser.avatar.length,
             "settings:", parsedUser.avatarSettings ? "present" : "missing");
         } else {
@@ -101,75 +99,108 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loadStoredData();
   }, []);
 
-  // Function to update user profile
-  const updateUserProfile = (updates: Partial<User>) => {
-    if (!user) return;
-    
-    console.log("[AuthContext] Updating user profile with:", 
-      updates.avatar ? `avatar (length: ${updates.avatar.length})` : "no avatar", 
-      updates.avatarSettings ? `avatarSettings zoom:${updates.avatarSettings.zoom}` : "no avatarSettings",
-      "other fields:", Object.keys(updates).filter(k => k !== "avatar" && k !== "avatarSettings").join(", "));
-    
-    // Create a deep copy of the user object
-    const updatedUser = { ...user };
-    
-    // Special handling for avatar and its settings to ensure they're updated together
-    if (updates.avatar !== undefined) {
-      updatedUser.avatar = updates.avatar;
-      
-      // When setting avatar, always ensure avatar settings exist
-      if (updates.avatarSettings) {
-        updatedUser.avatarSettings = { ...updates.avatarSettings };
-      } else if (!updatedUser.avatarSettings) {
-        updatedUser.avatarSettings = {
-          zoom: 100,
-          position: { x: 0, y: 0 }
-        };
-      }
-    }
-    
-    // Apply all other updates
-    Object.keys(updates).forEach(key => {
-      if (key !== "avatar" && key !== "avatarSettings") {
-        // Need to use any here since we're accessing dynamic properties
-        (updatedUser as any)[key] = (updates as any)[key];
+  // Function to update user profile - MODIFIED: now returns a promise
+  const updateUserProfile = async (updates: Partial<User>): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      try {
+        if (!user) {
+          console.error("[AuthContext] Cannot update profile: No user logged in");
+          reject(new Error("No user logged in"));
+          return;
+        }
+        
+        console.log("[AuthContext] Updating user profile with:", 
+          updates.avatar ? `avatar (length: ${updates.avatar.length})` : "no avatar", 
+          updates.avatarSettings ? `avatarSettings zoom:${updates.avatarSettings.zoom}` : "no avatarSettings",
+          "other fields:", Object.keys(updates).filter(k => k !== "avatar" && k !== "avatarSettings").join(", "));
+        
+        // Create a deep copy of the user object
+        const updatedUser = { ...user };
+        
+        // Special handling for avatar and its settings to ensure they're updated together
+        if (updates.avatar !== undefined) {
+          updatedUser.avatar = updates.avatar;
+          
+          // When setting avatar, always ensure avatar settings exist
+          if (updates.avatarSettings) {
+            updatedUser.avatarSettings = { ...updates.avatarSettings };
+          } else if (!updatedUser.avatarSettings) {
+            updatedUser.avatarSettings = {
+              zoom: 100,
+              position: { x: 0, y: 0 }
+            };
+          }
+        }
+        
+        // Apply all other updates
+        Object.keys(updates).forEach(key => {
+          if (key !== "avatar" && key !== "avatarSettings") {
+            // Need to use any here since we're accessing dynamic properties
+            (updatedUser as any)[key] = (updates as any)[key];
+          }
+        });
+        
+        console.log("[AuthContext] Saving updated user:", 
+          "Name:", updatedUser.name,
+          "Avatar exists:", !!updatedUser.avatar, 
+          "Avatar length:", updatedUser.avatar?.length || 0,
+          "Avatar settings:", updatedUser.avatarSettings ? 
+            `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
+            "none");
+        
+        // Save to localStorage first to ensure data is persisted
+        localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
+        
+        // Then update state
+        setUser(updatedUser);
+        toast("Profile updated successfully");
+        
+        // Give the browser a moment to process localStorage changes
+        setTimeout(() => resolve(), 50);
+      } catch (error) {
+        console.error("[AuthContext] Error updating profile:", error);
+        reject(error);
       }
     });
-    
-    console.log("[AuthContext] Saving updated user:", 
-      "Name:", updatedUser.name,
-      "Avatar exists:", !!updatedUser.avatar, 
-      "Avatar length:", updatedUser.avatar?.length || 0,
-      "Avatar settings:", updatedUser.avatarSettings ? 
-        `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
-        "none");
-    
-    // Save to state and localStorage
-    localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
-    setUser(updatedUser);
-    toast("Profile updated successfully");
   };
 
-  // Function to mark account setup as complete
-  const completeAccountSetup = () => {
-    if (!user) return;
-    
-    // Make sure we preserve the avatar and its settings
-    const updatedUser = { 
-      ...user, 
-      hasCompletedSetup: true 
-    };
+  // Function to mark account setup as complete - MODIFIED: now returns a promise
+  const completeAccountSetup = async (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      try {
+        if (!user) {
+          console.error("[AuthContext] Cannot complete setup: No user logged in");
+          reject(new Error("No user logged in"));
+          return;
+        }
+        
+        // Make sure we preserve the avatar and its settings
+        const updatedUser = { 
+          ...user, 
+          hasCompletedSetup: true 
+        };
 
-    console.log("[AuthContext] Completing setup.", 
-      "User has avatar:", !!updatedUser.avatar,
-      "Avatar length:", updatedUser.avatar?.length || 0,
-      "Avatar settings:", updatedUser.avatarSettings ? 
-        `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
-        "none");
-    
-    localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
-    setUser(updatedUser);
-    toast("Account setup completed!");
+        console.log("[AuthContext] Completing setup.", 
+          "User has avatar:", !!updatedUser.avatar,
+          "Avatar length:", updatedUser.avatar?.length || 0,
+          "Avatar settings:", updatedUser.avatarSettings ? 
+            `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
+            "none");
+        
+        // Save to localStorage first
+        localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
+        
+        // Then update state
+        setUser(updatedUser);
+        toast("Account setup completed!");
+        
+        // Give the browser a moment to process localStorage changes
+        setTimeout(() => resolve(), 50);
+      } catch (error) {
+        console.error("[AuthContext] Error completing setup:", error);
+        reject(error);
+      }
+    });
   };
 
   // Check if user needs to complete account setup
