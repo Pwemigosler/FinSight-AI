@@ -1,5 +1,5 @@
 
-import { Bell, ChevronDown, Menu, LogOut, User, Settings } from "lucide-react";
+import { Bell, ChevronDown, Menu, LogOut, User, Settings, Bot } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -145,6 +145,15 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       </div>
 
       <div className="flex items-center gap-3">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative"
+          onClick={() => navigate('/chat')}
+        >
+          <Bot className="h-5 w-5" />
+        </Button>
+        
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-finsight-red"></span>
