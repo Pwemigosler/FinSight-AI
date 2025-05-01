@@ -3,6 +3,7 @@ import {
   allocateFunds, 
   transferFunds, 
   getBudgetCategories,
+  addBudgetCategory,
   BudgetCategory
 } from "@/services/fundAllocationService";
 import { ActionResult, FinancialInsight } from "@/types/chat";
@@ -62,6 +63,24 @@ export const processActionRequest = (message: string): ActionResult | null => {
     return {
       action: {
         type: "allocation",
+        status: result.success ? "success" as const : "error" as const,
+        details: result
+      },
+      response: result.message
+    };
+  }
+  
+  // Check for new category creation requests
+  // Patterns: "create category X", "add category X", "new category X"
+  const categoryCreationMatch = lowerMessage.match(/(?:create|add|new)\s+(?:budget\s+)?category\s+([a-z0-9\s]+)(?:\s+with\s+\$?(\d+(?:\.\d+)?))?/i);
+  if (categoryCreationMatch) {
+    const categoryName = categoryCreationMatch[1].trim();
+    const initialAmount = categoryCreationMatch[2] ? parseFloat(categoryCreationMatch[2]) : 0;
+    
+    const result = addBudgetCategory(categoryName, initialAmount);
+    return {
+      action: {
+        type: "category_creation",
         status: result.success ? "success" as const : "error" as const,
         details: result
       },
@@ -129,11 +148,12 @@ export const getDefaultResponse = (inputMessage: string): string => {
     "save": "To improve your savings, try allocating more funds there. Try saying 'Allocate $300 to savings' or 'Transfer $100 from entertainment to savings'.",
     "debt": "To tackle debt, allocate more funds to paying it off. Try saying 'Allocate $400 to bills' to set aside money for debt payments.",
     "analyze": "I can analyze your finances to help identify saving opportunities and spending patterns. Try asking me to 'Analyze my finances' or 'Give me a spending analysis'.",
+    "category": "You can create new budget categories by saying 'Create category Travel' or 'Add category Healthcare with $300'.",
   };
   
   // Generate a response based on keywords or use a default
   const lowerInput = inputMessage.toLowerCase();
-  let botContent = "I can help you allocate your funds to different categories. Try saying 'Allocate $500 to bills', 'Transfer $200 from entertainment to savings', 'Show my budget categories', or 'Analyze my finances'.";
+  let botContent = "I can help you allocate your funds to different categories. Try saying 'Allocate $500 to bills', 'Transfer $200 from entertainment to savings', 'Show my budget categories', 'Create category Travel', or 'Analyze my finances'.";
   
   // Check if message contains any keywords
   for (const [keyword, response] of Object.entries(botResponses)) {

@@ -75,8 +75,63 @@ let budgetCategories: BudgetCategory[] = [
   },
 ];
 
+// Available colors for new categories
+const availableColors = [
+  'bg-finsight-purple',
+  'bg-finsight-blue',
+  'bg-finsight-orange',
+  'bg-finsight-red',
+  'bg-finsight-green',
+];
+
 export const getBudgetCategories = (): BudgetCategory[] => {
   return [...budgetCategories];
+};
+
+export const addBudgetCategory = (
+  name: string,
+  initialAllocation: number = 0
+): { success: boolean; message: string; category?: BudgetCategory } => {
+  if (!name || name.trim() === '') {
+    return {
+      success: false,
+      message: 'Category name cannot be empty'
+    };
+  }
+
+  // Create ID from name (lowercase, remove spaces)
+  const id = name.toLowerCase().replace(/\s+/g, '-');
+  
+  // Check if category already exists
+  if (budgetCategories.some(cat => cat.id === id)) {
+    return {
+      success: false,
+      message: `Category '${name}' already exists`
+    };
+  }
+  
+  // Select a random color from available colors
+  const randomColor = availableColors[Math.floor(Math.random() * availableColors.length)];
+  
+  // Create new category
+  const newCategory: BudgetCategory = {
+    id,
+    name,
+    allocated: initialAllocation,
+    spent: 0,
+    color: randomColor,
+  };
+  
+  // Add to categories
+  budgetCategories.push(newCategory);
+  
+  return {
+    success: true,
+    message: `Successfully created new category '${name}'${
+      initialAllocation > 0 ? ` with initial allocation of $${initialAllocation}` : ''
+    }`,
+    category: newCategory
+  };
 };
 
 export const allocateFunds = (

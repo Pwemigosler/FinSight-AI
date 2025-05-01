@@ -1,45 +1,21 @@
 
 import { ArrowUpRight } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-
-const categories = [
-  {
-    name: 'Housing',
-    allocated: 2000,
-    spent: 1800,
-    color: 'bg-finsight-purple',
-  },
-  {
-    name: 'Food',
-    allocated: 800,
-    spent: 650,
-    color: 'bg-finsight-blue',
-  },
-  {
-    name: 'Transportation',
-    allocated: 500,
-    spent: 320,
-    color: 'bg-finsight-orange',
-  },
-  {
-    name: 'Entertainment',
-    allocated: 400,
-    spent: 410,
-    color: 'bg-finsight-red',
-  },
-  {
-    name: 'Utilities',
-    allocated: 350,
-    spent: 310,
-    color: 'bg-finsight-green',
-  },
-];
+import { getBudgetCategories } from '@/services/fundAllocationService';
+import { useState, useEffect } from 'react';
 
 const BudgetOverview = () => {
+  const [categories, setCategories] = useState(getBudgetCategories());
+
+  // Update categories whenever the component is mounted or shown
+  useEffect(() => {
+    setCategories(getBudgetCategories());
+  }, []);
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-bold">August Budget</h2>
+        <h2 className="text-lg font-bold">Budget Overview</h2>
         <div className="flex items-center gap-1 text-sm font-medium text-finsight-purple">
           View All
           <ArrowUpRight className="h-4 w-4" />
@@ -47,8 +23,8 @@ const BudgetOverview = () => {
       </div>
 
       <div className="space-y-4">
-        {categories.map((category) => (
-          <div key={category.name} className="space-y-1">
+        {categories.slice(0, 5).map((category) => (
+          <div key={category.id} className="space-y-1">
             <div className="flex justify-between text-sm">
               <span className="font-medium">{category.name}</span>
               <span className={category.spent > category.allocated ? 'text-finsight-red font-medium' : ''}>
