@@ -4,22 +4,33 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Send, Bot } from "lucide-react";
+import { Send, Bot, CreditCard, PiggyBank, Wallet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { 
+  allocateFunds, 
+  transferFunds, 
+  getBudgetCategories,
+  BudgetCategory
+} from "@/services/fundAllocationService";
 
 interface Message {
   id: string;
   content: string;
   sender: "user" | "bot";
   timestamp: Date;
+  action?: {
+    type: string;
+    status: "success" | "error";
+    details?: any;
+  };
 }
 
 const ChatBot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      content: "Hello! I'm your AI financial assistant. How can I help you today?",
+      content: "Hello! I'm your AI financial assistant. I can help you manage your finances and allocate funds to different categories. Try asking me to allocate money to bills, savings, or spending.",
       sender: "bot",
       timestamp: new Date(),
     },
@@ -33,6 +44,63 @@ const ChatBot = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const processActionRequest = (message: string) => {
+    const lowerMessage = message.toLowerCase();
+    
+    // Check for allocation requests
+    const allocateMatch = lowerMessage.match(/allocate\s+\$?(\d+(?:\.\d+)?)\s+(?:to|for|towards)\s+(\w+)/i);
+    if (allocateMatch) {
+      const amount = parseFloat(allocateMatch[1]);
+      const category = allocateMatch[2];
+      
+      const result = allocateFunds(category, amount);
+      return {
+        action: {
+          type: "allocation",
+          status: result.success ? "success" : "error",
+          details: result
+        },
+        response: result.message
+      };
+    }
+    
+    // Check for transfer requests
+    const transferMatch = lowerMessage.match(/transfer\s+\$?(\d+(?:\.\d+)?)\s+from\s+(\w+)\s+to\s+(\w+)/i);
+    if (transferMatch) {
+      const amount = parseFloat(transferMatch[1]);
+      const fromCategory = transferMatch[2];
+      const toCategory = transferMatch[3];
+      
+      const result = transferFunds(fromCategory, toCategory, amount);
+      return {
+        action: {
+          type: "transfer",
+          status: result.success ? "success" : "error",
+          details: result
+        },
+        response: result.message
+      };
+    }
+    
+    // Check for viewing budget request
+    if (lowerMessage.includes("show") && (lowerMessage.includes("budget") || lowerMessage.includes("category") || lowerMessage.includes("funds"))) {
+      const categories = getBudgetCategories();
+      const categoryList = categories.map(cat => `${cat.name}: $${cat.allocated} (spent: $${cat.spent})`).join("\n");
+      
+      return {
+        action: {
+          type: "view",
+          status: "success",
+          details: { categories }
+        },
+        response: `Here are your current budget categories:\n\n${categoryList}`
+      };
+    }
+    
+    // No action detected
+    return null;
+  };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -50,38 +118,67 @@ const ChatBot = () => {
     setIsLoading(true);
 
     try {
-      // In a real app, you would call an AI API here
-      // Simulate API call with timeout
-      setTimeout(() => {
-        const botResponses: { [key: string]: string } = {
-          "budget": "I can help you create a budget. Let's start by analyzing your income and expenses.",
-          "invest": "For investment advice, I recommend diversifying your portfolio across stocks, bonds, and ETFs.",
-          "save": "To improve your savings, try the 50/30/20 rule: 50% needs, 30% wants, 20% savings.",
-          "debt": "To tackle debt, focus on high-interest debts first while making minimum payments on others.",
-        };
-        
-        // Generate a response based on keywords or use a default
-        const lowerInput = inputMessage.toLowerCase();
-        let botContent = "I'm not sure how to help with that specific topic yet. Could you try asking about budgeting, investing, saving, or debt management?";
-        
-        // Check if message contains any keywords
-        for (const [keyword, response] of Object.entries(botResponses)) {
-          if (lowerInput.includes(keyword)) {
-            botContent = response;
-            break;
+      // Check if message is an action request
+      const actionResult = processActionRequest(inputMessage);
+      
+      if (actionResult) {
+        // This is a fund allocation or other action request
+        setTimeout(() => {
+          const botMessage: Message = {
+            id: Date.now().toString(),
+            content: actionResult.response,
+            sender: "bot",
+            timestamp: new Date(),
+            action: actionResult.action
+          };
+          
+          setMessages((prev) => [...prev, botMessage]);
+          setIsLoading(false);
+          
+          // Show toast for successful actions
+          if (actionResult.action.status === "success") {
+            toast.success("Action completed", {
+              description: actionResult.response,
+            });
+          } else {
+            toast.error("Action failed", {
+              description: actionResult.response,
+            });
           }
-        }
+        }, 1000);
+      } else {
+        // Regular conversation - use existing response logic
+        setTimeout(() => {
+          const botResponses: { [key: string]: string } = {
+            "budget": "I can help you manage your budget. You can ask me to allocate funds to different categories like 'Allocate $500 to bills' or 'Transfer $200 from entertainment to savings'.",
+            "invest": "For investment advice, I recommend diversifying your portfolio. Would you like me to allocate some funds to your investment category?",
+            "save": "To improve your savings, try allocating more funds there. Try saying 'Allocate $300 to savings' or 'Transfer $100 from entertainment to savings'.",
+            "debt": "To tackle debt, allocate more funds to paying it off. Try saying 'Allocate $400 to bills' to set aside money for debt payments.",
+          };
+          
+          // Generate a response based on keywords or use a default
+          const lowerInput = inputMessage.toLowerCase();
+          let botContent = "I can help you allocate your funds to different categories. Try saying 'Allocate $500 to bills', 'Transfer $200 from entertainment to savings', or 'Show my budget categories'.";
+          
+          // Check if message contains any keywords
+          for (const [keyword, response] of Object.entries(botResponses)) {
+            if (lowerInput.includes(keyword)) {
+              botContent = response;
+              break;
+            }
+          }
 
-        const botMessage: Message = {
-          id: Date.now().toString(),
-          content: botContent,
-          sender: "bot",
-          timestamp: new Date(),
-        };
+          const botMessage: Message = {
+            id: Date.now().toString(),
+            content: botContent,
+            sender: "bot",
+            timestamp: new Date(),
+          };
 
-        setMessages((prev) => [...prev, botMessage]);
-        setIsLoading(false);
-      }, 1000);
+          setMessages((prev) => [...prev, botMessage]);
+          setIsLoading(false);
+        }, 1000);
+      }
     } catch (error) {
       console.error("Error getting AI response:", error);
       toast.error("Failed to get response. Please try again.");
@@ -93,6 +190,21 @@ const ChatBot = () => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const getActionIcon = (action?: Message["action"]) => {
+    if (!action) return null;
+    
+    switch (action.type) {
+      case "allocation":
+        return <Wallet className="h-5 w-5 text-finsight-green" />;
+      case "transfer":
+        return <CreditCard className="h-5 w-5 text-finsight-purple" />;
+      case "view":
+        return <PiggyBank className="h-5 w-5 text-finsight-blue" />;
+      default:
+        return null;
     }
   };
 
@@ -147,7 +259,19 @@ const ChatBot = () => {
                       : "bg-gray-100 text-gray-800 rounded-tl-none"
                   }`}
                 >
-                  <p className="break-words">{msg.content}</p>
+                  {msg.action && msg.action.status === "success" && (
+                    <div className="flex items-center gap-2 mb-2 py-1 px-2 bg-green-100 text-green-800 rounded-md text-sm">
+                      {getActionIcon(msg.action)}
+                      <span>Action completed</span>
+                    </div>
+                  )}
+                  {msg.action && msg.action.status === "error" && (
+                    <div className="flex items-center gap-2 mb-2 py-1 px-2 bg-red-100 text-red-800 rounded-md text-sm">
+                      {getActionIcon(msg.action)}
+                      <span>Action failed</span>
+                    </div>
+                  )}
+                  <div className="whitespace-pre-line break-words">{msg.content}</div>
                   <p className="text-xs opacity-70 mt-1">
                     {msg.timestamp.toLocaleTimeString([], {
                       hour: "2-digit",
