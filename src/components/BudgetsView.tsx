@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { PiggyBank, TrendingUp, AlertTriangle, Plus } from 'lucide-react';
+import { PiggyBank, TrendingUp, AlertTriangle, Plus, Edit, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -11,16 +11,22 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { getBudgetCategories, addBudgetCategory } from '@/services/fundAllocationService';
+import { getBudgetCategories, addBudgetCategory, updateCategoryAmount, BudgetCategory } from '@/services/fundAllocationService';
 
 const formSchema = z.object({
   name: z.string().min(1, "Category name is required"),
   amount: z.string().regex(/^\d*\.?\d*$/, "Must be a valid number"),
 });
 
+const editFormSchema = z.object({
+  amount: z.string().regex(/^\d*\.?\d*$/, "Must be a valid number"),
+});
+
 const BudgetsView = () => {
   const [budgets, setBudgets] = useState(getBudgetCategories());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
 
   // Refresh budgets from service
   useEffect(() => {
@@ -31,6 +37,13 @@ const BudgetsView = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      amount: "0",
+    },
+  });
+
+  const editForm = useForm<z.infer<typeof editFormSchema>>({
+    resolver: zodResolver(editFormSchema),
+    defaultValues: {
       amount: "0",
     },
   });
@@ -55,6 +68,41 @@ const BudgetsView = () => {
         description: result.message,
       });
     }
+  };
+
+  const startEditing = (category: BudgetCategory) => {
+    setEditingCategory(category.id);
+    setEditValue(category.allocated.toString());
+    editForm.setValue("amount", category.allocated.toString());
+  };
+
+  const saveEditing = (categoryId: string) => {
+    const newAmount = parseFloat(editValue);
+    if (isNaN(newAmount) || newAmount < 0) {
+      toast.error("Invalid amount", {
+        description: "Please enter a valid positive number",
+      });
+      return;
+    }
+
+    const result = updateCategoryAmount(categoryId, newAmount);
+    
+    if (result.success) {
+      toast.success("Budget updated", {
+        description: result.message,
+      });
+      setBudgets(getBudgetCategories());
+    } else {
+      toast.error("Failed to update budget", {
+        description: result.message,
+      });
+    }
+    
+    setEditingCategory(null);
+  };
+
+  const cancelEditing = () => {
+    setEditingCategory(null);
   };
 
   const getIconForCategory = (index: number) => {
@@ -156,6 +204,8 @@ const BudgetsView = () => {
             <div className="space-y-4">
               {budgets.map((budget, index) => {
                 const Icon = getIconForCategory(index);
+                const isEditing = editingCategory === budget.id;
+                
                 return (
                   <div key={budget.id} className="space-y-2">
                     <div className="flex justify-between items-center">
@@ -163,9 +213,41 @@ const BudgetsView = () => {
                         <Icon className={`h-5 w-5 ${budget.color}`} />
                         <span className="font-medium">{budget.name}</span>
                       </div>
-                      <span className={budget.spent > budget.allocated ? 'text-finsight-red font-bold' : ''}>
-                        ${budget.spent} <span className="text-gray-400">/ ${budget.allocated}</span>
-                      </span>
+                      
+                      {isEditing ? (
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            type="number"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="w-24 h-8 text-sm"
+                            step="0.01"
+                            min="0"
+                          />
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => saveEditing(budget.id)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className={budget.spent > budget.allocated ? 'text-finsight-red font-bold' : ''}>
+                            ${budget.spent} <span className="text-gray-400">/ ${budget.allocated}</span>
+                          </span>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => startEditing(budget)}
+                            className="h-8 w-8 p-0 opacity-50 hover:opacity-100"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <Progress 
                       value={(budget.spent / budget.allocated) * 100} 

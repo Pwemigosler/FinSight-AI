@@ -4,6 +4,7 @@ import {
   transferFunds, 
   getBudgetCategories,
   addBudgetCategory,
+  updateCategoryAmount,
   BudgetCategory
 } from "@/services/fundAllocationService";
 import { ActionResult, FinancialInsight } from "@/types/chat";
@@ -88,6 +89,39 @@ export const processActionRequest = (message: string): ActionResult | null => {
     };
   }
   
+  // Check for set/update category amount requests
+  // Patterns: "set budget for X to $Y", "update X budget to $Y", "change X allocation to $Y"
+  const updateBudgetMatch = lowerMessage.match(/(?:set|update|change)\s+(?:budget\s+for\s+|(\w+)\s+budget\s+to\s+|\w+\s+allocation\s+to\s+)\$?(\d+(?:\.\d+)?)/i);
+  if (updateBudgetMatch) {
+    let category = updateBudgetMatch[1]?.trim();
+    const amount = parseFloat(updateBudgetMatch[2]);
+    
+    // If category is not captured in first group, try to extract it from the full message
+    if (!category) {
+      const categoryMatch = lowerMessage.match(/(?:set|update|change)\s+budget\s+for\s+(\w+)/i);
+      if (categoryMatch) {
+        category = categoryMatch[1].trim();
+      } else {
+        const altMatch = lowerMessage.match(/(?:set|update|change)\s+(\w+)\s+allocation/i);
+        if (altMatch) {
+          category = altMatch[1].trim();
+        }
+      }
+    }
+    
+    if (category) {
+      const result = updateCategoryAmount(category, amount);
+      return {
+        action: {
+          type: "budget_update",
+          status: result.success ? "success" as const : "error" as const,
+          details: result
+        },
+        response: result.message
+      };
+    }
+  }
+  
   // Check for transfer requests
   const transferMatch = lowerMessage.match(/transfer\s+\$?(\d+(?:\.\d+)?)\s+from\s+(\w+)\s+to\s+(\w+)/i);
   if (transferMatch) {
@@ -115,7 +149,7 @@ export const processActionRequest = (message: string): ActionResult | null => {
       action: {
         type: "view",
         status: "success" as const,
-        details: categories  // Fixed: Changed from { categories } to just categories
+        details: categories
       },
       response: `Here are your current budget categories:\n\n${categoryList}`
     };
@@ -149,11 +183,12 @@ export const getDefaultResponse = (inputMessage: string): string => {
     "debt": "To tackle debt, allocate more funds to paying it off. Try saying 'Allocate $400 to bills' to set aside money for debt payments.",
     "analyze": "I can analyze your finances to help identify saving opportunities and spending patterns. Try asking me to 'Analyze my finances' or 'Give me a spending analysis'.",
     "category": "You can create new budget categories by saying 'Create category Travel' or 'Add category Healthcare with $300'.",
+    "update": "You can update your budget amounts by saying 'Set budget for housing to $2000' or 'Update food budget to $500'."
   };
   
   // Generate a response based on keywords or use a default
   const lowerInput = inputMessage.toLowerCase();
-  let botContent = "I can help you allocate your funds to different categories. Try saying 'Allocate $500 to bills', 'Transfer $200 from entertainment to savings', 'Show my budget categories', 'Create category Travel', or 'Analyze my finances'.";
+  let botContent = "I can help you allocate your funds to different categories. Try saying 'Allocate $500 to bills', 'Transfer $200 from entertainment to savings', 'Show my budget categories', 'Create category Travel', 'Update housing budget to $1500', or 'Analyze my finances'.";
   
   // Check if message contains any keywords
   for (const [keyword, response] of Object.entries(botResponses)) {

@@ -134,6 +134,39 @@ export const addBudgetCategory = (
   };
 };
 
+// New function to update a category's allocated budget
+export const updateCategoryAmount = (
+  categoryId: string,
+  newAmount: number
+): { success: boolean; message: string; category?: BudgetCategory } => {
+  // Find the category to update
+  const categoryIndex = budgetCategories.findIndex(cat => cat.id.toLowerCase() === categoryId.toLowerCase());
+  
+  if (categoryIndex === -1) {
+    return { 
+      success: false, 
+      message: `Category '${categoryId}' not found` 
+    };
+  }
+  
+  if (newAmount < 0) {
+    return { 
+      success: false, 
+      message: 'Amount cannot be negative' 
+    };
+  }
+
+  // Update the category allocation
+  const previousAmount = budgetCategories[categoryIndex].allocated;
+  budgetCategories[categoryIndex].allocated = newAmount;
+  
+  return { 
+    success: true, 
+    message: `Successfully updated ${budgetCategories[categoryIndex].name} budget from $${previousAmount} to $${newAmount}`,
+    category: budgetCategories[categoryIndex]
+  };
+};
+
 export const allocateFunds = (
   categoryId: string, 
   amount: number, 
