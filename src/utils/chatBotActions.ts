@@ -1,4 +1,3 @@
-
 import { 
   allocateFunds, 
   transferFunds, 
@@ -7,6 +6,7 @@ import {
   updateCategoryAmount,
   BudgetCategory
 } from "@/services/fundAllocationService";
+import type { BudgetCategory } from "@/types/budget";
 import { ActionResult, FinancialInsight } from "@/types/chat";
 
 export interface ChatAction {
