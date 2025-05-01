@@ -13,6 +13,7 @@ export interface BudgetCategory {
   allocated: number;
   spent: number;
   color: string;
+  user_id?: string; // Added for Supabase integration
 }
 
 // Available colors for categories
