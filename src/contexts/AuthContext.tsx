@@ -73,9 +73,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Debug log for avatar
         if (parsedUser && parsedUser.avatar) {
-          console.log("Loading user from storage with avatar:", 
+          console.log("[AuthContext] Loading user from storage with avatar:", 
             parsedUser.avatar.substring(0, 20) + "...", 
             "length:", parsedUser.avatar.length);
+        } else {
+          console.log("[AuthContext] No avatar found in stored user data");
         }
         
         setUser(parsedUser);
@@ -85,7 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const parsedCards = savedCards ? JSON.parse(savedCards) : [];
         setLinkedCards(parsedCards);
       } catch (error) {
-        console.error("Error loading stored auth data:", error);
+        console.error("[AuthContext] Error loading stored auth data:", error);
         // If there's an error parsing, reset the storage
         localStorage.removeItem("finsight_user");
         localStorage.removeItem("finsight_linked_cards");
@@ -101,7 +103,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const updateUserProfile = (updates: Partial<User>) => {
     if (!user) return;
     
-    console.log("Updating user profile with:", updates);
+    console.log("[AuthContext] Updating user profile with:", 
+      updates.avatar ? "avatar included" : "no avatar", 
+      updates.avatarSettings ? "avatarSettings included" : "no avatarSettings");
     
     // Create a deep copy of the user object
     const updatedUser = { ...user };
@@ -114,19 +118,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     // Ensure avatar settings exist if we have an avatar
     if (updatedUser.avatar && !updatedUser.avatarSettings) {
+      console.log("[AuthContext] Adding default avatarSettings");
       updatedUser.avatarSettings = {
         zoom: 100,
         position: { x: 0, y: 0 }
       };
     }
     
-    console.log("Updated user:", updatedUser);
+    console.log("[AuthContext] Updated user has avatar:", !!updatedUser.avatar);
     
-    // Debug log for avatar
-    if (updatedUser.avatar) {
-      console.log("Saving avatar to storage, length:", updatedUser.avatar.length);
-    }
-    
+    // Save to state and localStorage
     setUser(updatedUser);
     localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
     toast("Profile updated successfully");
@@ -136,7 +137,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const completeAccountSetup = () => {
     if (!user) return;
     
-    const updatedUser = { ...user, hasCompletedSetup: true };
+    // Make sure we preserve the avatar and its settings
+    const updatedUser = { 
+      ...user, 
+      hasCompletedSetup: true 
+    };
+
+    console.log("[AuthContext] Completing setup. User has avatar:", !!updatedUser.avatar);
+    
     setUser(updatedUser);
     localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
     toast("Account setup completed!");

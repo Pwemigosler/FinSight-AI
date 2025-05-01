@@ -22,19 +22,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const isMobile = useIsMobile();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [avatarImage, setAvatarImage] = useState<string>("");
-  const avatarImageLoaded = useRef(false);
-  
-  // Update avatar image whenever user changes
-  useEffect(() => {
-    if (user?.avatar) {
-      console.log("Header: Setting avatar image from user object");
-      setAvatarImage(user.avatar);
-      avatarImageLoaded.current = true;
-    } else {
-      console.log("Header: No avatar image in user object");
-    }
-  }, [user]);
+  const [avatarKey, setAvatarKey] = useState<number>(0); // Key to force re-render
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -51,17 +39,13 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     navigate('/');
   };
 
-  // Force rerender for avatar after a short delay
+  // Force re-render of avatar when user changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (user?.avatar && !avatarImage) {
-        console.log("Header: Forced avatar update");
-        setAvatarImage(user.avatar);
-      }
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [user, avatarImage]);
+    if (user) {
+      setAvatarKey(prev => prev + 1);
+      console.log("Header: User changed, avatar URL:", user.avatar ? "exists" : "doesn't exist");
+    }
+  }, [user]);
 
   return (
     <header className="bg-white border-b border-gray-100 p-4 flex justify-between items-center sticky top-0 z-10">
@@ -90,18 +74,19 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer">
-              <Avatar className="h-8 w-8">
-                {avatarImage ? (
+              <Avatar className="h-8 w-8" key={avatarKey}>
+                {user?.avatar && (
                   <AvatarImage 
-                    src={avatarImage} 
+                    src={user.avatar} 
+                    alt={user?.name || "User avatar"}
                     style={{ 
                       transform: user?.avatarSettings ? `scale(${user.avatarSettings.zoom / 100})` : undefined,
                       marginLeft: user?.avatarSettings ? `${user.avatarSettings.position.x * 0.25}px` : undefined,
                       marginTop: user?.avatarSettings ? `${user.avatarSettings.position.y * 0.25}px` : undefined,
                     }}
-                    onError={() => console.error("Failed to load avatar image")}
+                    onError={() => console.error("Failed to load avatar image in Header")}
                   />
-                ) : null}
+                )}
                 <AvatarFallback className="bg-finsight-purple text-white">{getInitials()}</AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium hidden md:inline">{user?.name || "User"}</span>

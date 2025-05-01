@@ -123,6 +123,7 @@ const AccountSetup = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const imageDataUrl = event.target?.result as string;
+      console.log("[AccountSetup] Image loaded, length:", imageDataUrl.length);
       setPreviewImage(imageDataUrl);
       setFormData(prev => ({ ...prev, avatar: imageDataUrl }));
       // Initialize zoom level and position for new images
@@ -225,10 +226,9 @@ const AccountSetup = () => {
   const completeSetup = async () => {
     setLoading(true);
     try {
-      // Make sure we save all image data including the actual image
-      // This is critical - ensure the avatar is properly set before completing setup
+      // Critical: Make sure we save the image with transformation settings first
       if (previewImage) {
-        console.log("Saving profile image in setup:", previewImage.substring(0, 100) + "...");
+        console.log("[AccountSetup] Saving profile image in setup:", previewImage.substring(0, 20) + "...");
         
         await updateUserProfile({
           name: formData.fullName,
@@ -238,6 +238,9 @@ const AccountSetup = () => {
             position: imagePosition
           }
         });
+        
+        // Add a short delay to ensure the avatar is saved before completing setup
+        await new Promise(resolve => setTimeout(resolve, 100));
       } else {
         await updateUserProfile({
           name: formData.fullName
@@ -250,7 +253,7 @@ const AccountSetup = () => {
       // Navigate to home page
       navigate("/");
     } catch (error) {
-      console.error("Error completing setup:", error);
+      console.error("[AccountSetup] Error completing setup:", error);
       toast("There was a problem completing your setup");
     } finally {
       setLoading(false);
