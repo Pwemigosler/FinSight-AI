@@ -1,8 +1,8 @@
-
-import { Message, FinancialInsight } from "@/types/chat";
+import { Message, FinancialInsight, ReceiptInfo } from "@/types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "@/types/user";
-import { Wallet, CreditCard, PiggyBank, LineChart, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import { Wallet, CreditCard, PiggyBank, LineChart, TrendingUp, TrendingDown, AlertCircle, Receipt, ExternalLink } from "lucide-react";
+import { Button } from "../ui/button";
 
 interface MessageBubbleProps {
   message: Message;
@@ -21,6 +21,8 @@ export const getActionIcon = (action?: Message["action"]) => {
       return <PiggyBank className="h-5 w-5 text-finsight-blue" />;
     case "analysis":
       return <LineChart className="h-5 w-5 text-finsight-blue" />;
+    case "receipts_view":
+      return <Receipt className="h-5 w-5 text-finsight-green" />;
     default:
       return null;
   }
@@ -78,12 +80,52 @@ const FinancialInsightCard = ({ insight }: { insight: FinancialInsight }) => {
   );
 };
 
+const ReceiptCard = ({ receipt }: { receipt: ReceiptInfo }) => {
+  const openReceipt = () => {
+    if (receipt.full_url) {
+      window.open(receipt.full_url, "_blank");
+    }
+  };
+
+  return (
+    <div className="bg-blue-50 rounded-md p-3 mb-2">
+      <div className="flex items-start gap-2">
+        <div className="mt-1">
+          <Receipt className="h-4 w-4 text-finsight-blue" />
+        </div>
+        <div className="flex-1">
+          <div className="flex justify-between items-start">
+            <h4 className="font-medium text-sm text-blue-700 truncate max-w-[200px]">
+              {receipt.file_name}
+            </h4>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-6 px-2 text-xs"
+              onClick={openReceipt}
+            >
+              <ExternalLink className="h-3 w-3 mr-1" />
+              View
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Transaction ID: {receipt.transaction_id}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MessageBubble = ({ message, user }: MessageBubbleProps) => {
   // Get insights from message action details if they exist
   const insights = message.action?.type === "analysis" && 
                   message.action.details?.insights ? 
                   message.action.details.insights as FinancialInsight[] : 
                   [];
+                  
+  // Get receipts from message if they exist
+  const receipts = message.receipts || [];
 
   return (
     <div
@@ -143,6 +185,16 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
             <div className="mt-3 space-y-2">
               {insights.map((insight, index) => (
                 <FinancialInsightCard key={index} insight={insight} />
+              ))}
+            </div>
+          )}
+          
+          {/* Render receipt cards if they exist */}
+          {receipts.length > 0 && (
+            <div className="mt-3 space-y-2">
+              <h4 className="text-sm font-medium">Receipts:</h4>
+              {receipts.map((receipt, index) => (
+                <ReceiptCard key={`${receipt.id}-${index}`} receipt={receipt} />
               ))}
             </div>
           )}

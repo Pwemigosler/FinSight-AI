@@ -1,4 +1,3 @@
-
 import { 
   allocateFunds, 
   transferFunds, 
@@ -7,7 +6,8 @@ import {
   updateCategoryAmount,
 } from "@/services/fundAllocationService";
 import { BudgetCategory } from "@/types/budget";
-import { ActionResult, FinancialInsight } from "@/types/chat";
+import { ActionResult, FinancialInsight, ReceiptInfo } from "@/types/chat";
+import { getRecentReceipts, queryReceipts, getReceiptInfo } from "@/services/receiptService";
 
 export interface ChatAction {
   type: string;
@@ -171,6 +171,64 @@ export const processActionRequest = async (message: string): Promise<ActionResul
     };
   }
   
+  // Check for receipt viewing requests
+  if (
+    (lowerMessage.includes("show") || lowerMessage.includes("view") || lowerMessage.includes("get")) &&
+    lowerMessage.includes("receipt")
+  ) {
+    try {
+      let receipts: ReceiptInfo[] = [];
+      let responseText = "";
+      
+      // Check for receipt query parameters
+      const transactionMatch = lowerMessage.match(/receipt(?:s)?\s+(?:for|from)\s+(?:transaction\s+)?["']?([^"']+)["']?/i);
+      const dateMatch = lowerMessage.match(/receipt(?:s)?\s+(?:from|on|for)\s+(?:date\s+)?["']?([^"']+)["']?/i);
+      const recentMatch = lowerMessage.match(/(?:recent|latest|last)\s+(\d+)?\s*receipt/i);
+      
+      if (transactionMatch) {
+        const transactionName = transactionMatch[1].trim();
+        // In a real app, we would query by transaction name and use receipts associated with that transaction
+        // For now, we'll just get recent receipts as a placeholder
+        receipts = await getRecentReceipts(3);
+        responseText = `Here are the receipts for transaction "${transactionName}":`;
+      } else if (dateMatch) {
+        const dateText = dateMatch[1].trim();
+        // In a real app, we would parse the date and query by date range
+        // For now, we'll just get recent receipts as a placeholder
+        receipts = await getRecentReceipts(2);
+        responseText = `Here are the receipts from ${dateText}:`;
+      } else if (recentMatch) {
+        const count = recentMatch[1] ? parseInt(recentMatch[1]) : 5;
+        receipts = await getRecentReceipts(count);
+        responseText = `Here are your ${count} most recent receipts:`;
+      } else {
+        // General receipt request
+        receipts = await getRecentReceipts(5);
+        responseText = "Here are your recent receipts:";
+      }
+      
+      return {
+        action: {
+          type: "receipts_view",
+          status: "success",
+          details: { receipts }
+        },
+        response: responseText,
+        receipts
+      };
+    } catch (error) {
+      console.error("Error processing receipt request:", error);
+      return {
+        action: {
+          type: "receipts_view",
+          status: "error",
+          details: { error: (error as Error).message }
+        },
+        response: "I couldn't retrieve your receipts at this time. Please try again later."
+      };
+    }
+  }
+  
   // No action detected
   return null;
 };
@@ -183,12 +241,13 @@ export const getDefaultResponse = (inputMessage: string): string => {
     "debt": "To tackle debt, allocate more funds to paying it off. Try saying 'Allocate $400 to bills' to set aside money for debt payments.",
     "analyze": "I can analyze your finances to help identify saving opportunities and spending patterns. Try asking me to 'Analyze my finances' or 'Give me a spending analysis'.",
     "category": "You can create new budget categories by saying 'Create category Travel' or 'Add category Healthcare with $300'.",
-    "update": "You can update your budget amounts by saying 'Set budget for housing to $2000' or 'Update food budget to $500'."
+    "update": "You can update your budget amounts by saying 'Set budget for housing to $2000' or 'Update food budget to $500'.",
+    "receipt": "I can help you manage and view your receipts. Try saying 'Show my recent receipts', 'View receipts for Whole Foods', or 'Get receipts from last month'."
   };
   
   // Generate a response based on keywords or use a default
   const lowerInput = inputMessage.toLowerCase();
-  let botContent = "I can help you allocate your funds to different categories. Try saying 'Allocate $500 to bills', 'Transfer $200 from entertainment to savings', 'Show my budget categories', 'Create category Travel', 'Update housing budget to $1500', or 'Analyze my finances'.";
+  let botContent = "I can help you allocate your funds to different categories, manage receipts, and analyze your finances. Try saying 'Allocate $500 to bills', 'Transfer $200 from entertainment to savings', 'Show my budget categories', 'View my recent receipts', or 'Analyze my finances'.";
   
   // Check if message contains any keywords
   for (const [keyword, response] of Object.entries(botResponses)) {

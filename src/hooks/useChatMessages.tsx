@@ -8,7 +8,7 @@ export const useChatMessages = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      content: "Hello! I'm your AI financial assistant. I can help you manage your finances and allocate funds to different categories. Try asking me to allocate money to bills, savings, or spending.",
+      content: "Hello! I'm your AI financial assistant. I can help you manage your finances, allocate funds to different categories, and manage your receipts. Try asking me to allocate money, view budgets, or show your receipts.",
       sender: "bot",
       timestamp: new Date(),
     },
@@ -36,13 +36,14 @@ export const useChatMessages = () => {
       const actionResult = await processActionRequest(inputMessage);
       
       if (actionResult) {
-        // This is a fund allocation or other action request
+        // This is a fund allocation, receipts, or other action request
         const botMessage: Message = {
           id: Date.now().toString(),
           content: actionResult.response,
           sender: "bot",
           timestamp: new Date(),
-          action: actionResult.action
+          action: actionResult.action,
+          receipts: actionResult.receipts
         };
         
         setMessages((prev) => [...prev, botMessage]);
@@ -50,7 +51,9 @@ export const useChatMessages = () => {
         // Show toast for successful actions
         if (actionResult.action.status === "success") {
           toast.success("Action completed", {
-            description: actionResult.response,
+            description: actionResult.action.type === "receipts_view" 
+              ? "Receipt information retrieved" 
+              : actionResult.response,
           });
         } else {
           toast.error("Action failed", {

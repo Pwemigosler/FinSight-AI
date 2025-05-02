@@ -11,6 +11,7 @@ export interface Message {
     status: "success" | "error";
     details?: any;
   };
+  receipts?: ReceiptInfo[];
 }
 
 export interface ActionResult {
@@ -23,11 +24,13 @@ export interface ActionResult {
       category?: BudgetCategory;
       fromCategory?: BudgetCategory;
       toCategory?: BudgetCategory;
+      receipts?: ReceiptInfo[];
     } | {
       insights: FinancialInsight[];
     };
   };
   response: string;
+  receipts?: ReceiptInfo[];
 }
 
 export interface FinancialInsight {
@@ -37,4 +40,13 @@ export interface FinancialInsight {
   impact?: "positive" | "negative" | "neutral";
   value?: number;
   category?: string;
+}
+
+export interface ReceiptInfo {
+  id: string;
+  transaction_id: string;
+  file_path: string;
+  file_name: string;
+  thumbnail_url?: string;
+  full_url?: string;
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, ShoppingCart, Home, CreditCard, Coffee, ArrowDownToLine, ArrowUpFromLine, Plus } from 'lucide-react';
+import { Search, Filter, ShoppingCart, Home, CreditCard, Coffee, ArrowDownToLine, ArrowUpFromLine, Plus, Receipt } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
   Form,
   FormControl,
   FormField,
@@ -33,6 +39,8 @@ import { toast } from "@/hooks/use-toast";
 import LinkBankCardDialog from './LinkBankCardDialog';
 import ManageLinkedCardsDialog from './ManageLinkedCardsDialog';
 import { useAuth } from '@/contexts/AuthContext';
+import ReceiptUploader from './receipts/ReceiptUploader';
+import ReceiptGallery from './receipts/ReceiptGallery';
 
 const transactions = [
   {
@@ -109,6 +117,9 @@ const TransactionsView = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [transactionsList, setTransactionsList] = useState(transactions);
+  const [selectedTransaction, setSelectedTransaction] = useState<typeof transactions[0] | null>(null);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [receiptRefreshTrigger, setReceiptRefreshTrigger] = useState(0);
   const { linkedCards } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -162,6 +173,18 @@ const TransactionsView = () => {
       currency: 'USD',
       minimumFractionDigits: 2,
     });
+  };
+
+  const handleOpenReceiptDialog = (transaction: typeof transactions[0]) => {
+    setSelectedTransaction(transaction);
+    setIsReceiptDialogOpen(true);
+  };
+
+  const handleReceiptUploadComplete = (success: boolean) => {
+    if (success) {
+      // Increment to trigger a refresh of ReceiptGallery
+      setReceiptRefreshTrigger(prev => prev + 1);
+    }
   };
 
   return (
@@ -338,12 +361,76 @@ const TransactionsView = () => {
                   </div>
                 </div>
               </div>
-              <span className={`font-medium ${transaction.amount >= 0 ? 'text-green-600' : ''}`}>
-                {formatAmount(transaction.amount)}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className={`font-medium ${transaction.amount >= 0 ? 'text-green-600' : ''}`}>
+                  {formatAmount(transaction.amount)}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleOpenReceiptDialog(transaction)}
+                >
+                  <Receipt className="h-4 w-4" />
+                  <span className="sr-only">Receipts</span>
+                </Button>
+              </div>
             </div>
           ))}
         </div>
+
+        {/* Receipt Dialog */}
+        <Dialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen}>
+          <DialogContent className="sm:max-w-[550px]">
+            <DialogHeader>
+              <DialogTitle>Transaction Receipts</DialogTitle>
+            </DialogHeader>
+            {selectedTransaction && (
+              <div className="py-4">
+                <div className="bg-gray-50 p-3 rounded-md mb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`${selectedTransaction.iconBg} p-1.5 rounded-full`}>
+                        <div className={selectedTransaction.iconColor}>
+                          {selectedTransaction.icon}
+                        </div>
+                      </div>
+                      <span className="font-medium">{selectedTransaction.name}</span>
+                    </div>
+                    <span className={`font-medium ${selectedTransaction.amount >= 0 ? 'text-green-600' : ''}`}>
+                      {formatAmount(selectedTransaction.amount)}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500 flex justify-between">
+                    <div>{formatDate(selectedTransaction.date)}</div>
+                    <Badge variant="outline" className="text-xs font-normal">
+                      {selectedTransaction.category}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <Tabs defaultValue="gallery">
+                  <TabsList className="grid grid-cols-2 mb-4">
+                    <TabsTrigger value="gallery">Receipts</TabsTrigger>
+                    <TabsTrigger value="upload">Upload New</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="gallery">
+                    <ReceiptGallery 
+                      transactionId={selectedTransaction.id} 
+                      refreshTrigger={receiptRefreshTrigger}
+                    />
+                  </TabsContent>
+                  <TabsContent value="upload">
+                    <ReceiptUploader 
+                      transactionId={selectedTransaction.id}
+                      onUploadComplete={handleReceiptUploadComplete}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
