@@ -1,81 +1,53 @@
 
 import React, { useState, useEffect } from "react";
-import { Bot, MessageCircle, Sparkles, LightbulbIcon } from "lucide-react";
+import { LightbulbIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import PixarAvatar, { AvatarState } from "../avatars/PixarAvatar";
 
 interface AnimatedAvatarProps {
   state: "idle" | "speaking" | "thinking";
   showTip?: boolean;
   tip?: string;
   className?: string;
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 const AnimatedAvatar: React.FC<AnimatedAvatarProps> = ({ 
   state = "idle", 
   showTip = false, 
   tip = "", 
-  className = "" 
+  className = "",
+  size = "md"
 }) => {
-  const [animate, setAnimate] = useState(false);
-  const [tipVisible, setTipVisible] = useState(showTip);
+  const { user } = useAuth();
+  const [avatarState, setAvatarState] = useState<AvatarState>("idle");
+  const characterId = user?.preferences?.assistantCharacter || "finn";
   
-  // Trigger animation effect when state changes
+  // Update avatar state based on chat state and tips
   useEffect(() => {
-    setAnimate(true);
-    const timer = setTimeout(() => setAnimate(false), 1000);
-    return () => clearTimeout(timer);
-  }, [state]);
-  
-  // Show tip with delay if provided
-  useEffect(() => {
-    setTipVisible(showTip);
-  }, [showTip]);
-
-  // Get animation classes based on state
-  const getAnimationClass = () => {
-    switch (state) {
-      case "speaking":
-        return "animate-bounce";
-      case "thinking":
-        return "animate-pulse";
-      default:
-        return animate ? "animate-scale-in" : "";
+    if (showTip) {
+      setAvatarState("tip");
+    } else if (state === "thinking") {
+      setAvatarState("thinking");
+    } else if (state === "speaking") {
+      setAvatarState("speaking");
+    } else {
+      setAvatarState("idle");
     }
-  };
-
-  // Get background color based on state
-  const getBackgroundColor = () => {
-    switch (state) {
-      case "speaking":
-        return "bg-finsight-purple";
-      case "thinking":
-        return "bg-finsight-blue";
-      default:
-        return "bg-finsight-purple bg-opacity-90";
-    }
-  };
-
-  // Get icon based on state
-  const getIcon = () => {
-    switch (state) {
-      case "speaking":
-        return <MessageCircle className="h-6 w-6 text-white" />;
-      case "thinking":
-        return <Sparkles className="h-6 w-6 text-white" />;
-      default:
-        return <Bot className="h-6 w-6 text-white" />;
-    }
-  };
+  }, [state, showTip]);
 
   return (
     <div className={`relative ${className}`}>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div 
-              className={`rounded-full p-3 cursor-pointer transition-all duration-300 shadow-lg ${getBackgroundColor()} ${getAnimationClass()}`}
-            >
-              {getIcon()}
+            <div>
+              <PixarAvatar 
+                state={avatarState} 
+                characterId={characterId}
+                size={size}
+              />
             </div>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -85,7 +57,7 @@ const AnimatedAvatar: React.FC<AnimatedAvatarProps> = ({
       </TooltipProvider>
 
       {/* Financial tip bubble */}
-      {tipVisible && tip && (
+      {showTip && tip && (
         <div className="absolute -top-2 right-full mr-2 bg-white p-3 rounded-lg shadow-lg border border-gray-200 max-w-[250px] animate-fade-in">
           <div className="flex items-start gap-2">
             <LightbulbIcon className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />

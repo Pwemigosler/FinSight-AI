@@ -1,8 +1,10 @@
+
 import { Message, FinancialInsight, ReceiptInfo } from "@/types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "@/types/user";
 import { Wallet, CreditCard, PiggyBank, LineChart, TrendingUp, TrendingDown, AlertCircle, Receipt, ExternalLink } from "lucide-react";
 import { Button } from "../ui/button";
+import PixarAvatar from "../avatars/PixarAvatar";
 
 interface MessageBubbleProps {
   message: Message;
@@ -127,6 +129,13 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
   // Get receipts from message if they exist
   const receipts = message.receipts || [];
 
+  // Get avatar state for AI messages
+  const getAvatarStateFromMessage = (): "idle" | "speaking" | "happy" | "confused" => {
+    if (message.action?.status === "error") return "confused";
+    if (message.action?.status === "success") return "happy";
+    return "speaking";
+  };
+
   return (
     <div
       className={`flex ${
@@ -139,10 +148,13 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
         } gap-2`}
       >
         {message.sender === "bot" ? (
-          <Avatar className="h-8 w-8 bg-finsight-purple">
-            <AvatarFallback>AI</AvatarFallback>
-            <AvatarImage src="/ai-avatar.png" alt="AI Assistant" />
-          </Avatar>
+          <div className="h-8 w-8 flex items-center justify-center">
+            <PixarAvatar 
+              state={getAvatarStateFromMessage()} 
+              characterId={user?.preferences?.assistantCharacter || "finn"}
+              size="sm"
+            />
+          </div>
         ) : (
           <Avatar className="h-8 w-8">
             {user?.avatar ? (

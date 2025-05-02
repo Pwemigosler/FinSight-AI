@@ -2,13 +2,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Lock, User, Moon } from "lucide-react";
+import { Bell, Lock, User, Moon, Bot } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import { AccountSettings } from "./settings/AccountSettings";
 import { NotificationSettings } from "./settings/NotificationSettings";
 import { AppearanceSettings } from "./settings/AppearanceSettings";
 import { SecuritySettings } from "./settings/SecuritySettings";
+import AvatarSettings from "./settings/AvatarSettings";
 
 const SettingsView = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,6 +45,10 @@ const SettingsView = () => {
               <User className="h-4 w-4" />
               Account
             </TabsTrigger>
+            <TabsTrigger value="assistant" className="flex items-center gap-2">
+              <Bot className="h-4 w-4" />
+              AI Assistant
+            </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Notifications
@@ -60,6 +65,10 @@ const SettingsView = () => {
           
           <TabsContent value="account">
             <AccountSettings />
+          </TabsContent>
+          
+          <TabsContent value="assistant">
+            <AvatarSettings />
           </TabsContent>
           
           <TabsContent value="notifications">

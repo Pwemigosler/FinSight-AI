@@ -1,16 +1,18 @@
 
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import ChatBot from "@/components/ChatBot";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
-import { Wallet, PiggyBank, CreditCard, LineChart, Receipt } from "lucide-react";
+import { Wallet, PiggyBank, CreditCard, Receipt, Bot } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReceiptManager from "@/components/receipts/ReceiptManager";
+import AvatarSettings from "@/components/settings/AvatarSettings";
 
 const Chat = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("chat");
   const { user } = useAuth();
@@ -24,6 +26,11 @@ const Chat = () => {
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  // Navigate to settings with the AI Assistant tab open
+  const handleCustomizeAvatar = () => {
+    navigate('/settings', { state: { activeTab: 'assistant' } });
   };
 
   return (
@@ -73,14 +80,14 @@ const Chat = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-white shadow-sm cursor-pointer" onClick={() => setActiveTab("receipts")}>
+          <Card className="bg-white shadow-sm cursor-pointer" onClick={handleCustomizeAvatar}>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="bg-finsight-blue bg-opacity-20 p-2 rounded-full">
-                <Receipt className="h-5 w-5 text-finsight-blue" />
+              <div className="bg-finsight-purple bg-opacity-20 p-2 rounded-full">
+                <Bot className="h-5 w-5 text-finsight-purple" />
               </div>
               <div>
-                <p className="text-sm font-medium">Manage Receipts</p>
-                <p className="text-xs text-gray-500">"View my receipts"</p>
+                <p className="text-sm font-medium">Customize Assistant</p>
+                <p className="text-xs text-gray-500">Change your AI character</p>
               </div>
             </CardContent>
           </Card>
@@ -90,6 +97,7 @@ const Chat = () => {
           <TabsList className="mb-4">
             <TabsTrigger value="chat">AI Assistant</TabsTrigger>
             <TabsTrigger value="receipts">Receipt Management</TabsTrigger>
+            <TabsTrigger value="customize">Assistant Settings</TabsTrigger>
           </TabsList>
           
           <TabsContent value="chat" className="flex-1">
@@ -98,6 +106,12 @@ const Chat = () => {
           
           <TabsContent value="receipts" className="flex-1">
             <ReceiptManager />
+          </TabsContent>
+          
+          <TabsContent value="customize" className="flex-1">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <AvatarSettings />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

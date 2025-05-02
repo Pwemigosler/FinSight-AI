@@ -1,7 +1,6 @@
 
 import { useRef, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
-import { Bot } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import MessageBubble from "./chat/MessageBubble";
@@ -47,7 +46,14 @@ const ChatBot = () => {
     <div className="flex flex-col h-full max-w-4xl mx-auto bg-white rounded-lg shadow-md relative">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Bot className="h-6 w-6 text-finsight-purple" />
+          <div className="h-8 w-8 overflow-hidden rounded-full bg-finsight-purple flex items-center justify-center">
+            {/* Avatar in title bar */}
+            <img 
+              src={`https://placehold.co/200x200/9b87f5/FFFFFF/?text=${user?.preferences?.assistantCharacter || "finn"}`} 
+              alt="AI Assistant" 
+              className="h-full w-full object-cover"
+            />
+          </div>
           FinSight AI Assistant
         </CardTitle>
       </CardHeader>

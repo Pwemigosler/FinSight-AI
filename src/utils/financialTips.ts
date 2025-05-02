@@ -15,7 +15,17 @@ export const financialTips = [
   "Take advantage of employer 401(k) matching contributions if available.",
   "Avoid lifestyle inflation when you get a raise or bonus.",
   "Set specific financial goals with deadlines to stay motivated.",
-  "Remember that small savings add up over time."
+  "Remember that small savings add up over time.",
+  "Look into high-yield savings accounts to make your emergency fund work harder.",
+  "Consider using the envelope budgeting system to control spending.",
+  "Review your tax withholdings to ensure you're not giving the government an interest-free loan.",
+  "Shop around for better rates on insurance policies every year.",
+  "Use cash-back credit cards for everyday purchases, but pay them off monthly.",
+  "Look into refinancing high-interest debt to save on interest payments.",
+  "Create a separate savings account for each of your financial goals.",
+  "Consider a health savings account (HSA) if you have a high-deductible health plan.",
+  "Review bank statements monthly to catch any unexpected fees.",
+  "Always negotiate salaries, raises, and major purchases."
 ];
 
 // Function to get a random tip

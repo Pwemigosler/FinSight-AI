@@ -12,4 +12,12 @@ export interface User {
       y: number;
     };
   };
+  preferences?: {
+    assistantCharacter?: string;
+    notificationSettings?: {
+      emailNotifications: boolean;
+      appNotifications: boolean;
+    };
+    theme?: "light" | "dark" | "system";
+  };
 }
