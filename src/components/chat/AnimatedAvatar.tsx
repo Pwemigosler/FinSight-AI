@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { LightbulbIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
-import PixarAvatar, { AvatarState } from "../avatars/PixarAvatar";
+import PixarAvatar from "../avatars/PixarAvatar";
+import { AvatarState } from "../avatars/types/avatar-types";
 
 interface AnimatedAvatarProps {
   state: "idle" | "speaking" | "thinking";

@@ -3,7 +3,8 @@ import { getRandomTip } from "@/utils/financialTips";
 import { useAuth } from "@/contexts/AuthContext";
 import { LightbulbIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import PixarAvatar, { AvatarState } from "../avatars/PixarAvatar";
+import PixarAvatar from "../avatars/PixarAvatar";
+import { AvatarState } from "../avatars/types/avatar-types";
 
 interface FloatingAssistantProps {
   chatState: "idle" | "speaking" | "thinking";
