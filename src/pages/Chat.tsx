@@ -4,10 +4,13 @@ import Header from "@/components/Header";
 import ChatBot from "@/components/ChatBot";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
-import { Wallet, PiggyBank, CreditCard, LineChart } from "lucide-react";
+import { Wallet, PiggyBank, CreditCard, LineChart, Receipt } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ReceiptManager from "@/components/receipts/ReceiptManager";
 
 const Chat = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("chat");
   const { user } = useAuth();
 
   const toggleSidebar = () => {
@@ -61,24 +64,33 @@ const Chat = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-white shadow-sm">
+          <Card className="bg-white shadow-sm cursor-pointer" onClick={() => setActiveTab("receipts")}>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="bg-finsight-blue bg-opacity-20 p-2 rounded-full">
-                <LineChart className="h-5 w-5 text-finsight-blue" />
+                <Receipt className="h-5 w-5 text-finsight-blue" />
               </div>
               <div>
-                <p className="text-sm font-medium">Analyze Finances</p>
-                <p className="text-xs text-gray-500">"Analyze my finances"</p>
+                <p className="text-sm font-medium">Manage Receipts</p>
+                <p className="text-xs text-gray-500">"View my receipts"</p>
               </div>
             </CardContent>
           </Card>
         </div>
         
-        <div className="flex-1 flex">
-          <div className="flex-1 flex flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <TabsList className="mb-4">
+            <TabsTrigger value="chat">AI Assistant</TabsTrigger>
+            <TabsTrigger value="receipts">Receipt Management</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="chat" className="flex-1">
             <ChatBot />
-          </div>
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="receipts" className="flex-1">
+            <ReceiptManager />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

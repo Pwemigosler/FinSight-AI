@@ -5,6 +5,15 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { ReceiptInfo } from "@/types/chat";
 
+// Storage related functions
+const getReceiptUrls = async (filePath: string): Promise<{ signedUrl: string | null }> => {
+  const { data } = await supabase.storage
+    .from('receipts')
+    .createSignedUrl(filePath, 3600); // 1 hour expiry
+    
+  return { signedUrl: data?.signedUrl || null };
+};
+
 // Upload a receipt file and create metadata record
 export const uploadReceipt = async (
   file: File,
@@ -101,9 +110,6 @@ export const queryReceipts = async (
       supabaseQuery = supabaseQuery.eq('transaction_id', query.transactionId);
     }
     
-    // Note: Additional filters for date ranges, amounts, etc. would require
-    // joining with the transactions table, which we'll implement if needed
-    
     if (query.limit) {
       supabaseQuery = supabaseQuery.limit(query.limit);
     }
@@ -171,9 +177,7 @@ export const deleteReceipt = async (receiptId: string): Promise<{ success: boole
 // Convert receipt to info format with URLs for display
 export const getReceiptInfo = async (receipt: Receipt): Promise<ReceiptInfo> => {
   // Get URLs for the receipt file
-  const { data: urlData } = await supabase.storage
-    .from('receipts')
-    .createSignedUrl(receipt.file_path, 3600); // 1 hour expiry
+  const { signedUrl } = await getReceiptUrls(receipt.file_path);
     
   return {
     id: receipt.id,
@@ -182,7 +186,7 @@ export const getReceiptInfo = async (receipt: Receipt): Promise<ReceiptInfo> => 
     file_name: receipt.file_name,
     file_type: receipt.file_type,
     file_size: receipt.file_size,
-    full_url: urlData?.signedUrl
+    full_url: signedUrl
   };
 };
 
