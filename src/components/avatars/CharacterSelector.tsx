@@ -34,12 +34,12 @@ const defaultCharacters: CharacterData[] = [
   }
 ];
 
-// Placeholder images for development - in production, replace with actual character images
-const placeholderImages = {
-  "fin": "/characters/fin.png", // Using the saved image
-  "luna": "https://placehold.co/200x200/33C3F0/FFFFFF/?text=Luna",
-  "oliver": "https://placehold.co/200x200/10B981/FFFFFF/?text=Oliver",
-  "zoe": "https://placehold.co/200x200/F97316/FFFFFF/?text=Zoe",
+// Use actual character image paths now that we have all the images
+const characterImages = {
+  "fin": "/characters/fin.png",
+  "luna": "/characters/luna.png",
+  "oliver": "/characters/oliver.png",
+  "zoe": "/characters/zoe.png",
 };
 
 const CharacterSelector: React.FC = () => {
@@ -49,18 +49,9 @@ const CharacterSelector: React.FC = () => {
   );
   const [isSaving, setIsSaving] = useState(false);
 
-  // Get character thumbnail URL - handles development placeholders
+  // Get character thumbnail URL
   const getCharacterThumbnail = (characterId: string) => {
-    // Always return the real fin image for the fin character
-    if (characterId === "fin") {
-      return "/characters/fin.png";
-    }
-    
-    // For other characters in development, use placeholders
-    if (process.env.NODE_ENV === "development") {
-      return placeholderImages[characterId as keyof typeof placeholderImages] || placeholderImages.fin;
-    }
-    return `/characters/${characterId}.png`;
+    return characterImages[characterId as keyof typeof characterImages] || characterImages.fin;
   };
 
   // Update character data with correct thumbnails

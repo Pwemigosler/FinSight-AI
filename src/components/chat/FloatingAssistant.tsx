@@ -114,7 +114,7 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
             </div>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p className="text-sm">FinSight AI Assistant - {characterId === 'fin' ? 'Fin the Robot' : characterId}</p>
+            <p className="text-sm">FinSight AI Assistant - {characterId.charAt(0).toUpperCase() + characterId.slice(1)}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

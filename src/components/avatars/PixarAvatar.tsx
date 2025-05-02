@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +23,20 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   
-  // Get placeholder URL based on state
+  // Map of character images for all available characters
+  const characterImages = {
+    "fin": "/characters/fin.png",
+    "luna": "/characters/luna.png",
+    "oliver": "/characters/oliver.png",
+    "zoe": "/characters/zoe.png"
+  };
+  
+  // Get character image URL
+  const getCharacterImageUrl = () => {
+    return characterImages[characterId as keyof typeof characterImages] || characterImages.fin;
+  };
+  
+  // Get placeholder URL based on state (only used if image loading fails)
   const getPlaceholderUrl = () => {
     const stateColors: Record<AvatarState, string> = {
       idle: "33A9F0",
@@ -35,34 +47,20 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
       tip: "F59E0B"
     };
     
-    // For Fin character, always use the actual image
-    if (characterId === "fin") {
-      return "/characters/fin.png";
-    }
-    
-    // Return placeholder with character name and state for non-Fin characters
     return `https://placehold.co/200x200/${stateColors[state]}/FFFFFF/?text=${characterId}-${state}`;
   };
 
-  // Get frame URL - in production, this would use actual character sprite frames
+  // Get frame URL - currently we don't have animation frames, so we use the static image
   const getFrameUrl = (frameNumber: number) => {
-    // For Fin character, always use the actual image regardless of frame
-    if (characterId === "fin") {
-      return "/characters/fin.png";
-    }
+    // Try to use the actual character image
+    const characterImage = getCharacterImageUrl();
     
-    // Try to load the real image first for other characters
-    const realImagePath = `/characters/${characterId}/${state}/${frameNumber}.png`;
-    
-    // Fallback to character thumbnail if animation frames aren't available
-    const fallbackPath = `/characters/${characterId}.png`;
-    
-    // In development mode, or if we've had an error, use placeholders
-    if (process.env.NODE_ENV === "development" || imageError) {
+    // If we've had an error loading the image, use the placeholder
+    if (imageError) {
       return getPlaceholderUrl();
     }
     
-    return realImagePath;
+    return characterImage;
   };
   
   // Animation configuration based on state
@@ -159,8 +157,8 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   };
   
   const handleImageError = () => {
-    // If the frame image fails to load, we'll set the error flag
-    // and the component will use placeholder images instead
+    // If the image fails to load, we'll set the error flag
+    // and use the placeholder image instead
     setImageError(true);
     setIsLoaded(true); // Still mark as loaded so we show something
   };

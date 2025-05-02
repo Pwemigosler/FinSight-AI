@@ -1,3 +1,4 @@
+
 import { useRef, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,7 +50,7 @@ const ChatBot = () => {
           <div className="h-8 w-8 overflow-hidden rounded-full bg-finsight-purple flex items-center justify-center">
             {/* Avatar in title bar */}
             <img 
-              src={characterId === "fin" ? "/characters/fin.png" : `https://placehold.co/200x200/33A9F0/FFFFFF/?text=${characterId}`} 
+              src={`/characters/${characterId}.png`}
               alt="AI Assistant" 
               className="h-full w-full object-cover"
             />
