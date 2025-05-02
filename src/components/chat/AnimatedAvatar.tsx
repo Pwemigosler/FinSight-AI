@@ -22,7 +22,7 @@ const AnimatedAvatar: React.FC<AnimatedAvatarProps> = ({
 }) => {
   const { user } = useAuth();
   const [avatarState, setAvatarState] = useState<AvatarState>("idle");
-  const characterId = user?.preferences?.assistantCharacter || "finn";
+  const characterId = user?.preferences?.assistantCharacter || "fin";
   
   // Update avatar state based on chat state and tips
   useEffect(() => {

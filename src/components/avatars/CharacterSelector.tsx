@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +36,7 @@ const defaultCharacters: CharacterData[] = [
 
 // Placeholder images for development - in production, replace with actual character images
 const placeholderImages = {
-  "fin": "/characters/fin.png", // Updated to use the real image
+  "fin": "/characters/fin.png", // Using the saved image
   "luna": "https://placehold.co/200x200/33C3F0/FFFFFF/?text=Luna",
   "oliver": "https://placehold.co/200x200/10B981/FFFFFF/?text=Oliver",
   "zoe": "https://placehold.co/200x200/F97316/FFFFFF/?text=Zoe",
