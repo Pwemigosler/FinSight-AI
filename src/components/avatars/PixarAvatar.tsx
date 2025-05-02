@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +24,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   
-  // Map of character images for all available characters
+  // Map of character images with fallback URLs
   const characterImages = {
     "fin": "/characters/fin.png",
     "luna": "/characters/luna.png",
@@ -31,12 +32,16 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
     "zoe": "/characters/zoe.png"
   };
   
-  // Get character image URL
+  // Get character image URL with fallback to placeholder
   const getCharacterImageUrl = () => {
+    if (imageError) {
+      return getPlaceholderUrl();
+    }
+    
     return characterImages[characterId as keyof typeof characterImages] || characterImages.fin;
   };
   
-  // Get placeholder URL based on state (only used if image loading fails)
+  // Get placeholder URL based on state
   const getPlaceholderUrl = () => {
     const stateColors: Record<AvatarState, string> = {
       idle: "33A9F0",
@@ -47,22 +52,9 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
       tip: "F59E0B"
     };
     
-    return `https://placehold.co/200x200/${stateColors[state]}/FFFFFF/?text=${characterId}-${state}`;
+    return `https://placehold.co/200x200/${stateColors[state]}/FFFFFF/?text=${characterId}`;
   };
 
-  // Get frame URL - currently we don't have animation frames, so we use the static image
-  const getFrameUrl = (frameNumber: number) => {
-    // Try to use the actual character image
-    const characterImage = getCharacterImageUrl();
-    
-    // If we've had an error loading the image, use the placeholder
-    if (imageError) {
-      return getPlaceholderUrl();
-    }
-    
-    return characterImage;
-  };
-  
   // Animation configuration based on state
   const getAnimationConfig = () => {
     switch (state) {
@@ -88,7 +80,6 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
     
     // Reset current frame when state changes
     setCurrentFrame(0);
-    setIsLoaded(false);
     
     // Handle animation frames
     const animate = () => {
@@ -154,11 +145,11 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
 
   const handleImageLoad = () => {
     setIsLoaded(true);
+    setImageError(false);
   };
   
   const handleImageError = () => {
-    // If the image fails to load, we'll set the error flag
-    // and use the placeholder image instead
+    console.error(`Failed to load character image: ${characterId}`);
     setImageError(true);
     setIsLoaded(true); // Still mark as loaded so we show something
   };
@@ -170,13 +161,12 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
         sizeClasses[size],
         getStateGlowClass(),
         getStateAnimationClass(),
-        isLoaded ? "opacity-100" : "opacity-0",
         className
       )}
       onClick={onClick}
     >
       <img
-        src={getFrameUrl(currentFrame)}
+        src={getCharacterImageUrl()}
         alt={`${characterId} avatar in ${state} state`}
         className="w-full h-full object-cover"
         onLoad={handleImageLoad}

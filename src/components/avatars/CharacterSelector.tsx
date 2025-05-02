@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import CharacterOption, { CharacterData } from "./CharacterOption";
 
-// Default character options - in a real app, these would come from an API
+// Default character options with their descriptions and paths
 const defaultCharacters: CharacterData[] = [
   {
     id: "fin",
@@ -34,31 +34,12 @@ const defaultCharacters: CharacterData[] = [
   }
 ];
 
-// Use actual character image paths now that we have all the images
-const characterImages = {
-  "fin": "/characters/fin.png",
-  "luna": "/characters/luna.png",
-  "oliver": "/characters/oliver.png",
-  "zoe": "/characters/zoe.png",
-};
-
 const CharacterSelector: React.FC = () => {
   const { user, updateUserProfile } = useAuth();
   const [selectedCharacter, setSelectedCharacter] = useState<string>(
     user?.preferences?.assistantCharacter || "fin"
   );
   const [isSaving, setIsSaving] = useState(false);
-
-  // Get character thumbnail URL
-  const getCharacterThumbnail = (characterId: string) => {
-    return characterImages[characterId as keyof typeof characterImages] || characterImages.fin;
-  };
-
-  // Update character data with correct thumbnails
-  const characters = defaultCharacters.map(char => ({
-    ...char,
-    thumbnailUrl: getCharacterThumbnail(char.id)
-  }));
 
   const handleSelectCharacter = (character: CharacterData) => {
     setSelectedCharacter(character.id);
@@ -101,7 +82,7 @@ const CharacterSelector: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {characters.map((character) => (
+          {defaultCharacters.map((character) => (
             <CharacterOption
               key={character.id}
               character={character}

@@ -53,6 +53,10 @@ const ChatBot = () => {
               src={`/characters/${characterId}.png`}
               alt="AI Assistant" 
               className="h-full w-full object-cover"
+              onError={(e) => {
+                console.error(`Failed to load header avatar image: ${characterId}`);
+                e.currentTarget.src = `https://placehold.co/200x200/9333EA/FFFFFF/?text=${characterId}`;
+              }}
             />
           </div>
           FinSight AI Assistant
