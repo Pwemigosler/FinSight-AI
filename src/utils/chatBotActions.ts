@@ -211,7 +211,11 @@ export const processActionRequest = async (message: string): Promise<ActionResul
         action: {
           type: "receipts_view",
           status: "success",
-          details: { receipts }
+          details: { 
+            success: true,
+            message: "Retrieved receipts successfully",
+            receipts 
+          }
         },
         response: responseText,
         receipts
@@ -222,7 +226,10 @@ export const processActionRequest = async (message: string): Promise<ActionResul
         action: {
           type: "receipts_view",
           status: "error",
-          details: { error: (error as Error).message }
+          details: { 
+            success: false,
+            message: `I couldn't retrieve your receipts: ${(error as Error).message}`
+          }
         },
         response: "I couldn't retrieve your receipts at this time. Please try again later."
       };

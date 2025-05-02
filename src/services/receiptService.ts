@@ -180,6 +180,8 @@ export const getReceiptInfo = async (receipt: Receipt): Promise<ReceiptInfo> => 
     transaction_id: receipt.transaction_id,
     file_path: receipt.file_path,
     file_name: receipt.file_name,
+    file_type: receipt.file_type,
+    file_size: receipt.file_size,
     full_url: urlData?.signedUrl
   };
 };
