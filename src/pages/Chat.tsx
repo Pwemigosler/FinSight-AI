@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import ChatBot from "@/components/ChatBot";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,9 +10,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReceiptManager from "@/components/receipts/ReceiptManager";
 
 const Chat = () => {
+  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("chat");
   const { user } = useAuth();
+
+  // Handle activeTab from navigation state
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);

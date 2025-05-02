@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { ArrowUpRight, BadgeDollarSign, CreditCard, LineChart, PiggyBank, Wallet } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +14,7 @@ import {
 import BudgetOverview from './BudgetOverview';
 import AIInsights from './AIInsights';
 import { useIsMobile } from '@/hooks/use-mobile';
+import ReceiptCard from './dashboard/ReceiptCard';
 
 // Mock data for initial display
 const spendingData = [
@@ -85,7 +85,7 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Spending Chart & Budget Overview */}
+      {/* Spending Chart, Budget Overview, and Receipt Card */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 animate-fade-in animate-delay-100">
           <div className="p-6">
@@ -124,9 +124,15 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* AI Insights */}
-      <div className="animate-fade-in animate-delay-300">
-        <AIInsights />
+      {/* Second row with Receipt Card and AI Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 animate-fade-in animate-delay-200">
+          <ReceiptCard />
+        </div>
+        
+        <div className="lg:col-span-2 animate-fade-in animate-delay-300">
+          <AIInsights />
+        </div>
       </div>
     </div>
   );
