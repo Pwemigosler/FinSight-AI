@@ -73,7 +73,7 @@ export const addBudgetCategory = async (
     const randomColor = availableColors[Math.floor(Math.random() * availableColors.length)];
     
     // Create new category
-    const newCategory: BudgetCategory = {
+    const newCategory = {
       id,
       name,
       allocated: initialAllocation,

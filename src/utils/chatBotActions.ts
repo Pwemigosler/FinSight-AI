@@ -5,8 +5,8 @@ import {
   getBudgetCategories,
   addBudgetCategory,
   updateCategoryAmount,
-  BudgetCategory
 } from "@/services/fundAllocationService";
+import { BudgetCategory } from "@/types/budget";
 import { ActionResult, FinancialInsight } from "@/types/chat";
 
 export interface ChatAction {
@@ -51,7 +51,7 @@ const generateFinancialInsights = (): FinancialInsight[] => {
   ];
 };
 
-export const processActionRequest = (message: string): ActionResult | null => {
+export const processActionRequest = async (message: string): Promise<ActionResult | null> => {
   const lowerMessage = message.toLowerCase();
   
   // Check for allocation requests
@@ -60,7 +60,7 @@ export const processActionRequest = (message: string): ActionResult | null => {
     const amount = parseFloat(allocateMatch[1]);
     const category = allocateMatch[2];
     
-    const result = allocateFunds(category, amount);
+    const result = await allocateFunds(category, amount);
     return {
       action: {
         type: "allocation",
@@ -78,7 +78,7 @@ export const processActionRequest = (message: string): ActionResult | null => {
     const categoryName = categoryCreationMatch[1].trim();
     const initialAmount = categoryCreationMatch[2] ? parseFloat(categoryCreationMatch[2]) : 0;
     
-    const result = addBudgetCategory(categoryName, initialAmount);
+    const result = await addBudgetCategory(categoryName, initialAmount);
     return {
       action: {
         type: "category_creation",
@@ -110,7 +110,7 @@ export const processActionRequest = (message: string): ActionResult | null => {
     }
     
     if (category) {
-      const result = updateCategoryAmount(category, amount);
+      const result = await updateCategoryAmount(category, amount);
       return {
         action: {
           type: "budget_update",
@@ -129,7 +129,7 @@ export const processActionRequest = (message: string): ActionResult | null => {
     const fromCategory = transferMatch[2];
     const toCategory = transferMatch[3];
     
-    const result = transferFunds(fromCategory, toCategory, amount);
+    const result = await transferFunds(fromCategory, toCategory, amount);
     return {
       action: {
         type: "transfer",
@@ -142,7 +142,7 @@ export const processActionRequest = (message: string): ActionResult | null => {
   
   // Check for viewing budget request
   if (lowerMessage.includes("show") && (lowerMessage.includes("budget") || lowerMessage.includes("category") || lowerMessage.includes("funds"))) {
-    const categories = getBudgetCategories();
+    const categories = await getBudgetCategories();
     const categoryList = categories.map(cat => `${cat.name}: $${cat.allocated} (spent: $${cat.spent})`).join("\n");
     
     return {
