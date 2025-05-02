@@ -9,6 +9,7 @@ export let budgetCategories: BudgetCategory[] = [
     allocated: 2000,
     spent: 1800,
     color: 'bg-finsight-purple',
+    user_id: 'mock-user-id', // Added user_id field
   },
   {
     id: 'food',
@@ -16,6 +17,7 @@ export let budgetCategories: BudgetCategory[] = [
     allocated: 800,
     spent: 650,
     color: 'bg-finsight-blue',
+    user_id: 'mock-user-id', // Added user_id field
   },
   {
     id: 'transportation',
@@ -23,6 +25,7 @@ export let budgetCategories: BudgetCategory[] = [
     allocated: 500,
     spent: 320,
     color: 'bg-finsight-orange',
+    user_id: 'mock-user-id', // Added user_id field
   },
   {
     id: 'entertainment',
@@ -30,6 +33,7 @@ export let budgetCategories: BudgetCategory[] = [
     allocated: 400,
     spent: 410,
     color: 'bg-finsight-red',
+    user_id: 'mock-user-id', // Added user_id field
   },
   {
     id: 'utilities',
@@ -37,6 +41,7 @@ export let budgetCategories: BudgetCategory[] = [
     allocated: 350,
     spent: 310,
     color: 'bg-finsight-green',
+    user_id: 'mock-user-id', // Added user_id field
   },
   {
     id: 'savings',
@@ -44,6 +49,7 @@ export let budgetCategories: BudgetCategory[] = [
     allocated: 1000,
     spent: 800,
     color: 'bg-finsight-blue',
+    user_id: 'mock-user-id', // Added user_id field
   },
   {
     id: 'bills',
@@ -51,6 +57,7 @@ export let budgetCategories: BudgetCategory[] = [
     allocated: 500,
     spent: 450,
     color: 'bg-finsight-purple',
+    user_id: 'mock-user-id', // Added user_id field
   },
   {
     id: 'spending',
@@ -58,5 +65,6 @@ export let budgetCategories: BudgetCategory[] = [
     allocated: 300,
     spent: 200,
     color: 'bg-finsight-green',
+    user_id: 'mock-user-id', // Added user_id field
   },
 ];
