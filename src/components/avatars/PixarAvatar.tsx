@@ -24,7 +24,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   
-  // For demo, use placeholder images based on state
+  // Get placeholder URL based on state
   const getPlaceholderUrl = () => {
     const stateColors: Record<AvatarState, string> = {
       idle: "33A9F0",
@@ -35,13 +35,23 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
       tip: "F59E0B"
     };
     
-    // Return placeholder with character name and state
+    // For Fin character, always use the actual image
+    if (characterId === "fin") {
+      return "/characters/fin.png";
+    }
+    
+    // Return placeholder with character name and state for non-Fin characters
     return `https://placehold.co/200x200/${stateColors[state]}/FFFFFF/?text=${characterId}-${state}`;
   };
 
   // Get frame URL - in production, this would use actual character sprite frames
   const getFrameUrl = (frameNumber: number) => {
-    // Try to load the real image first
+    // For Fin character, always use the actual image regardless of frame
+    if (characterId === "fin") {
+      return "/characters/fin.png";
+    }
+    
+    // Try to load the real image first for other characters
     const realImagePath = `/characters/${characterId}/${state}/${frameNumber}.png`;
     
     // Fallback to character thumbnail if animation frames aren't available

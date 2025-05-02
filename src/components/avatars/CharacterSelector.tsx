@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,12 +12,6 @@ const defaultCharacters: CharacterData[] = [
     name: "Fin",
     thumbnailUrl: "/characters/fin.png",
     description: "Your friendly robot financial assistant with expertise in budgeting and investment strategies."
-  },
-  {
-    id: "finn",
-    name: "Finn",
-    thumbnailUrl: "/characters/finn.png",
-    description: "A friendly and helpful financial advisor with expertise in budgeting and saving."
   },
   {
     id: "luna",
@@ -42,8 +35,7 @@ const defaultCharacters: CharacterData[] = [
 
 // Placeholder images for development - in production, replace with actual character images
 const placeholderImages = {
-  "fin": "https://placehold.co/200x200/33A9F0/FFFFFF/?text=Fin",
-  "finn": "https://placehold.co/200x200/9b87f5/FFFFFF/?text=Finn",
+  "fin": "/characters/fin.png", // Updated to use the real image
   "luna": "https://placehold.co/200x200/33C3F0/FFFFFF/?text=Luna",
   "oliver": "https://placehold.co/200x200/10B981/FFFFFF/?text=Oliver",
   "zoe": "https://placehold.co/200x200/F97316/FFFFFF/?text=Zoe",
@@ -58,6 +50,12 @@ const CharacterSelector: React.FC = () => {
 
   // Get character thumbnail URL - handles development placeholders
   const getCharacterThumbnail = (characterId: string) => {
+    // Always return the real fin image for the fin character
+    if (characterId === "fin") {
+      return "/characters/fin.png";
+    }
+    
+    // For other characters in development, use placeholders
     if (process.env.NODE_ENV === "development") {
       return placeholderImages[characterId as keyof typeof placeholderImages] || placeholderImages.fin;
     }

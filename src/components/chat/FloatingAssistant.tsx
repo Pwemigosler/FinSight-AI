@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { getRandomTip } from "@/utils/financialTips";
 import { useAuth } from "@/contexts/AuthContext";
