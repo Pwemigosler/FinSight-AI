@@ -13,6 +13,7 @@ const ChatBot = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const [avatarState, setAvatarState] = useState<"idle" | "speaking" | "thinking">("idle");
+  const characterId = user?.preferences?.assistantCharacter || "fin";
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -49,7 +50,7 @@ const ChatBot = () => {
           <div className="h-8 w-8 overflow-hidden rounded-full bg-finsight-purple flex items-center justify-center">
             {/* Avatar in title bar */}
             <img 
-              src={`https://placehold.co/200x200/9b87f5/FFFFFF/?text=${user?.preferences?.assistantCharacter || "finn"}`} 
+              src={`https://placehold.co/200x200/33A9F0/FFFFFF/?text=${characterId}`} 
               alt="AI Assistant" 
               className="h-full w-full object-cover"
             />

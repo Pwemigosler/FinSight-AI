@@ -15,7 +15,29 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
   const [showTip, setShowTip] = useState(false);
   const [currentTip, setCurrentTip] = useState("");
   const [avatarState, setAvatarState] = useState<AvatarState>("idle");
-  const characterId = user?.preferences?.assistantCharacter || "finn";
+  const characterId = user?.preferences?.assistantCharacter || "fin";
+  
+  // Introduce random expressions periodically when idle
+  useEffect(() => {
+    if (chatState === "idle" && !showTip) {
+      const expressionInterval = setInterval(() => {
+        // 10% chance to show a random expression when idle
+        if (Math.random() < 0.1) {
+          const expressions: AvatarState[] = ["happy", "confused", "idle"];
+          const randomExpression = expressions[Math.floor(Math.random() * expressions.length)];
+          
+          setAvatarState(randomExpression);
+          
+          // Return to idle after a brief period
+          setTimeout(() => {
+            setAvatarState("idle");
+          }, 2000);
+        }
+      }, 10000); // Check every 10 seconds
+      
+      return () => clearInterval(expressionInterval);
+    }
+  }, [chatState, showTip]);
   
   // Update avatar state based on chat state and tips
   useEffect(() => {
@@ -25,7 +47,8 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
       setAvatarState("thinking");
     } else if (chatState === "speaking") {
       setAvatarState("speaking");
-    } else {
+    } else if (avatarState !== "happy" && avatarState !== "confused") {
+      // Only reset to idle if not showing a random expression
       setAvatarState("idle");
     }
   }, [chatState, showTip]);
@@ -92,7 +115,7 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
             </div>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p className="text-sm">FinSight AI Assistant</p>
+            <p className="text-sm">FinSight AI Assistant - {characterId === 'fin' ? 'Fin the Robot' : characterId}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

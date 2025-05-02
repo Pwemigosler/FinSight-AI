@@ -9,6 +9,12 @@ import CharacterOption, { CharacterData } from "./CharacterOption";
 // Default character options - in a real app, these would come from an API
 const defaultCharacters: CharacterData[] = [
   {
+    id: "fin",
+    name: "Fin",
+    thumbnailUrl: "/characters/fin.png",
+    description: "Your friendly robot financial assistant with expertise in budgeting and investment strategies."
+  },
+  {
     id: "finn",
     name: "Finn",
     thumbnailUrl: "/characters/finn.png",
@@ -36,6 +42,7 @@ const defaultCharacters: CharacterData[] = [
 
 // Placeholder images for development - in production, replace with actual character images
 const placeholderImages = {
+  "fin": "https://placehold.co/200x200/33A9F0/FFFFFF/?text=Fin",
   "finn": "https://placehold.co/200x200/9b87f5/FFFFFF/?text=Finn",
   "luna": "https://placehold.co/200x200/33C3F0/FFFFFF/?text=Luna",
   "oliver": "https://placehold.co/200x200/10B981/FFFFFF/?text=Oliver",
@@ -45,14 +52,14 @@ const placeholderImages = {
 const CharacterSelector: React.FC = () => {
   const { user, updateUserProfile } = useAuth();
   const [selectedCharacter, setSelectedCharacter] = useState<string>(
-    user?.preferences?.assistantCharacter || "finn"
+    user?.preferences?.assistantCharacter || "fin"
   );
   const [isSaving, setIsSaving] = useState(false);
 
   // Get character thumbnail URL - handles development placeholders
   const getCharacterThumbnail = (characterId: string) => {
     if (process.env.NODE_ENV === "development") {
-      return placeholderImages[characterId as keyof typeof placeholderImages] || placeholderImages.finn;
+      return placeholderImages[characterId as keyof typeof placeholderImages] || placeholderImages.fin;
     }
     return `/characters/${characterId}.png`;
   };

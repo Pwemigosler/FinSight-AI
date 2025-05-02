@@ -1,69 +1,64 @@
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import './styles/avatarAnimations.css';
+
+:root {
+  --finsight-purple: #9b87f5;
+  --finsight-purple-dark: #7e69ab;
+  --finsight-blue: #33a9f0;
+  --finsight-green: #10b981;
+  --finsight-red: #ef4444;
+  --finsight-yellow: #f59e0b;
+  --finsight-gray: #8e9196;
+  --finsight-gray-light: #f1f0fb;
+}
 
 @layer base {
   :root {
-    --background: 260 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 260 60% 75%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 260 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 260 95% 90%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 260 60% 75%;
-
-    --radius: 1rem;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262.1 83.3% 57.8%;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 260 60% 75%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 260 60% 75%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 263.4 70% 50.4%;
   }
 }
 
@@ -71,28 +66,67 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
   }
 }
 
-.financial-card {
-  @apply bg-white rounded-2xl shadow-md p-5 border border-gray-100 hover:shadow-lg transition-shadow;
+.bg-finsight-purple {
+  background-color: var(--finsight-purple);
 }
 
-.animate-delay-100 {
-  animation-delay: 100ms;
+.bg-finsight-purple-dark {
+  background-color: var(--finsight-purple-dark);
 }
 
-.animate-delay-200 {
-  animation-delay: 200ms;
+.bg-finsight-blue {
+  background-color: var(--finsight-blue);
 }
 
-.animate-delay-300 {
-  animation-delay: 300ms;
+.bg-finsight-green {
+  background-color: var(--finsight-green);
 }
 
-.animate-delay-400 {
-  animation-delay: 400ms;
+.bg-finsight-red {
+  background-color: var(--finsight-red);
+}
+
+.bg-finsight-yellow {
+  background-color: var(--finsight-yellow);
+}
+
+.bg-finsight-gray {
+  background-color: var(--finsight-gray);
+}
+
+.bg-finsight-gray-light {
+  background-color: var(--finsight-gray-light);
+}
+
+.text-finsight-purple {
+  color: var(--finsight-purple);
+}
+
+.text-finsight-purple-dark {
+  color: var(--finsight-purple-dark);
+}
+
+.text-finsight-blue {
+  color: var(--finsight-blue);
+}
+
+.text-finsight-green {
+  color: var(--finsight-green);
+}
+
+.text-finsight-red {
+  color: var(--finsight-red);
+}
+
+.text-finsight-yellow {
+  color: var(--finsight-yellow);
+}
+
+.text-finsight-gray {
+  color: var(--finsight-gray);
 }

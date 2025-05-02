@@ -14,7 +14,7 @@ interface PixarAvatarProps {
 
 const PixarAvatar: React.FC<PixarAvatarProps> = ({
   state = "idle",
-  characterId = "finn",
+  characterId = "fin",
   className = "",
   size = "md",
   onClick
@@ -22,11 +22,12 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   const [currentFrame, setCurrentFrame] = useState(0);
   const animationRef = useRef<number | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   // For demo, use placeholder images based on state
   const getPlaceholderUrl = () => {
     const stateColors: Record<AvatarState, string> = {
-      idle: "9b87f5",
+      idle: "33A9F0",
       speaking: "33C3F0",
       thinking: "10B981",
       happy: "F97316",
@@ -34,15 +35,24 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
       tip: "F59E0B"
     };
     
+    // Return placeholder with character name and state
     return `https://placehold.co/200x200/${stateColors[state]}/FFFFFF/?text=${characterId}-${state}`;
   };
 
   // Get frame URL - in production, this would use actual character sprite frames
   const getFrameUrl = (frameNumber: number) => {
-    if (process.env.NODE_ENV === "development") {
+    // Try to load the real image first
+    const realImagePath = `/characters/${characterId}/${state}/${frameNumber}.png`;
+    
+    // Fallback to character thumbnail if animation frames aren't available
+    const fallbackPath = `/characters/${characterId}.png`;
+    
+    // In development mode, or if we've had an error, use placeholders
+    if (process.env.NODE_ENV === "development" || imageError) {
       return getPlaceholderUrl();
     }
-    return `/characters/${characterId}/${state}/${frameNumber}.png`;
+    
+    return realImagePath;
   };
   
   // Animation configuration based on state
@@ -70,6 +80,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
     
     // Reset current frame when state changes
     setCurrentFrame(0);
+    setIsLoaded(false);
     
     // Handle animation frames
     const animate = () => {
@@ -85,7 +96,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [state]);
+  }, [state, characterId]);
 
   // Size classes for the avatar
   const sizeClasses = {
@@ -110,7 +121,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
         return "shadow-[0_0_15px_rgba(245,158,11,0.6)]";
       case "idle":
       default:
-        return "";
+        return "shadow-[0_0_15px_rgba(51,169,240,0.3)]";
     }
   };
 
@@ -129,12 +140,19 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
         return "animate-spin-slow";
       case "idle":
       default:
-        return "";
+        return "hover:scale-105 transition-transform";
     }
   };
 
   const handleImageLoad = () => {
     setIsLoaded(true);
+  };
+  
+  const handleImageError = () => {
+    // If the frame image fails to load, we'll set the error flag
+    // and the component will use placeholder images instead
+    setImageError(true);
+    setIsLoaded(true); // Still mark as loaded so we show something
   };
 
   return (
@@ -154,7 +172,9 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
         alt={`${characterId} avatar in ${state} state`}
         className="w-full h-full object-cover"
         onLoad={handleImageLoad}
+        onError={handleImageError}
       />
+      
       {/* Animated dot for "thinking" state */}
       {state === "thinking" && (
         <div className="absolute bottom-1 right-1">
@@ -163,6 +183,13 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
             <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce animate-delay-100"></span>
             <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce animate-delay-200"></span>
           </div>
+        </div>
+      )}
+      
+      {/* Wave animation for the happy state */}
+      {state === "happy" && (
+        <div className="absolute top-0 right-0 animate-pulse">
+          <div className="w-2 h-2 bg-yellow-400 rounded-full opacity-70"></div>
         </div>
       )}
     </div>
