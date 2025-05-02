@@ -43,7 +43,7 @@ const placeholderImages = {
 };
 
 const CharacterSelector: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const [selectedCharacter, setSelectedCharacter] = useState<string>(
     user?.preferences?.assistantCharacter || "finn"
   );
@@ -71,8 +71,8 @@ const CharacterSelector: React.FC = () => {
     setIsSaving(true);
     try {
       // In a real app, this would be an API call
-      if (updateUser && user) {
-        await updateUser({
+      if (updateUserProfile && user) {
+        await updateUserProfile({
           ...user,
           preferences: {
             ...user.preferences,
