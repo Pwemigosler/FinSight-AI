@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { getRandomTip } from "@/utils/financialTips";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +16,12 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
   const [showTip, setShowTip] = useState(false);
   const [currentTip, setCurrentTip] = useState("");
   const [avatarState, setAvatarState] = useState<AvatarState>("idle");
-  const characterId = user?.preferences?.assistantCharacter || "fin";
+  
+  // Make sure we're using a valid character ID (fin rather than finn)
+  const getCharacterId = (): string => {
+    const preferredCharacter = user?.preferences?.assistantCharacter || "fin";
+    return preferredCharacter === "finn" ? "fin" : preferredCharacter;
+  };
   
   // Introduce random expressions periodically when idle
   useEffect(() => {
@@ -108,14 +114,14 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
             >
               <PixarAvatar 
                 state={avatarState} 
-                characterId={characterId}
+                characterId={getCharacterId()}
                 size="lg"
                 className="shadow-lg"
               />
             </div>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p className="text-sm">FinSight AI Assistant - {characterId.charAt(0).toUpperCase() + characterId.slice(1)}</p>
+            <p className="text-sm">FinSight AI Assistant - {getCharacterId().charAt(0).toUpperCase() + getCharacterId().slice(1)}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

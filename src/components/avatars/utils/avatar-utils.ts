@@ -12,14 +12,22 @@ export const characterImages = {
 // Get character image URL with fallback to placeholder
 export const getCharacterImageUrl = (characterId: string, imageError: boolean): string => {
   if (imageError) {
-    return getPlaceholderUrl(characterId, "idle");
+    return getPlaceholderUrl(characterId);
   }
   
-  return characterImages[characterId as keyof typeof characterImages] || characterImages.fin;
+  // Normalize character ID to match available images
+  const normalizedId = characterId.toLowerCase();
+  const validCharacterIds = Object.keys(characterImages);
+  
+  // Check if normalized ID is in our available characters
+  const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
+  
+  console.log(`Character requested: ${characterId}, using: ${finalId}`);
+  return characterImages[finalId as keyof typeof characterImages];
 };
 
 // Get placeholder URL based on state
-export const getPlaceholderUrl = (characterId: string, state: AvatarState): string => {
+export const getPlaceholderUrl = (characterId: string, state: AvatarState = "idle"): string => {
   const stateColors: Record<AvatarState, string> = {
     idle: "33A9F0",
     speaking: "33C3F0",
@@ -29,7 +37,8 @@ export const getPlaceholderUrl = (characterId: string, state: AvatarState): stri
     tip: "F59E0B"
   };
   
-  return `https://placehold.co/200x200/${stateColors[state]}/FFFFFF/?text=${characterId}`;
+  // Create a colored placeholder with the character name
+  return `https://placehold.co/200x200/${stateColors[state]}/FFFFFF?text=${characterId}`;
 };
 
 // Animation configuration based on state

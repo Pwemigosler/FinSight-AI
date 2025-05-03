@@ -22,6 +22,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   const animationRef = useRef<number | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   
   // Animate the avatar based on its state
   useEffect(() => {
@@ -47,15 +48,38 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   }, [state, characterId]);
 
   const handleImageLoad = () => {
+    console.log(`Successfully loaded image for character: ${characterId}`);
     setIsLoaded(true);
     setImageError(false);
+    setRetryCount(0);
   };
   
   const handleImageError = () => {
-    console.error(`Failed to load character image: ${characterId}`);
-    setImageError(true);
-    setIsLoaded(true); // Still mark as loaded so we show something
+    console.error(`Failed to load character image: ${characterId} (attempt ${retryCount + 1})`);
+    
+    // Retry loading the image a few times before showing error state
+    if (retryCount < 2) {
+      setRetryCount(prev => prev + 1);
+      // Try again after a short delay
+      setTimeout(() => {
+        const img = new Image();
+        img.src = getCharacterImageUrl(characterId, false) + '?t=' + new Date().getTime();
+        img.onload = handleImageLoad;
+        img.onerror = () => {
+          setImageError(true);
+          setIsLoaded(true); // Still mark as loaded so we show something
+        };
+      }, 500);
+    } else {
+      setImageError(true);
+      setIsLoaded(true); // Still mark as loaded so we show something
+    }
   };
+
+  // Debug - log what image path we're trying to load
+  useEffect(() => {
+    console.log(`Attempting to load image: ${getCharacterImageUrl(characterId, imageError)}`);
+  }, [characterId, imageError, retryCount]);
 
   return (
     <div 
@@ -69,7 +93,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
       onClick={onClick}
     >
       <img
-        src={getCharacterImageUrl(characterId, imageError)}
+        src={getCharacterImageUrl(characterId, imageError) + (retryCount > 0 ? `?retry=${retryCount}` : '')}
         alt={`${characterId} avatar in ${state} state`}
         className="w-full h-full object-cover"
         onLoad={handleImageLoad}

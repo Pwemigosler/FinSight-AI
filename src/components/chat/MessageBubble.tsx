@@ -1,4 +1,3 @@
-
 import { Message, FinancialInsight, ReceiptInfo } from "@/types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "@/types/user";
@@ -136,6 +135,13 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
     return "speaking";
   };
 
+  // Get character ID with normalization
+  const getCharacterId = (): string => {
+    const preferredCharacter = user?.preferences?.assistantCharacter || "fin";
+    // Make sure we're using a valid ID (fin rather than finn)
+    return preferredCharacter === "finn" ? "fin" : preferredCharacter;
+  };
+
   return (
     <div
       className={`flex ${
@@ -151,7 +157,7 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
           <div className="h-8 w-8 flex items-center justify-center">
             <PixarAvatar 
               state={getAvatarStateFromMessage()} 
-              characterId={user?.preferences?.assistantCharacter || "finn"}
+              characterId={getCharacterId()}
               size="sm"
             />
           </div>
