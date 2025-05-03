@@ -23,6 +23,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [uniqueId] = useState(`avatar-${Math.random().toString(36).substring(2, 9)}`);
   
   // Animate the avatar based on its state
   useEffect(() => {
@@ -63,7 +64,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
       // Try again after a short delay
       setTimeout(() => {
         const img = new Image();
-        img.src = getCharacterImageUrl(characterId, false) + '?t=' + new Date().getTime();
+        img.src = getCharacterImageUrl(characterId, false) + `?t=${Date.now()}`;
         img.onload = handleImageLoad;
         img.onerror = () => {
           setImageError(true);
@@ -78,7 +79,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
 
   // Debug - log what image path we're trying to load
   useEffect(() => {
-    console.log(`Attempting to load image: ${getCharacterImageUrl(characterId, imageError)}`);
+    console.log(`Attempting to load image for ${characterId}: ${getCharacterImageUrl(characterId, imageError)}`);
   }, [characterId, imageError, retryCount]);
 
   return (
@@ -91,13 +92,16 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
         className
       )}
       onClick={onClick}
+      id={uniqueId}
     >
       <img
-        src={getCharacterImageUrl(characterId, imageError) + (retryCount > 0 ? `?retry=${retryCount}` : '')}
+        src={getCharacterImageUrl(characterId, imageError) + (retryCount > 0 ? `?retry=${retryCount}&t=${Date.now()}` : '')}
         alt={`${characterId} avatar in ${state} state`}
         className="w-full h-full object-cover"
         onLoad={handleImageLoad}
         onError={handleImageError}
+        data-character={characterId}
+        data-state={state}
       />
       
       <AvatarStateEffects state={state} />

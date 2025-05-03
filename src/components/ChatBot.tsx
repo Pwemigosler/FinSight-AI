@@ -7,6 +7,7 @@ import MessageBubble from "./chat/MessageBubble";
 import TypingIndicator from "./chat/TypingIndicator";
 import ChatInput from "./chat/ChatInput";
 import FloatingAssistant from "./chat/FloatingAssistant";
+import { characterImages } from "./avatars/utils/avatar-utils";
 
 const ChatBot = () => {
   const { messages, inputMessage, setInputMessage, isLoading, handleSendMessage } = useChatMessages();
@@ -43,6 +44,14 @@ const ChatBot = () => {
     }
   }, [isLoading, messages]);
 
+  // Get the correct image URL for the character
+  const getHeaderAvatarImage = () => {
+    const normalizedId = characterId.toLowerCase();
+    const validCharacterIds = Object.keys(characterImages);
+    const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
+    return characterImages[finalId as keyof typeof characterImages];
+  };
+
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto bg-white rounded-lg shadow-md relative">
       <CardHeader>
@@ -50,7 +59,7 @@ const ChatBot = () => {
           <div className="h-8 w-8 overflow-hidden rounded-full bg-finsight-purple flex items-center justify-center">
             {/* Avatar in title bar */}
             <img 
-              src={`/characters/${characterId}.png`}
+              src={getHeaderAvatarImage()}
               alt="AI Assistant" 
               className="h-full w-full object-cover"
               onError={(e) => {

@@ -5,31 +5,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import CharacterOption, { CharacterData } from "./CharacterOption";
+import { characterImages } from "./utils/avatar-utils";
 
 // Default character options with their descriptions and paths
 const defaultCharacters: CharacterData[] = [
   {
     id: "fin",
     name: "Fin",
-    thumbnailUrl: "/characters/fin.png",
+    thumbnailUrl: characterImages.fin,
     description: "Your friendly robot financial assistant with expertise in budgeting and investment strategies."
   },
   {
     id: "luna",
     name: "Luna",
-    thumbnailUrl: "/characters/luna.png",
+    thumbnailUrl: characterImages.luna,
     description: "A tech-savvy assistant who specializes in investment strategies and market trends."
   },
   {
     id: "oliver",
     name: "Oliver",
-    thumbnailUrl: "/characters/oliver.png",
+    thumbnailUrl: characterImages.oliver,
     description: "A detail-oriented character who helps with expense tracking and financial planning."
   },
   {
     id: "zoe",
     name: "Zoe",
-    thumbnailUrl: "/characters/zoe.png",
+    thumbnailUrl: characterImages.zoe,
     description: "An energetic advisor focused on helping you reach your financial goals."
   }
 ];
@@ -72,6 +73,11 @@ const CharacterSelector: React.FC = () => {
     }
   };
 
+  // Force browser to refresh images by adding timestamp to URL
+  const addTimeStampToUrl = (url: string): string => {
+    return `${url}?t=${Date.now()}`;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -85,7 +91,10 @@ const CharacterSelector: React.FC = () => {
           {defaultCharacters.map((character) => (
             <CharacterOption
               key={character.id}
-              character={character}
+              character={{
+                ...character,
+                thumbnailUrl: addTimeStampToUrl(character.thumbnailUrl) // Add timestamp to force refresh
+              }}
               selected={selectedCharacter === character.id}
               onSelect={handleSelectCharacter}
             />

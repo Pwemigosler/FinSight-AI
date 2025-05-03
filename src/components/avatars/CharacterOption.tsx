@@ -24,7 +24,7 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
   const [imageError, setImageError] = useState(false);
   
   const handleImageError = () => {
-    console.error(`Failed to load character thumbnail: ${character.id}`);
+    console.error(`Failed to load character thumbnail: ${character.id} from URL: ${character.thumbnailUrl}`);
     setImageError(true);
   };
 

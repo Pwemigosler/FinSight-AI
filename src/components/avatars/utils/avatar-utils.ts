@@ -1,12 +1,12 @@
 
 import { AvatarState } from '../types/avatar-types';
 
-// Map of character images with fallback URLs
+// Map of character images with direct paths to the uploaded images
 export const characterImages = {
-  "fin": "/characters/fin.png",
-  "luna": "/characters/luna.png",
-  "oliver": "/characters/oliver.png",
-  "zoe": "/characters/zoe.png"
+  "fin": "/lovable-uploads/f52bd910-06ca-4178-b8b2-dfadcbd6b455.png",
+  "luna": "/lovable-uploads/367a63ca-e925-4cea-8b91-d8ac8bf3a908.png", 
+  "oliver": "/lovable-uploads/f52bd910-06ca-4178-b8b2-dfadcbd6b455.png", // Reusing fin image as placeholder
+  "zoe": "/lovable-uploads/367a63ca-e925-4cea-8b91-d8ac8bf3a908.png"     // Reusing luna image as placeholder
 };
 
 // Get character image URL with fallback to placeholder
@@ -22,7 +22,7 @@ export const getCharacterImageUrl = (characterId: string, imageError: boolean): 
   // Check if normalized ID is in our available characters
   const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
   
-  console.log(`Character requested: ${characterId}, using: ${finalId}`);
+  console.log(`Character requested: ${characterId}, using: ${finalId}, URL: ${characterImages[finalId as keyof typeof characterImages]}`);
   return characterImages[finalId as keyof typeof characterImages];
 };
 
