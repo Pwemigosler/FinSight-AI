@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { PixarAvatarProps } from "./types/avatar-types";
@@ -56,7 +55,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   };
   
   const handleImageError = () => {
-    console.error(`Failed to load character image: ${characterId} from path: ${getCharacterImageUrl(characterId, false)} (attempt ${retryCount + 1})`);
+    console.error(`Failed to load character image: ${characterId} (attempt ${retryCount + 1})`);
     
     // Retry loading the image a few times before showing error state
     if (retryCount < 2) {
@@ -64,7 +63,8 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
       // Try again after a short delay with a cache-busting parameter
       setTimeout(() => {
         const img = new Image();
-        img.src = getCharacterImageUrl(characterId, false) + `?t=${Date.now()}`;
+        const imageUrl = getCharacterImageUrl(characterId, false) + `?t=${Date.now()}`;
+        img.src = imageUrl;
         img.onload = handleImageLoad;
         img.onerror = () => {
           setImageError(true);

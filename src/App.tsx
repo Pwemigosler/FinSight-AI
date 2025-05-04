@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
@@ -13,8 +14,28 @@ import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { AvatarProvider } from "./contexts/AvatarContext";
+import { initializeCharacterAvatars } from "./utils/supabaseStorage";
+import { uploadCharacterImages } from "./utils/uploadCharacters";
 
 const queryClient = new QueryClient();
+
+// App initialization component
+const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  useEffect(() => {
+    // Initialize character avatars when app starts
+    const init = async () => {
+      await initializeCharacterAvatars();
+      
+      // In a real app, this would only be called by admins or during setup
+      // Uncommenting this would upload characters to Supabase on app start
+      // await uploadCharacterImages();
+    };
+    
+    init().catch(console.error);
+  }, []);
+  
+  return <>{children}</>;
+};
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -117,11 +138,13 @@ const App = () => (
     <AuthProvider>
       <AvatarProvider>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
+          <AppInitializer>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </AppInitializer>
         </TooltipProvider>
       </AvatarProvider>
     </AuthProvider>

@@ -1,12 +1,15 @@
 
 import { AvatarState } from '../types/avatar-types';
+import { getPublicUrl } from '@/utils/supabaseStorage';
 
-// Map of character images with direct paths to the character folder
+const BUCKET_NAME = "character_avatars";
+
+// Map of character images with paths in the Supabase storage bucket
 export const characterImages = {
-  "fin": "/characters/fin.png",
-  "luna": "/characters/luna.png",
-  "oliver": "/characters/oliver.png", 
-  "zoe": "/characters/zoe.png"
+  "fin": "fin.png",
+  "luna": "luna.png",
+  "oliver": "oliver.png", 
+  "zoe": "zoe.png"
 };
 
 // Get character image URL with fallback to placeholder
@@ -21,9 +24,18 @@ export const getCharacterImageUrl = (characterId: string, imageError: boolean): 
   
   // Check if normalized ID is in our available characters
   const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
+  const imagePath = characterImages[finalId as keyof typeof characterImages];
   
-  console.log(`Character requested: ${characterId}, using: ${finalId}, URL: ${characterImages[finalId as keyof typeof characterImages]}`);
-  return characterImages[finalId as keyof typeof characterImages];
+  // Get URL from Supabase storage
+  const supabaseUrl = getPublicUrl(imagePath);
+  
+  if (supabaseUrl) {
+    console.log(`Character requested: ${characterId}, using: ${finalId}, Supabase URL: ${supabaseUrl}`);
+    return supabaseUrl;
+  } else {
+    console.error(`Failed to get Supabase URL for ${finalId}, using placeholder instead`);
+    return getPlaceholderUrl(characterId);
+  }
 };
 
 // Get placeholder URL based on state

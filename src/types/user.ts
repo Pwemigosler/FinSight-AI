@@ -1,23 +1,28 @@
 
+// This file defines the types for user data in the application
+
+export interface AvatarSettings {
+  zoom: number;
+  position: {
+    x: number;
+    y: number;
+  };
+}
+
+export interface UserPreferences {
+  theme?: 'light' | 'dark' | 'system';
+  assistantCharacter?: string;
+  notifications?: boolean;
+  currencyFormat?: string;
+  dateFormat?: string;
+}
+
 export interface User {
   id: string;
-  name: string;
   email: string;
+  name?: string;
   avatar?: string;
-  hasCompletedSetup?: boolean;
-  avatarSettings?: {
-    zoom: number;
-    position: {
-      x: number;
-      y: number;
-    };
-  };
-  preferences?: {
-    assistantCharacter?: string;
-    notificationSettings?: {
-      emailNotifications: boolean;
-      appNotifications: boolean;
-    };
-    theme?: "light" | "dark" | "system";
-  };
+  avatarSettings?: AvatarSettings;
+  preferences?: UserPreferences;
+  role?: 'user' | 'admin';
 }
