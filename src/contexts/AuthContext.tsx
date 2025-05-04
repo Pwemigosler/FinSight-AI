@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { toast } from "sonner";
 import { User } from "../types/user";
@@ -154,7 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // FIXED: Fixed completeAccountSetup to properly preserve avatar data
+  // Fixed completeAccountSetup function to properly preserve ALL user data
   const completeAccountSetup = async (): Promise<void> => {
     return new Promise((resolve, reject) => {
       try {
@@ -164,29 +163,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
-        // IMPORTANT: Create a full copy of ALL user data
-        const updatedUser = JSON.parse(JSON.stringify(user));
+        // Make a complete copy of the current user object
+        const updatedUser = { ...user };
         
-        // Only update the hasCompletedSetup flag
+        // Only update the hasCompletedSetup flag, preserving everything else
         updatedUser.hasCompletedSetup = true;
 
-        console.log("[AuthContext] Completing setup with FULL user data:", 
+        console.log("[AuthContext] Completing setup with complete user data:", 
+          "Name:", updatedUser.name,
           "User has avatar:", !!updatedUser.avatar,
           "Avatar length:", updatedUser.avatar?.length || 0,
           "Avatar settings:", updatedUser.avatarSettings ? 
             `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
             "none");
         
-        // Save to localStorage with full data, ensuring nothing is lost
+        // Save to localStorage with full data
         localStorage.setItem("finsight_user", JSON.stringify(updatedUser));
         
-        // Update state with the complete object that includes all data
+        // Update state with the complete object
         setUser(updatedUser);
         
-        console.log("[AuthContext] Account setup completed successfully, state updated");
+        console.log("[AuthContext] Account setup completed successfully");
         toast("Account setup completed!");
         
-        // Give the browser a moment to process localStorage changes
+        // Give the browser time to process localStorage changes
         setTimeout(() => resolve(), 100);
       } catch (error) {
         console.error("[AuthContext] Error completing setup:", error);
@@ -261,12 +261,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // If the email matches, use the existing user data instead of creating a new one
         if (savedUser && savedUser.email === email) {
-          console.log("[AuthContext] Found existing user with matching email, preserving setup status");
-          mockUser = {
-            ...savedUser,
-            // Ensure we preserve the hasCompletedSetup flag
-            hasCompletedSetup: savedUser.hasCompletedSetup === true
-          };
+          console.log("[AuthContext] Found existing user with matching email, preserving all user data");
+          mockUser = savedUser; // Use the complete saved user data
         } else {
           // Different email, create new mock user with default setup=false
           mockUser = {
@@ -302,7 +298,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         };
       }
       
-      console.log("[AuthContext] Logging in user with hasCompletedSetup:", mockUser.hasCompletedSetup);
+      console.log("[AuthContext] Logging in user with hasCompletedSetup:", mockUser.hasCompletedSetup,
+                 "Avatar exists:", !!mockUser.avatar,
+                 "Avatar length:", mockUser.avatar?.length || 0);
       
       setUser(mockUser);
       localStorage.setItem("finsight_user", JSON.stringify(mockUser));
