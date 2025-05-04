@@ -8,6 +8,7 @@ import TypingIndicator from "./chat/TypingIndicator";
 import ChatInput from "./chat/ChatInput";
 import FloatingAssistant from "./chat/FloatingAssistant";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { characterImages } from "./avatars/utils/avatar-utils";
 
 const ChatBot = () => {
   const { messages, inputMessage, setInputMessage, isLoading, handleSendMessage } = useChatMessages();
@@ -57,7 +58,7 @@ const ChatBot = () => {
           <div className="h-8 w-8 overflow-hidden rounded-full bg-finsight-purple flex items-center justify-center">
             {/* Avatar in title bar */}
             <img 
-              src={`/lovable-uploads/${characterId === 'fin' || characterId === 'oliver' ? 'f52bd910-06ca-4178-b8b2-dfadcbd6b455.png' : '367a63ca-e925-4cea-8b91-d8ac8bf3a908.png'}`}
+              src={characterImages[characterId as keyof typeof characterImages]}
               alt="AI Assistant" 
               className="h-full w-full object-cover"
               onError={(e) => {

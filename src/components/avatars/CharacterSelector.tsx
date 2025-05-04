@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import CharacterOption, { CharacterData } from "./CharacterOption";
 import { characterImages } from "./utils/avatar-utils";
+import { useAvatar } from "@/contexts/AvatarContext";
 
 // Default character options with their descriptions and paths
 const defaultCharacters: CharacterData[] = [
@@ -37,8 +38,9 @@ const defaultCharacters: CharacterData[] = [
 
 const CharacterSelector: React.FC = () => {
   const { user, updateUserProfile } = useAuth();
+  const { characterId: currentCharacterId, setCharacterId } = useAvatar();
   const [selectedCharacter, setSelectedCharacter] = useState<string>(
-    user?.preferences?.assistantCharacter || "fin"
+    currentCharacterId || user?.preferences?.assistantCharacter || "fin"
   );
   const [isSaving, setIsSaving] = useState(false);
 
@@ -49,6 +51,9 @@ const CharacterSelector: React.FC = () => {
   const handleSaveSelection = async () => {
     setIsSaving(true);
     try {
+      // Update avatar context
+      setCharacterId(selectedCharacter);
+      
       // In a real app, this would be an API call
       if (updateUserProfile && user) {
         await updateUserProfile({

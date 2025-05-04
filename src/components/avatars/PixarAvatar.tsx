@@ -56,7 +56,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   };
   
   const handleImageError = () => {
-    console.error(`Failed to load character image: ${characterId} (attempt ${retryCount + 1})`);
+    console.error(`Failed to load character image: ${characterId} from path: ${getCharacterImageUrl(characterId, false)} (attempt ${retryCount + 1})`);
     
     // Retry loading the image a few times before showing error state
     if (retryCount < 2) {
