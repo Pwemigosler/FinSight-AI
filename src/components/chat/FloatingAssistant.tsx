@@ -1,15 +1,17 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { getRandomTip } from "@/utils/financialTips";
 import { LightbulbIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import PixarAvatar from "../avatars/PixarAvatar";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { useSpeech } from "@/hooks/useSpeech";
 
 const FloatingAssistant: React.FC = () => {
   const [showTip, setShowTip] = useState(false);
   const [currentTip, setCurrentTip] = useState("");
   const { avatarState, characterId, setAvatarState, speakMessage, stopSpeaking } = useAvatar();
+  const { isThisElementSpeaking, handleSpeak } = useSpeech(currentTip);
   
   // Introduce random expressions periodically when idle
   useEffect(() => {
@@ -63,7 +65,7 @@ const FloatingAssistant: React.FC = () => {
     return () => clearInterval(tipInterval);
   }, [avatarState, setAvatarState, speakMessage]);
   
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     // When clicked, show a new tip or hide current tip
     if (showTip) {
       setShowTip(false);
@@ -82,7 +84,7 @@ const FloatingAssistant: React.FC = () => {
         setAvatarState("idle");
       }, 8000);
     }
-  }, [showTip, setAvatarState, speakMessage, stopSpeaking]);
+  };
   
   return (
     <div className="fixed bottom-6 right-6 z-50">

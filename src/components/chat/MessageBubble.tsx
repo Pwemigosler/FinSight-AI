@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Message, FinancialInsight, ReceiptInfo } from "@/types/chat";
+import { Message } from "@/types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "@/types/user";
 import { Volume2, VolumeX } from "lucide-react";
@@ -10,6 +10,7 @@ import { useAvatar } from "@/contexts/AvatarContext";
 import FinancialInsightCard from "./insights/FinancialInsightCard";
 import ReceiptCardInline from "./receipts/ReceiptCardInline";
 import ActionStatusBadge from "./actions/ActionStatusBadge";
+import { useSpeech } from "@/hooks/useSpeech";
 
 interface MessageBubbleProps {
   message: Message;
@@ -17,13 +18,13 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble = ({ message, user }: MessageBubbleProps) => {
-  const { avatarState, speakMessage, stopSpeaking, isSpeaking, characterId } = useAvatar();
-  const [isThisBubbleSpeaking, setIsThisBubbleSpeaking] = useState(false);
+  const { avatarState, characterId } = useAvatar();
+  const { isThisElementSpeaking, handleSpeak } = useSpeech(message.content);
   
   // Get insights from message action details if they exist
   const insights = message.action?.type === "analysis" && 
                   message.action.details?.insights ? 
-                  message.action.details.insights as FinancialInsight[] : 
+                  message.action.details.insights : 
                   [];
                   
   // Get receipts from message if they exist
@@ -33,26 +34,8 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
   const getAvatarStateFromMessage = (): "idle" | "speaking" | "happy" | "confused" => {
     if (message.action?.status === "error") return "confused";
     if (message.action?.status === "success") return "happy";
-    return isThisBubbleSpeaking ? "speaking" : "idle";
+    return isThisElementSpeaking ? "speaking" : "idle";
   };
-
-  // Handle text-to-speech for this message
-  const handleSpeak = () => {
-    if (isThisBubbleSpeaking) {
-      stopSpeaking();
-      setIsThisBubbleSpeaking(false);
-    } else {
-      speakMessage(message.content);
-      setIsThisBubbleSpeaking(true);
-    }
-  };
-
-  // Reset speaking state when global speaking state changes
-  useEffect(() => {
-    if (!isSpeaking && isThisBubbleSpeaking) {
-      setIsThisBubbleSpeaking(false);
-    }
-  }, [isSpeaking, isThisBubbleSpeaking]);
 
   return (
     <div
@@ -135,7 +118,7 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
                 onClick={handleSpeak}
                 className="h-6 w-6 rounded-full p-0"
               >
-                {isThisBubbleSpeaking ? 
+                {isThisElementSpeaking ? 
                   <VolumeX className="h-3 w-3 text-finsight-purple" /> : 
                   <Volume2 className="h-3 w-3 text-finsight-purple" />
                 }
