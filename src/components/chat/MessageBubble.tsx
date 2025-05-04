@@ -1,3 +1,4 @@
+
 import { Message, FinancialInsight, ReceiptInfo } from "@/types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "@/types/user";
@@ -121,7 +122,7 @@ const ReceiptCard = ({ receipt }: { receipt: ReceiptInfo }) => {
 };
 
 const MessageBubble = ({ message, user }: MessageBubbleProps) => {
-  const { avatarState, setAvatarState, speakMessage, stopSpeaking, isSpeaking } = useAvatar();
+  const { avatarState, setAvatarState, speakMessage, stopSpeaking, isSpeaking, characterId } = useAvatar();
   const [isThisBubbleSpeaking, setIsThisBubbleSpeaking] = useState(false);
   
   // Get insights from message action details if they exist
@@ -173,6 +174,7 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
           <div className="h-8 w-8 flex items-center justify-center">
             <PixarAvatar 
               state={getAvatarStateFromMessage()} 
+              characterId={characterId}
               size="sm"
             />
           </div>

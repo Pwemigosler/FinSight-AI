@@ -1,3 +1,4 @@
+
 import { useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,7 +8,7 @@ import TypingIndicator from "./chat/TypingIndicator";
 import ChatInput from "./chat/ChatInput";
 import FloatingAssistant from "./chat/FloatingAssistant";
 import { useAvatar } from "@/contexts/AvatarContext";
-import { characterImages } from "./avatars/utils/avatar-utils";
+import { getCharacterImageUrl } from "./avatars/utils/avatar-utils";
 
 const ChatBot = () => {
   const { messages, inputMessage, setInputMessage, isLoading, handleSendMessage } = useChatMessages();
@@ -57,7 +58,7 @@ const ChatBot = () => {
           <div className="h-8 w-8 overflow-hidden rounded-full bg-finsight-purple flex items-center justify-center">
             {/* Avatar in title bar */}
             <img 
-              src={characterImages[characterId as keyof typeof characterImages] + `?t=${Date.now()}`} // Add cache busting
+              src={getCharacterImageUrl(characterId, false) + `?t=${Date.now()}`} // Add cache busting
               alt="AI Assistant" 
               className="h-full w-full object-cover"
               onError={(e) => {
