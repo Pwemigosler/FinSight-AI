@@ -25,4 +25,5 @@ export interface User {
   avatarSettings?: AvatarSettings;
   preferences?: UserPreferences;
   role?: 'user' | 'admin';
+  hasCompletedSetup?: boolean;
 }
