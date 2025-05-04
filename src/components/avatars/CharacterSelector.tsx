@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import CharacterOption, { CharacterData } from "./CharacterOption";
 import { characterImages } from "./utils/avatar-utils";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { getPublicUrl } from "@/utils/supabaseStorage";
 
 // Default character options with their descriptions and paths
 const defaultCharacters: CharacterData[] = [
@@ -43,6 +44,38 @@ const CharacterSelector: React.FC = () => {
     currentCharacterId || user?.preferences?.assistantCharacter || "fin"
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [charactersWithUrls, setCharactersWithUrls] = useState<CharacterData[]>([]);
+
+  // Load character images from Supabase or fallback to local paths
+  useEffect(() => {
+    const loadCharacterUrls = async () => {
+      const updatedCharacters = await Promise.all(defaultCharacters.map(async (character) => {
+        try {
+          // Try to get URL from Supabase
+          const supabaseUrl = getPublicUrl(`${character.id}.png`);
+          
+          if (supabaseUrl) {
+            console.log(`Loaded Supabase URL for ${character.id}: ${supabaseUrl}`);
+            return {
+              ...character,
+              thumbnailUrl: supabaseUrl
+            };
+          }
+          
+          // Fallback to local path if Supabase URL isn't available
+          console.log(`Using local path for ${character.id}: ${character.thumbnailUrl}`);
+          return character;
+        } catch (error) {
+          console.error(`Error getting URL for ${character.id}:`, error);
+          return character; // Return original character data with local path
+        }
+      }));
+      
+      setCharactersWithUrls(updatedCharacters);
+    };
+    
+    loadCharacterUrls();
+  }, []);
 
   const handleSelectCharacter = (character: CharacterData) => {
     setSelectedCharacter(character.id);
@@ -93,7 +126,7 @@ const CharacterSelector: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {defaultCharacters.map((character) => (
+          {(charactersWithUrls.length > 0 ? charactersWithUrls : defaultCharacters).map((character) => (
             <CharacterOption
               key={character.id}
               character={{

@@ -26,9 +26,15 @@ const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) =
     const init = async () => {
       await initializeCharacterAvatars();
       
-      // In a real app, this would only be called by admins or during setup
-      // Uncommenting this would upload characters to Supabase on app start
-      // await uploadCharacterImages();
+      // Upload characters to Supabase on app start
+      // This will fetch from public/characters and upload to storage
+      try {
+        console.log("Starting character image upload to Supabase...");
+        await uploadCharacterImages();
+        console.log("Character image upload completed");
+      } catch (error) {
+        console.error("Error uploading character images:", error);
+      }
     };
     
     init().catch(console.error);

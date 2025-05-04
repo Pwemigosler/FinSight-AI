@@ -1,4 +1,3 @@
-
 import { AvatarState } from '../types/avatar-types';
 import { getPublicUrl } from '@/utils/supabaseStorage';
 
@@ -26,16 +25,19 @@ export const getCharacterImageUrl = (characterId: string, imageError: boolean): 
   const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
   const imagePath = characterImages[finalId as keyof typeof characterImages];
   
-  // Get URL from Supabase storage
+  // Try to get URL from Supabase storage first
   const supabaseUrl = getPublicUrl(imagePath);
   
   if (supabaseUrl) {
     console.log(`Character requested: ${characterId}, using: ${finalId}, Supabase URL: ${supabaseUrl}`);
     return supabaseUrl;
-  } else {
-    console.error(`Failed to get Supabase URL for ${finalId}, using placeholder instead`);
-    return getPlaceholderUrl(characterId);
-  }
+  } 
+  
+  // If Supabase URL isn't available, try local path
+  const localUrl = `/characters/${imagePath}`;
+  console.log(`Supabase URL not available for ${finalId}, trying local path: ${localUrl}`);
+  
+  return localUrl;
 };
 
 // Get placeholder URL based on state
