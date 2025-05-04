@@ -72,10 +72,12 @@ const AvatarEditor: React.FC<AvatarEditorProps> = ({
     const dy = e.clientY - dragStart.y;
     
     setDragStart({ x: e.clientX, y: e.clientY });
-    setImagePosition((prev: { x: number; y: number }) => ({ 
-      x: prev.x + dx, 
-      y: prev.y + dy 
-    }));
+    
+    // Fix: Create new position object directly instead of using an updater function
+    setImagePosition({
+      x: imagePosition.x + dx,
+      y: imagePosition.y + dy
+    });
   };
 
   const handleImageMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
