@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bell, Lock, User, Moon, Bot } from "lucide-react";
@@ -13,33 +13,24 @@ import AvatarSettings from "./settings/AvatarSettings";
 
 const SettingsView = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("account");
   
-  const handleSaveSettings = () => {
-    setIsSubmitting(true);
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
-      toast("Settings saved", {
-        description: "Your preferences have been updated successfully."
-      });
-    }, 800);
-  };
-
+  // Remove the global save button functionality since each section now has its own save button
+  // This prevents confusion about which settings are being saved
+  
   return (
     <>
       <Header />
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-finsight-purple">Settings</h1>
-          <Button 
-            onClick={handleSaveSettings}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Saving..." : "Save Changes"}
-          </Button>
         </div>
 
-        <Tabs defaultValue="account" className="w-full">
+        <Tabs 
+          defaultValue="account" 
+          className="w-full"
+          onValueChange={setActiveTab}
+        >
           <TabsList className="mb-6">
             <TabsTrigger value="account" className="flex items-center gap-2">
               <User className="h-4 w-4" />

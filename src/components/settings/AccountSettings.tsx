@@ -1,17 +1,68 @@
 
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Globe } from "lucide-react";
+import { toast } from "sonner";
 
 export const AccountSettings = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    currency: "usd",
+    language: "en"
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // Update local state when user changes
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || "",
+        email: user.email || ""
+      }));
+    }
+  }, [user]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
-    // Handle profile changes
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const handleSaveChanges = async () => {
+    if (!formData.name.trim()) {
+      toast("Name cannot be empty");
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
+      
+      await updateUserProfile({
+        name: formData.name,
+        email: formData.email,
+        preferences: {
+          ...user?.preferences,
+          currencyFormat: formData.currency,
+          dateFormat: formData.language
+        }
+      });
+      
+      toast("Profile information updated successfully");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast("Failed to update profile information");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -30,8 +81,8 @@ export const AccountSettings = () => {
               <div className="flex mt-1.5">
                 <Input 
                   id="name"
-                  value={user?.name || ""}
-                  onChange={handleProfileChange}
+                  value={formData.name}
+                  onChange={handleInputChange}
                 />
               </div>
             </div>
@@ -41,11 +92,20 @@ export const AccountSettings = () => {
                 <Input 
                   id="email"
                   type="email"
-                  value={user?.email || ""}
-                  onChange={handleProfileChange}
+                  value={formData.email}
+                  onChange={handleInputChange}
                 />
               </div>
             </div>
+          </div>
+          
+          <div className="flex justify-end">
+            <Button 
+              onClick={handleSaveChanges}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -64,7 +124,8 @@ export const AccountSettings = () => {
               <select 
                 id="currency" 
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                onChange={handleProfileChange}
+                value={formData.currency}
+                onChange={handleInputChange}
               >
                 <option value="usd">USD - US Dollar</option>
                 <option value="eur">EUR - Euro</option>
@@ -79,7 +140,8 @@ export const AccountSettings = () => {
                 <select 
                   id="language" 
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  onChange={handleProfileChange}
+                  value={formData.language}
+                  onChange={handleInputChange}
                 >
                   <option value="en">English</option>
                   <option value="es">Spanish</option>
@@ -88,6 +150,15 @@ export const AccountSettings = () => {
                 </select>
               </div>
             </div>
+          </div>
+          
+          <div className="flex justify-end">
+            <Button 
+              onClick={handleSaveChanges}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </CardContent>
       </Card>
