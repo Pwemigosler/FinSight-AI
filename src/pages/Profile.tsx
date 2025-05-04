@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import {
   Card,
   CardContent,

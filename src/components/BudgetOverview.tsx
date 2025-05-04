@@ -1,4 +1,3 @@
-
 import { ArrowUpRight, Edit, Check, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { getBudgetCategories, updateCategoryAmount } from '@/services/fundAllocationService';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { BudgetCategory } from '@/types/budget';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 
 const BudgetOverview = () => {
   const [categories, setCategories] = useState<BudgetCategory[]>([]);

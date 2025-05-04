@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Search, Filter, ShoppingCart, Home, CreditCard, Coffee, ArrowDownToLine, ArrowUpFromLine, Plus, Receipt } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,7 +39,7 @@ import * as z from "zod";
 import { toast } from "@/hooks/use-toast";
 import LinkBankCardDialog from './LinkBankCardDialog';
 import ManageLinkedCardsDialog from './ManageLinkedCardsDialog';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import ReceiptUploader from './receipts/ReceiptUploader';
 import ReceiptGallery from './receipts/ReceiptGallery';
 

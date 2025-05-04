@@ -1,7 +1,7 @@
 
 import { useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import MessageBubble from "./chat/MessageBubble";
 import TypingIndicator from "./chat/TypingIndicator";
