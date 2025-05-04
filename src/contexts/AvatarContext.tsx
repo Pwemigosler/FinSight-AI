@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AvatarState } from '@/components/avatars/types/avatar-types';
-import { analyze } from 'natural-sentiment';
+import { analyze } from '@/utils/sentimentAnalysis';
 
 // Define the types for our context
 type AvatarContextType = {
