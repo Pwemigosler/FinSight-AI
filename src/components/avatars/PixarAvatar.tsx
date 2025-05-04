@@ -77,10 +77,26 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
     }
   };
 
-  // Debug - log what image path we're trying to load
-  useEffect(() => {
-    console.log(`Attempting to load image for ${characterId}: ${getCharacterImageUrl(characterId, imageError)}`);
-  }, [characterId, imageError, retryCount]);
+  // Get enhanced animation class based on state
+  const getEnhancedAnimationClass = () => {
+    const baseAnimation = getStateAnimationClass(state);
+    
+    // Add animation intensifiers based on state
+    switch (state) {
+      case "speaking":
+        return `${baseAnimation} transform-origin-center`;
+      case "thinking":
+        return `${baseAnimation} duration-1500`;
+      case "happy":
+        return `${baseAnimation} duration-1000`;
+      case "confused":
+        return `${baseAnimation} rotate-1`;
+      case "tip":
+        return `${baseAnimation} hover:scale-110`;
+      default:
+        return baseAnimation;
+    }
+  };
 
   return (
     <div 
@@ -88,11 +104,13 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
         "rounded-full overflow-hidden cursor-pointer transition-all duration-300 relative",
         sizeClasses[size],
         getStateGlowClass(state),
-        getStateAnimationClass(state),
+        getEnhancedAnimationClass(),
         className
       )}
       onClick={onClick}
       id={uniqueId}
+      data-state={state}
+      data-character={characterId}
     >
       <img
         src={getCharacterImageUrl(characterId, imageError) + (retryCount > 0 ? `?retry=${retryCount}&t=${Date.now()}` : '')}

@@ -1,35 +1,23 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { getRandomTip } from "@/utils/financialTips";
-import { useAuth } from "@/contexts/AuthContext";
 import { LightbulbIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import PixarAvatar from "../avatars/PixarAvatar";
-import { AvatarState } from "../avatars/types/avatar-types";
+import { useAvatar } from "@/contexts/AvatarContext";
 
-interface FloatingAssistantProps {
-  chatState: "idle" | "speaking" | "thinking";
-}
-
-const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
-  const { user } = useAuth();
+const FloatingAssistant: React.FC = () => {
   const [showTip, setShowTip] = useState(false);
   const [currentTip, setCurrentTip] = useState("");
-  const [avatarState, setAvatarState] = useState<AvatarState>("idle");
-  
-  // Make sure we're using a valid character ID (fin rather than finn)
-  const getCharacterId = (): string => {
-    const preferredCharacter = user?.preferences?.assistantCharacter || "fin";
-    return preferredCharacter === "finn" ? "fin" : preferredCharacter;
-  };
+  const { avatarState, characterId, setAvatarState, speakMessage, stopSpeaking } = useAvatar();
   
   // Introduce random expressions periodically when idle
   useEffect(() => {
-    if (chatState === "idle" && !showTip) {
+    if (avatarState === "idle" && !showTip) {
       const expressionInterval = setInterval(() => {
         // 10% chance to show a random expression when idle
         if (Math.random() < 0.1) {
-          const expressions: AvatarState[] = ["happy", "confused", "idle"];
+          const expressions = ["happy", "confused", "idle"] as const;
           const randomExpression = expressions[Math.floor(Math.random() * expressions.length)];
           
           setAvatarState(randomExpression);
@@ -43,26 +31,12 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
       
       return () => clearInterval(expressionInterval);
     }
-  }, [chatState, showTip]);
-  
-  // Update avatar state based on chat state and tips
-  useEffect(() => {
-    if (showTip) {
-      setAvatarState("tip");
-    } else if (chatState === "thinking") {
-      setAvatarState("thinking");
-    } else if (chatState === "speaking") {
-      setAvatarState("speaking");
-    } else if (avatarState !== "happy" && avatarState !== "confused") {
-      // Only reset to idle if not showing a random expression
-      setAvatarState("idle");
-    }
-  }, [chatState, showTip]);
+  }, [avatarState, showTip, setAvatarState]);
   
   // Show tips periodically
   useEffect(() => {
     // Don't show tips while the AI is actively responding
-    if (chatState === "thinking" || chatState === "speaking") {
+    if (avatarState === "thinking" || avatarState === "speaking") {
       setShowTip(false);
       return;
     }
@@ -70,9 +44,13 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
     // Set up interval to show tips
     const tipInterval = setInterval(() => {
       if (Math.random() < 0.3) { // 30% chance to show a tip
-        setCurrentTip(getRandomTip());
+        const tip = getRandomTip();
+        setCurrentTip(tip);
         setShowTip(true);
         setAvatarState("tip");
+        
+        // Read the tip aloud
+        speakMessage(tip);
         
         // Hide tip after 8 seconds
         setTimeout(() => {
@@ -83,17 +61,20 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
     }, 45000); // Check every 45 seconds
     
     return () => clearInterval(tipInterval);
-  }, [chatState]);
+  }, [avatarState, setAvatarState, speakMessage]);
   
   const handleClick = useCallback(() => {
     // When clicked, show a new tip or hide current tip
     if (showTip) {
       setShowTip(false);
       setAvatarState("idle");
+      stopSpeaking();
     } else {
-      setCurrentTip(getRandomTip());
+      const tip = getRandomTip();
+      setCurrentTip(tip);
       setShowTip(true);
       setAvatarState("tip");
+      speakMessage(tip);
       
       // Hide tip after 8 seconds
       setTimeout(() => {
@@ -101,7 +82,7 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
         setAvatarState("idle");
       }, 8000);
     }
-  }, [showTip]);
+  }, [showTip, setAvatarState, speakMessage, stopSpeaking]);
   
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -114,14 +95,14 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ chatState }) => {
             >
               <PixarAvatar 
                 state={avatarState} 
-                characterId={getCharacterId()}
+                characterId={characterId}
                 size="lg"
                 className="shadow-lg"
               />
             </div>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p className="text-sm">FinSight AI Assistant - {getCharacterId().charAt(0).toUpperCase() + getCharacterId().slice(1)}</p>
+            <p className="text-sm">FinSight AI Assistant - {characterId.charAt(0).toUpperCase() + characterId.slice(1)}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

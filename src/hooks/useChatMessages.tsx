@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Message } from "@/types/chat";
 import { toast } from "sonner";
 import { processActionRequest, getDefaultResponse } from "@/utils/chatBotActions";
+import { useAvatar } from "@/contexts/AvatarContext";
 
 export const useChatMessages = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -15,8 +16,9 @@ export const useChatMessages = () => {
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { setAvatarState, speakMessage } = useAvatar();
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (!inputMessage.trim()) return;
 
     // Add user message to chat
@@ -30,6 +32,7 @@ export const useChatMessages = () => {
     setMessages((prev) => [...prev, userMessage]);
     setInputMessage("");
     setIsLoading(true);
+    setAvatarState("thinking");
 
     try {
       // Check if message is an action request
@@ -48,14 +51,20 @@ export const useChatMessages = () => {
         
         setMessages((prev) => [...prev, botMessage]);
         
-        // Show toast for successful actions
+        // Set avatar state based on action status
         if (actionResult.action.status === "success") {
+          setAvatarState("happy");
+          
+          // Speak the response
+          speakMessage(actionResult.response);
+          
           toast.success("Action completed", {
             description: actionResult.action.type === "receipts_view" 
               ? "Receipt information retrieved" 
               : actionResult.response,
           });
         } else {
+          setAvatarState("confused");
           toast.error("Action failed", {
             description: actionResult.response,
           });
@@ -72,14 +81,19 @@ export const useChatMessages = () => {
         };
 
         setMessages((prev) => [...prev, botMessage]);
+        setAvatarState("speaking");
+        
+        // Speak the response
+        speakMessage(botContent);
       }
     } catch (error) {
       console.error("Error getting AI response:", error);
       toast.error("Failed to get response. Please try again.");
+      setAvatarState("confused");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [inputMessage, setAvatarState, speakMessage]);
 
   return {
     messages,

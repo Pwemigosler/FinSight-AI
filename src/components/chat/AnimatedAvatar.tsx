@@ -1,12 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { LightbulbIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useAuth } from "@/contexts/AuthContext";
 import PixarAvatar from "../avatars/PixarAvatar";
-import { AvatarState } from "../avatars/types/avatar-types";
+import { useAvatar } from "@/contexts/AvatarContext";
 
 interface AnimatedAvatarProps {
-  state: "idle" | "speaking" | "thinking";
   showTip?: boolean;
   tip?: string;
   className?: string;
@@ -14,28 +13,19 @@ interface AnimatedAvatarProps {
 }
 
 const AnimatedAvatar: React.FC<AnimatedAvatarProps> = ({ 
-  state = "idle", 
   showTip = false, 
   tip = "", 
   className = "",
   size = "md"
 }) => {
-  const { user } = useAuth();
-  const [avatarState, setAvatarState] = useState<AvatarState>("idle");
-  const characterId = user?.preferences?.assistantCharacter || "fin";
+  const { avatarState, characterId, setAvatarState } = useAvatar();
   
-  // Update avatar state based on chat state and tips
+  // Update avatar state based on tips
   useEffect(() => {
     if (showTip) {
       setAvatarState("tip");
-    } else if (state === "thinking") {
-      setAvatarState("thinking");
-    } else if (state === "speaking") {
-      setAvatarState("speaking");
-    } else {
-      setAvatarState("idle");
     }
-  }, [state, showTip]);
+  }, [showTip, setAvatarState]);
 
   return (
     <div className={`relative ${className}`}>

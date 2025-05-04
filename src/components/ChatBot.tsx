@@ -1,5 +1,5 @@
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatMessages } from "@/hooks/useChatMessages";
@@ -7,14 +7,13 @@ import MessageBubble from "./chat/MessageBubble";
 import TypingIndicator from "./chat/TypingIndicator";
 import ChatInput from "./chat/ChatInput";
 import FloatingAssistant from "./chat/FloatingAssistant";
-import { characterImages } from "./avatars/utils/avatar-utils";
+import { useAvatar } from "@/contexts/AvatarContext";
 
 const ChatBot = () => {
   const { messages, inputMessage, setInputMessage, isLoading, handleSendMessage } = useChatMessages();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const [avatarState, setAvatarState] = useState<"idle" | "speaking" | "thinking">("idle");
-  const characterId = user?.preferences?.assistantCharacter || "fin";
+  const { avatarState, characterId, setAvatarState, reactToMessage } = useAvatar();
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -38,18 +37,17 @@ const ChatBot = () => {
         }, 2000);
         
         return () => clearTimeout(timeout);
-      } else {
-        setAvatarState("idle");
       }
     }
-  }, [isLoading, messages]);
+  }, [isLoading, messages, setAvatarState]);
 
-  // Get the correct image URL for the character
-  const getHeaderAvatarImage = () => {
-    const normalizedId = characterId.toLowerCase();
-    const validCharacterIds = Object.keys(characterImages);
-    const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
-    return characterImages[finalId as keyof typeof characterImages];
+  // Process user messages for sentiment
+  const handleSendWithSentiment = async () => {
+    if (inputMessage.trim()) {
+      // Analyze message sentiment before sending
+      reactToMessage(inputMessage);
+      await handleSendMessage();
+    }
   };
 
   return (
@@ -59,7 +57,7 @@ const ChatBot = () => {
           <div className="h-8 w-8 overflow-hidden rounded-full bg-finsight-purple flex items-center justify-center">
             {/* Avatar in title bar */}
             <img 
-              src={getHeaderAvatarImage()}
+              src={`/lovable-uploads/${characterId === 'fin' || characterId === 'oliver' ? 'f52bd910-06ca-4178-b8b2-dfadcbd6b455.png' : '367a63ca-e925-4cea-8b91-d8ac8bf3a908.png'}`}
               alt="AI Assistant" 
               className="h-full w-full object-cover"
               onError={(e) => {
@@ -86,13 +84,13 @@ const ChatBot = () => {
         <ChatInput 
           inputMessage={inputMessage}
           setInputMessage={setInputMessage}
-          handleSendMessage={handleSendMessage}
+          handleSendMessage={handleSendWithSentiment}
           isLoading={isLoading}
         />
       </CardFooter>
 
       {/* Floating Assistant Avatar */}
-      <FloatingAssistant chatState={avatarState} />
+      <FloatingAssistant />
     </div>
   );
 };

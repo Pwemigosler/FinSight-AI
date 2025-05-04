@@ -12,6 +12,7 @@ import SettingsView from "./components/SettingsView";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AvatarProvider } from "./contexts/AvatarContext";
 
 const queryClient = new QueryClient();
 
@@ -114,13 +115,15 @@ const AppRoutes = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
+      <AvatarProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AvatarProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

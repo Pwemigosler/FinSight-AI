@@ -1,9 +1,11 @@
 import { Message, FinancialInsight, ReceiptInfo } from "@/types/chat";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "@/types/user";
-import { Wallet, CreditCard, PiggyBank, LineChart, TrendingUp, TrendingDown, AlertCircle, Receipt, ExternalLink } from "lucide-react";
+import { Wallet, CreditCard, PiggyBank, LineChart, TrendingUp, TrendingDown, AlertCircle, Receipt, ExternalLink, Volume2, VolumeX } from "lucide-react";
 import { Button } from "../ui/button";
 import PixarAvatar from "../avatars/PixarAvatar";
+import { useAvatar } from "@/contexts/AvatarContext";
+import { useState, useEffect } from "react";
 
 interface MessageBubbleProps {
   message: Message;
@@ -119,6 +121,9 @@ const ReceiptCard = ({ receipt }: { receipt: ReceiptInfo }) => {
 };
 
 const MessageBubble = ({ message, user }: MessageBubbleProps) => {
+  const { avatarState, setAvatarState, speakMessage, stopSpeaking, isSpeaking } = useAvatar();
+  const [isThisBubbleSpeaking, setIsThisBubbleSpeaking] = useState(false);
+  
   // Get insights from message action details if they exist
   const insights = message.action?.type === "analysis" && 
                   message.action.details?.insights ? 
@@ -132,15 +137,26 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
   const getAvatarStateFromMessage = (): "idle" | "speaking" | "happy" | "confused" => {
     if (message.action?.status === "error") return "confused";
     if (message.action?.status === "success") return "happy";
-    return "speaking";
+    return isThisBubbleSpeaking ? "speaking" : "idle";
   };
 
-  // Get character ID with normalization
-  const getCharacterId = (): string => {
-    const preferredCharacter = user?.preferences?.assistantCharacter || "fin";
-    // Make sure we're using a valid ID (fin rather than finn)
-    return preferredCharacter === "finn" ? "fin" : preferredCharacter;
+  // Handle text-to-speech for this message
+  const handleSpeak = () => {
+    if (isThisBubbleSpeaking) {
+      stopSpeaking();
+      setIsThisBubbleSpeaking(false);
+    } else {
+      speakMessage(message.content);
+      setIsThisBubbleSpeaking(true);
+    }
   };
+
+  // Reset speaking state when global speaking state changes
+  useEffect(() => {
+    if (!isSpeaking && isThisBubbleSpeaking) {
+      setIsThisBubbleSpeaking(false);
+    }
+  }, [isSpeaking, isThisBubbleSpeaking]);
 
   return (
     <div
@@ -157,7 +173,6 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
           <div className="h-8 w-8 flex items-center justify-center">
             <PixarAvatar 
               state={getAvatarStateFromMessage()} 
-              characterId={getCharacterId()}
               size="sm"
             />
           </div>
@@ -217,12 +232,29 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
             </div>
           )}
           
-          <p className="text-xs opacity-70 mt-1">
-            {message.timestamp.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
+          <div className="flex justify-between items-center mt-1">
+            <p className="text-xs opacity-70">
+              {message.timestamp.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+            
+            {/* Text-to-speech button only for bot messages */}
+            {message.sender === "bot" && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSpeak}
+                className="h-6 w-6 rounded-full p-0"
+              >
+                {isThisBubbleSpeaking ? 
+                  <VolumeX className="h-3 w-3 text-finsight-purple" /> : 
+                  <Volume2 className="h-3 w-3 text-finsight-purple" />
+                }
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
