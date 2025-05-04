@@ -37,14 +37,31 @@ const defaultCharacters: CharacterData[] = [
   }
 ];
 
-const CharacterSelector: React.FC = () => {
+interface CharacterSelectorProps {
+  isSetupMode?: boolean;
+  selectedCharacter?: string;
+  onSelectCharacter?: (characterId: string) => void;
+}
+
+const CharacterSelector: React.FC<CharacterSelectorProps> = ({ 
+  isSetupMode = false, 
+  selectedCharacter: propSelectedCharacter,
+  onSelectCharacter
+}) => {
   const { user, updateUserProfile } = useAuth();
-  const { characterId: currentCharacterId, setCharacterId } = useAvatar();
+  const { characterId: contextCharacterId, setCharacterId } = useAvatar();
   const [selectedCharacter, setSelectedCharacter] = useState<string>(
-    currentCharacterId || user?.preferences?.assistantCharacter || "fin"
+    propSelectedCharacter || contextCharacterId || user?.preferences?.assistantCharacter || "fin"
   );
   const [isSaving, setIsSaving] = useState(false);
   const [charactersWithUrls, setCharactersWithUrls] = useState<CharacterData[]>([]);
+
+  // Update selected character when prop changes (for setup mode)
+  useEffect(() => {
+    if (propSelectedCharacter && propSelectedCharacter !== selectedCharacter) {
+      setSelectedCharacter(propSelectedCharacter);
+    }
+  }, [propSelectedCharacter]);
 
   // Load character images from Supabase or fallback to local paths
   useEffect(() => {
@@ -79,9 +96,22 @@ const CharacterSelector: React.FC = () => {
 
   const handleSelectCharacter = (character: CharacterData) => {
     setSelectedCharacter(character.id);
+    
+    // If in setup mode and callback is provided, call it
+    if (isSetupMode && onSelectCharacter) {
+      onSelectCharacter(character.id);
+    }
   };
 
   const handleSaveSelection = async () => {
+    if (isSetupMode) {
+      // In setup mode, we don't save directly - parent component handles it
+      if (onSelectCharacter) {
+        onSelectCharacter(selectedCharacter);
+      }
+      return;
+    }
+    
     setIsSaving(true);
     try {
       // Update avatar context
@@ -90,9 +120,8 @@ const CharacterSelector: React.FC = () => {
       // In a real app, this would be an API call
       if (updateUserProfile && user) {
         await updateUserProfile({
-          ...user,
           preferences: {
-            ...user.preferences,
+            ...user.preferences || {},
             assistantCharacter: selectedCharacter
           }
         });
@@ -116,6 +145,26 @@ const CharacterSelector: React.FC = () => {
     return `${url}?t=${Date.now()}`;
   };
 
+  // For setup mode, render just the character options
+  if (isSetupMode) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {(charactersWithUrls.length > 0 ? charactersWithUrls : defaultCharacters).map((character) => (
+          <CharacterOption
+            key={character.id}
+            character={{
+              ...character,
+              thumbnailUrl: addTimeStampToUrl(character.thumbnailUrl)
+            }}
+            selected={selectedCharacter === character.id}
+            onSelect={handleSelectCharacter}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Standard mode with card and save button
   return (
     <Card>
       <CardHeader>

@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { User } from "../../types/user";
 
@@ -16,6 +15,21 @@ export class UserService {
         parsedUser.avatarSettings = {
           zoom: 100,
           position: { x: 0, y: 0 }
+        };
+      }
+      
+      // Ensure preferences are initialized properly
+      if (parsedUser && !parsedUser.preferences) {
+        console.log("[UserService] Initializing default preferences");
+        parsedUser.preferences = {
+          theme: 'light',
+          assistantCharacter: 'fin',
+          notifications: true,
+          emailNotifications: true,
+          appNotifications: true,
+          currencyFormat: 'usd',
+          dateFormat: 'MM/DD/YYYY',
+          language: 'en'
         };
       }
       
@@ -38,7 +52,8 @@ export class UserService {
         console.log("[UserService] Updating user profile with:", 
           updates.avatar ? `avatar (length: ${updates.avatar.length})` : "no avatar", 
           updates.avatarSettings ? `avatarSettings zoom:${updates.avatarSettings.zoom}` : "no avatarSettings",
-          "other fields:", Object.keys(updates).filter(k => k !== "avatar" && k !== "avatarSettings").join(", "));
+          updates.preferences ? `preferences: ${JSON.stringify(updates.preferences)}` : "no preferences",
+          "other fields:", Object.keys(updates).filter(k => k !== "avatar" && k !== "avatarSettings" && k !== "preferences").join(", "));
         
         // Create a deep copy of the user object to avoid mutation issues
         const updatedUser = { ...currentUser };
@@ -61,9 +76,17 @@ export class UserService {
           updatedUser.avatarSettings = { ...updates.avatarSettings };
         }
         
+        // Special handling for preferences
+        if (updates.preferences) {
+          updatedUser.preferences = {
+            ...updatedUser.preferences || {},  // Keep existing preferences if any
+            ...updates.preferences            // Override with new preferences
+          };
+        }
+        
         // Apply all other updates
         Object.keys(updates).forEach(key => {
-          if (key !== "avatar" && key !== "avatarSettings") {
+          if (key !== "avatar" && key !== "avatarSettings" && key !== "preferences") {
             // Need to use any here since we're accessing dynamic properties
             (updatedUser as any)[key] = (updates as any)[key];
           }
@@ -72,10 +95,10 @@ export class UserService {
         console.log("[UserService] Saving updated user:", 
           "Name:", updatedUser.name,
           "Avatar exists:", !!updatedUser.avatar, 
-          "Avatar length:", updatedUser.avatar?.length || 0,
           "Avatar settings:", updatedUser.avatarSettings ? 
             `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
-            "none");
+            "none",
+          "Preferences:", updatedUser.preferences ? JSON.stringify(updatedUser.preferences) : "none");
         
         // Save to localStorage
         localStorage.setItem("finsight_user", JSON.stringify(updatedUser));

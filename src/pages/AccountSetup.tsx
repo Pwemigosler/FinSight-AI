@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/auth";
@@ -9,6 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check, ChevronRight, Crop, User as UserIcon, Move } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
+import CharacterSelector from "@/components/avatars/CharacterSelector";
+import { useAvatar } from "@/contexts/AvatarContext";
 
 // Import User type
 import type { User } from "../types/user";
@@ -27,6 +28,11 @@ const setupSteps: SetupStep[] = [
     description: "Complete your profile information",
   },
   {
+    id: "assistant",
+    title: "Assistant",
+    description: "Choose your AI assistant character",
+  },
+  {
     id: "preferences",
     title: "Preferences",
     description: "Set your financial preferences",
@@ -41,15 +47,17 @@ const setupSteps: SetupStep[] = [
 const AccountSetup = () => {
   const navigate = useNavigate();
   const { user, updateUserProfile, completeAccountSetup } = useAuth();
+  const { characterId, setCharacterId } = useAvatar();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: user?.name || "",
     avatar: user?.avatar || "",
-    currency: "usd",
-    language: "en",
-    emailNotifications: true,
-    appNotifications: true
+    currency: user?.preferences?.currencyFormat || "usd",
+    language: user?.preferences?.language || "en",
+    emailNotifications: user?.preferences?.emailNotifications !== false,
+    appNotifications: user?.preferences?.appNotifications !== false,
+    assistantCharacter: user?.preferences?.assistantCharacter || characterId || "fin"
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -66,8 +74,17 @@ const AccountSetup = () => {
   
   // Track if avatar has been modified during setup
   const [avatarModified, setAvatarModified] = useState(false);
-  // New flag to track if avatar position or zoom has been modified
+  // Flag to track if avatar position or zoom has been modified
   const [avatarAdjusted, setAvatarAdjusted] = useState(false);
+  
+  // Update character selection
+  const handleCharacterSelect = (characterId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      assistantCharacter: characterId
+    }));
+    setCharacterId(characterId);
+  };
 
   // Update local state when user changes
   useEffect(() => {
@@ -75,7 +92,12 @@ const AccountSetup = () => {
       setFormData(prev => ({
         ...prev,
         fullName: user.name || "",
-        avatar: user.avatar || ""
+        avatar: user.avatar || "",
+        currency: user.preferences?.currencyFormat || "usd",
+        language: user.preferences?.language || "en",
+        emailNotifications: user.preferences?.emailNotifications !== false,
+        appNotifications: user.preferences?.appNotifications !== false,
+        assistantCharacter: user.preferences?.assistantCharacter || characterId || "fin"
       }));
       
       // Always update preview image when user avatar changes
@@ -90,7 +112,7 @@ const AccountSetup = () => {
         setImagePosition(user.avatarSettings.position);
       }
     }
-  }, [user]);
+  }, [user, characterId]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -240,15 +262,22 @@ const AccountSetup = () => {
     return true;
   };
 
-  // Modified completeSetup function to handle avatar adjustments properly
+  // Modified completeSetup function to handle all preferences
   const completeSetup = async () => {
     setLoading(true);
     try {
       console.log("[AccountSetup] Starting setup completion process");
       
-      // Prepare the final user data with all fields
+      // Prepare the final user data with all fields and preferences
       const finalUserData: Partial<User> = {
         name: formData.fullName,
+        preferences: {
+          currencyFormat: formData.currency,
+          language: formData.language,
+          emailNotifications: formData.emailNotifications,
+          appNotifications: formData.appNotifications,
+          assistantCharacter: formData.assistantCharacter,
+        },
         hasCompletedSetup: true
       };
       
@@ -269,8 +298,12 @@ const AccountSetup = () => {
       
       // Save all user data in one operation to avoid losing the avatar
       console.log("[AccountSetup] Saving complete user profile with avatar:", !!finalUserData.avatar, 
-                 "and settings:", !!finalUserData.avatarSettings);
+                 "and settings:", !!finalUserData.avatarSettings,
+                 "and preferences:", finalUserData.preferences);
       await updateUserProfile(finalUserData);
+      
+      // Set the character in avatar context
+      setCharacterId(formData.assistantCharacter);
       
       // Mark setup as complete (this should now preserve the avatar)
       console.log("[AccountSetup] Marking setup as complete");
@@ -391,6 +424,22 @@ const AccountSetup = () => {
                     </p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        );
+      case "assistant":
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label className="block mb-1">AI Assistant Character</Label>
+              <p className="text-sm text-gray-500 mb-2">Choose your preferred AI assistant character</p>
+              <div className="mt-4">
+                <CharacterSelector 
+                  isSetupMode={true}
+                  selectedCharacter={formData.assistantCharacter}
+                  onSelectCharacter={handleCharacterSelect}
+                />
               </div>
             </div>
           </div>

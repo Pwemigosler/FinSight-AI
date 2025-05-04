@@ -13,8 +13,8 @@ export const AccountSettings = () => {
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    currency: "usd",
-    language: "en"
+    currency: user?.preferences?.currencyFormat || "usd",
+    language: user?.preferences?.language || "en"
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -24,7 +24,9 @@ export const AccountSettings = () => {
       setFormData(prev => ({
         ...prev,
         name: user.name || "",
-        email: user.email || ""
+        email: user.email || "",
+        currency: user.preferences?.currencyFormat || "usd",
+        language: user.preferences?.language || "en"
       }));
     }
   }, [user]);
@@ -52,7 +54,7 @@ export const AccountSettings = () => {
         preferences: {
           ...user?.preferences,
           currencyFormat: formData.currency,
-          dateFormat: formData.language
+          language: formData.language
         }
       });
       

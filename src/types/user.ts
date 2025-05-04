@@ -15,6 +15,9 @@ export interface UserPreferences {
   notifications?: boolean;
   currencyFormat?: string;
   dateFormat?: string;
+  emailNotifications?: boolean;
+  appNotifications?: boolean;
+  language?: string;
 }
 
 export interface User {
