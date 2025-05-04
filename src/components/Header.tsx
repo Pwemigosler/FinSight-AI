@@ -3,7 +3,7 @@ import { Bell, ChevronDown, Menu, LogOut, User, Settings, Bot } from "lucide-rea
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,

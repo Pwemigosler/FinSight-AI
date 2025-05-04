@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,7 +11,7 @@ import AccountSetup from "./pages/AccountSetup";
 import SettingsView from "./components/SettingsView";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/auth";
 import { AvatarProvider } from "./contexts/AvatarContext";
 import { initializeCharacterAvatars } from "./utils/supabaseStorage";
 import { uploadCharacterImages } from "./utils/uploadCharacters";
