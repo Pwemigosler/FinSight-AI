@@ -45,7 +45,7 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
         </div>
       ) : (
         <img
-          src={character.thumbnailUrl}
+          src={`${character.thumbnailUrl}?t=${Date.now()}`} // Add cache busting parameter
           alt={character.name}
           className="w-full h-40 object-cover"
           onError={handleImageError}

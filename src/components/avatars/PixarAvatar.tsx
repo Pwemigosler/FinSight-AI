@@ -61,7 +61,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
     // Retry loading the image a few times before showing error state
     if (retryCount < 2) {
       setRetryCount(prev => prev + 1);
-      // Try again after a short delay
+      // Try again after a short delay with a cache-busting parameter
       setTimeout(() => {
         const img = new Image();
         img.src = getCharacterImageUrl(characterId, false) + `?t=${Date.now()}`;

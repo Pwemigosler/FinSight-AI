@@ -1,4 +1,3 @@
-
 import { useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,7 +57,7 @@ const ChatBot = () => {
           <div className="h-8 w-8 overflow-hidden rounded-full bg-finsight-purple flex items-center justify-center">
             {/* Avatar in title bar */}
             <img 
-              src={characterImages[characterId as keyof typeof characterImages]}
+              src={characterImages[characterId as keyof typeof characterImages] + `?t=${Date.now()}`} // Add cache busting
               alt="AI Assistant" 
               className="h-full w-full object-cover"
               onError={(e) => {
