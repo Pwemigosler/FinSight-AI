@@ -1,48 +1,21 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/auth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, ChevronRight, Crop, User as UserIcon, Move } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { Slider } from "@/components/ui/slider";
-import CharacterSelector from "@/components/avatars/CharacterSelector";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { setupSteps, SetupProgress } from "@/components/account-setup/SetupSteps";
+import PersonalDetailsStep from "@/components/account-setup/PersonalDetailsStep";
+import AssistantStep from "@/components/account-setup/AssistantStep";
+import PreferencesStep from "@/components/account-setup/PreferencesStep";
+import NotificationsStep from "@/components/account-setup/NotificationsStep";
+import { useAvatarHandler } from "@/components/account-setup/hooks/useAvatarHandler";
 
 // Import User type
 import type { User } from "../types/user";
-
-// Define the setup steps
-type SetupStep = {
-  id: string;
-  title: string;
-  description: string;
-};
-
-const setupSteps: SetupStep[] = [
-  {
-    id: "personal",
-    title: "Personal Details",
-    description: "Complete your profile information",
-  },
-  {
-    id: "assistant",
-    title: "Assistant",
-    description: "Choose your AI assistant character",
-  },
-  {
-    id: "preferences",
-    title: "Preferences",
-    description: "Set your financial preferences",
-  },
-  {
-    id: "notification",
-    title: "Notifications",
-    description: "Choose how you want to be notified",
-  }
-];
 
 const AccountSetup = () => {
   const navigate = useNavigate();
@@ -60,32 +33,16 @@ const AccountSetup = () => {
     assistantCharacter: user?.preferences?.assistantCharacter || characterId || "fin"
   });
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previewImage, setPreviewImage] = useState<string | null>(user?.avatar || null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(user?.avatarSettings?.zoom || 100);
-  const [imagePosition, setImagePosition] = useState({
-    x: user?.avatarSettings?.position?.x || 0,
-    y: user?.avatarSettings?.position?.y || 0
+  // Setup avatar handler with initial values from user
+  const avatarHandler = useAvatarHandler({
+    initialAvatar: user?.avatar,
+    initialZoom: user?.avatarSettings?.zoom || 100,
+    initialPosition: {
+      x: user?.avatarSettings?.position?.x || 0,
+      y: user?.avatarSettings?.position?.y || 0
+    }
   });
-  const [isDraggingImage, setIsDraggingImage] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const imageContainerRef = useRef<HTMLDivElement>(null);
   
-  // Track if avatar has been modified during setup
-  const [avatarModified, setAvatarModified] = useState(false);
-  // Flag to track if avatar position or zoom has been modified
-  const [avatarAdjusted, setAvatarAdjusted] = useState(false);
-  
-  // Update character selection
-  const handleCharacterSelect = (characterId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      assistantCharacter: characterId
-    }));
-    setCharacterId(characterId);
-  };
-
   // Update local state when user changes
   useEffect(() => {
     if (user) {
@@ -100,16 +57,9 @@ const AccountSetup = () => {
         assistantCharacter: user.preferences?.assistantCharacter || characterId || "fin"
       }));
       
-      // Always update preview image when user avatar changes
+      // Set preview image if user has an avatar
       if (user.avatar) {
-        setPreviewImage(user.avatar);
-        console.log("[AccountSetup] Setting preview image from user, length:", user.avatar.length);
-      }
-      
-      // Initialize zoom and position from user settings if available
-      if (user.avatarSettings) {
-        setZoomLevel(user.avatarSettings.zoom);
-        setImagePosition(user.avatarSettings.position);
+        avatarHandler.setPreviewImage(user.avatar);
       }
     }
   }, [user, characterId]);
@@ -125,112 +75,12 @@ const AccountSetup = () => {
     }
   };
 
-  const handleFileSelect = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Only trigger file selection if there's no image already
-    if (!previewImage) {
-      fileInputRef.current?.click();
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    processSelectedFile(file);
-  };
-
-  const processSelectedFile = (file: File) => {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast("Please select an image file");
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast("Image size should be less than 5MB");
-      return;
-    }
-
-    // Create a preview
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const imageDataUrl = event.target?.result as string;
-      console.log("[AccountSetup] Image loaded, length:", imageDataUrl.length);
-      setPreviewImage(imageDataUrl);
-      setFormData(prev => ({ ...prev, avatar: imageDataUrl }));
-      // Mark avatar as modified
-      setAvatarModified(true);
-      // Initialize zoom level and position for new images
-      setZoomLevel(100);
-      setImagePosition({ x: 0, y: 0 });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      processSelectedFile(files[0]);
-    }
-  };
-
-  const handleZoomChange = (value: number[]) => {
-    // Prevent propagation to avoid triggering image reupload
-    setZoomLevel(value[0]);
-    // Mark avatar as adjusted when zoom changes
-    setAvatarAdjusted(true);
-  };
-
-  // Image dragging handlers
-  const handleImageMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent triggering file selector
-    setIsDraggingImage(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDraggingImage) return;
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    
-    setDragStart({ x: e.clientX, y: e.clientY });
-    setImagePosition(prev => ({ 
-      x: prev.x + dx, 
-      y: prev.y + dy 
+  const handleCharacterSelect = (characterId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      assistantCharacter: characterId
     }));
-  };
-
-  const handleImageMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingImage(false);
-    // Mark avatar as adjusted when position changes are completed
-    setAvatarAdjusted(true);
-    console.log("[AccountSetup] Image position updated and marked as adjusted");
-  };
-
-  // Handle clicking the empty image container or "change image" text
-  const handleImageContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    if (!previewImage) {
-      fileInputRef.current?.click();
-    }
+    setCharacterId(characterId);
   };
 
   const currentStep = setupSteps[currentStepIndex];
@@ -266,8 +116,6 @@ const AccountSetup = () => {
   const completeSetup = async () => {
     setLoading(true);
     try {
-      console.log("[AccountSetup] Starting setup completion process");
-      
       // Prepare the final user data with all fields and preferences
       const finalUserData: Partial<User> = {
         name: formData.fullName,
@@ -282,34 +130,26 @@ const AccountSetup = () => {
       };
       
       // Add avatar data if it was uploaded or modified
-      if (avatarModified && previewImage) {
-        console.log("[AccountSetup] Including modified avatar in final data, length:", previewImage.length);
-        finalUserData.avatar = previewImage;
+      if (avatarHandler.avatarModified && avatarHandler.previewImage) {
+        finalUserData.avatar = avatarHandler.previewImage;
       }
       
       // Add avatar settings if either the avatar was modified or its position/zoom was adjusted
-      if ((avatarModified || avatarAdjusted) && previewImage) {
-        console.log("[AccountSetup] Including avatar settings - zoom:", zoomLevel, "position:", imagePosition);
+      if ((avatarHandler.avatarModified || avatarHandler.avatarAdjusted) && avatarHandler.previewImage) {
         finalUserData.avatarSettings = {
-          zoom: zoomLevel,
-          position: imagePosition
+          zoom: avatarHandler.zoomLevel,
+          position: avatarHandler.imagePosition
         };
       }
       
-      // Save all user data in one operation to avoid losing the avatar
-      console.log("[AccountSetup] Saving complete user profile with avatar:", !!finalUserData.avatar, 
-                 "and settings:", !!finalUserData.avatarSettings,
-                 "and preferences:", finalUserData.preferences);
+      // Save all user data in one operation
       await updateUserProfile(finalUserData);
       
       // Set the character in avatar context
       setCharacterId(formData.assistantCharacter);
       
-      // Mark setup as complete (this should now preserve the avatar)
-      console.log("[AccountSetup] Marking setup as complete");
+      // Mark setup as complete
       await completeAccountSetup();
-      
-      console.log("[AccountSetup] Setup completed successfully, redirecting to home");
       
       // Navigate to home page
       navigate("/");
@@ -331,180 +171,46 @@ const AccountSetup = () => {
     switch (currentStep.id) {
       case "personal":
         return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                name="fullName"
-                placeholder="Enter your full name"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="avatar" className="block mb-1">Profile Picture</Label>
-              <p className="text-sm text-gray-500 mb-2">Upload a headshot photo for your profile picture</p>
-              <input 
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileChange}
-                id="avatarFile"
-              />
-              
-              <div 
-                className={`border-2 border-dashed rounded-md p-6 transition-colors ${isDragging ? 'border-finsight-purple bg-finsight-purple bg-opacity-5' : 'border-gray-300'}`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                {previewImage ? (
-                  <div className="flex flex-col items-center space-y-3">
-                    <div 
-                      ref={imageContainerRef}
-                      className="w-32 h-32 rounded-full overflow-hidden mb-2 cursor-move relative"
-                      onMouseDown={handleImageMouseDown}
-                      onMouseMove={handleImageMouseMove}
-                      onMouseUp={handleImageMouseUp}
-                      onMouseLeave={handleImageMouseUp}
-                      onClick={(e) => e.stopPropagation()} // Prevent triggering file select
-                    >
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-70 bg-black bg-opacity-40 text-white transition-opacity">
-                        <Move className="h-6 w-6" />
-                      </div>
-                      <img 
-                        src={previewImage} 
-                        alt="Profile Preview" 
-                        className="object-cover w-full h-full"
-                        style={{ 
-                          transform: `scale(${zoomLevel / 100})`,
-                          transformOrigin: 'center',
-                          marginLeft: `${imagePosition.x}px`,
-                          marginTop: `${imagePosition.y}px`
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Image adjustment controls */}
-                    <div className="w-full max-w-xs space-y-1" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          <Crop className="h-3 w-3 inline mr-1" />
-                          Adjust Image
-                        </span>
-                        <span className="text-xs text-gray-400">{zoomLevel}%</span>
-                      </div>
-                      <Slider
-                        value={[zoomLevel]}
-                        min={100} 
-                        max={200}
-                        step={1}
-                        onValueChange={handleZoomChange}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                    
-                    <p className="text-xs text-center text-gray-600">
-                      Drag the image to reposition
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center cursor-pointer" onClick={handleFileSelect}>
-                    <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center mb-2">
-                      <UserIcon className="h-12 w-12 text-gray-400" />
-                    </div>
-                    <p className="text-sm text-center text-gray-600">
-                      Click to select or drag and drop a headshot image
-                    </p>
-                    <p className="text-xs text-center text-gray-400 mt-1">
-                      PNG, JPG or GIF up to 5MB
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <PersonalDetailsStep 
+            name={formData.fullName}
+            onNameChange={handleInputChange}
+            previewImage={avatarHandler.previewImage}
+            zoomLevel={avatarHandler.zoomLevel}
+            imagePosition={avatarHandler.imagePosition}
+            onZoomChange={avatarHandler.handleZoomChange}
+            isDragging={avatarHandler.isDragging}
+            isDraggingImage={avatarHandler.isDraggingImage}
+            onImageMouseDown={avatarHandler.handleImageMouseDown}
+            onImageMouseMove={avatarHandler.handleImageMouseMove}
+            onImageMouseUp={avatarHandler.handleImageMouseUp}
+            onDragOver={avatarHandler.handleDragOver}
+            onDragLeave={avatarHandler.handleDragLeave}
+            onDrop={avatarHandler.handleDrop}
+            onFileSelect={avatarHandler.processSelectedFile}
+          />
         );
       case "assistant":
         return (
-          <div className="space-y-4">
-            <div>
-              <Label className="block mb-1">AI Assistant Character</Label>
-              <p className="text-sm text-gray-500 mb-2">Choose your preferred AI assistant character</p>
-              <div className="mt-4">
-                <CharacterSelector 
-                  isSetupMode={true}
-                  selectedCharacter={formData.assistantCharacter}
-                  onSelectCharacter={handleCharacterSelect}
-                />
-              </div>
-            </div>
-          </div>
+          <AssistantStep 
+            selectedCharacter={formData.assistantCharacter}
+            onCharacterSelect={handleCharacterSelect}
+          />
         );
       case "preferences":
         return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="currency">Preferred Currency</Label>
-              <select
-                id="currency"
-                name="currency"
-                value={formData.currency}
-                onChange={handleInputChange}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
-              >
-                <option value="usd">USD - US Dollar</option>
-                <option value="eur">EUR - Euro</option>
-                <option value="gbp">GBP - British Pound</option>
-                <option value="jpy">JPY - Japanese Yen</option>
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="language">Preferred Language</Label>
-              <select
-                id="language"
-                name="language"
-                value={formData.language}
-                onChange={handleInputChange}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
-              >
-                <option value="en">English</option>
-                <option value="es">Spanish</option>
-                <option value="fr">French</option>
-                <option value="de">German</option>
-              </select>
-            </div>
-          </div>
+          <PreferencesStep 
+            currency={formData.currency}
+            language={formData.language}
+            onInputChange={handleInputChange}
+          />
         );
       case "notification":
         return (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="emailNotifications"
-                name="emailNotifications"
-                checked={formData.emailNotifications}
-                onChange={handleInputChange}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <Label htmlFor="emailNotifications">Email Notifications</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="appNotifications"
-                name="appNotifications"
-                checked={formData.appNotifications}
-                onChange={handleInputChange}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <Label htmlFor="appNotifications">App Notifications</Label>
-            </div>
-          </div>
+          <NotificationsStep 
+            emailNotifications={formData.emailNotifications}
+            appNotifications={formData.appNotifications}
+            onInputChange={handleInputChange}
+          />
         );
       default:
         return null;
@@ -523,36 +229,7 @@ const AccountSetup = () => {
           </CardDescription>
           
           {/* Progress indicator */}
-          <div className="mt-6">
-            <div className="flex justify-between">
-              {setupSteps.map((step, index) => (
-                <div key={step.id} className="flex flex-col items-center">
-                  <div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      index < currentStepIndex 
-                        ? "bg-finsight-purple text-white" 
-                        : index === currentStepIndex 
-                          ? "bg-finsight-purple text-white" 
-                          : "bg-gray-200 text-gray-500"
-                    }`}
-                  >
-                    {index < currentStepIndex ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      index + 1
-                    )}
-                  </div>
-                  <span className="text-xs mt-1">{step.title}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-2 h-1 bg-gray-200 rounded">
-              <div 
-                className="h-full bg-finsight-purple rounded"
-                style={{ width: `${((currentStepIndex + 0.5) / setupSteps.length) * 100}%` }}
-              />
-            </div>
-          </div>
+          <SetupProgress steps={setupSteps} currentStepIndex={currentStepIndex} />
         </CardHeader>
         
         <CardContent className="pt-6">
