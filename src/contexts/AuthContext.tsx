@@ -252,21 +252,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      // In a real app, this would validate against a backend service
-      // For now, we're just simulating login with mock data
-      const mockUser = {
-        id: "user-123",
-        name: email.split('@')[0] || "User",
-        email: email,
-        avatar: "",
-        avatarSettings: {
-          zoom: 100,
-          position: {
-            x: 0,
-            y: 0
-          }
+      // Check if this email already exists in localStorage
+      const savedUserStr = localStorage.getItem("finsight_user");
+      let mockUser: User;
+      
+      if (savedUserStr) {
+        const savedUser = JSON.parse(savedUserStr);
+        
+        // If the email matches, use the existing user data instead of creating a new one
+        if (savedUser && savedUser.email === email) {
+          console.log("[AuthContext] Found existing user with matching email, preserving setup status");
+          mockUser = {
+            ...savedUser,
+            // Ensure we preserve the hasCompletedSetup flag
+            hasCompletedSetup: savedUser.hasCompletedSetup === true
+          };
+        } else {
+          // Different email, create new mock user with default setup=false
+          mockUser = {
+            id: "user-123",
+            name: email.split('@')[0] || "User",
+            email: email,
+            avatar: "",
+            avatarSettings: {
+              zoom: 100,
+              position: {
+                x: 0,
+                y: 0
+              }
+            },
+            hasCompletedSetup: false
+          };
         }
-      };
+      } else {
+        // No saved user, create a new user
+        mockUser = {
+          id: "user-123",
+          name: email.split('@')[0] || "User",
+          email: email,
+          avatar: "",
+          avatarSettings: {
+            zoom: 100,
+            position: {
+              x: 0,
+              y: 0
+            }
+          },
+          hasCompletedSetup: false
+        };
+      }
+      
+      console.log("[AuthContext] Logging in user with hasCompletedSetup:", mockUser.hasCompletedSetup);
       
       setUser(mockUser);
       localStorage.setItem("finsight_user", JSON.stringify(mockUser));
