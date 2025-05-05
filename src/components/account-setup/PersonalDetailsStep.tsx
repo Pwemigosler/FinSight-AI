@@ -3,9 +3,10 @@ import React, { useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Crop, Move, User as UserIcon } from "lucide-react";
+import { Crop, Move, User as UserIcon, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AvatarSettings } from "@/types/user";
+import { Button } from "@/components/ui/button";
 
 interface PersonalDetailsStepProps {
   name: string;
@@ -23,6 +24,7 @@ interface PersonalDetailsStepProps {
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   onFileSelect: (file: File) => void;
+  onDeleteImage?: () => void;
 }
 
 export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
@@ -41,6 +43,7 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
   onDragLeave,
   onDrop,
   onFileSelect,
+  onDeleteImage,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -90,28 +93,47 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({
         >
           {previewImage ? (
             <div className="flex flex-col items-center space-y-3">
-              <div 
-                className="w-32 h-32 rounded-full overflow-hidden mb-2 cursor-move relative"
-                onMouseDown={onImageMouseDown}
-                onMouseMove={onImageMouseMove}
-                onMouseUp={onImageMouseUp}
-                onMouseLeave={onImageMouseUp}
-                onClick={(e) => e.stopPropagation()} // Prevent triggering file select
-              >
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-70 bg-black bg-opacity-40 text-white transition-opacity">
-                  <Move className="h-6 w-6" />
+              <div className="relative">
+                <div 
+                  className="w-32 h-32 rounded-full overflow-hidden mb-2 cursor-move relative"
+                  onMouseDown={onImageMouseDown}
+                  onMouseMove={onImageMouseMove}
+                  onMouseUp={onImageMouseUp}
+                  onMouseLeave={onImageMouseUp}
+                  onClick={(e) => e.stopPropagation()} // Prevent triggering file select
+                >
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-70 bg-black bg-opacity-40 text-white transition-opacity">
+                    <Move className="h-6 w-6" />
+                  </div>
+                  <img 
+                    src={previewImage} 
+                    alt="Profile Preview" 
+                    className="object-cover w-full h-full"
+                    style={{ 
+                      transform: `scale(${zoomLevel / 100})`,
+                      transformOrigin: 'center',
+                      marginLeft: `${imagePosition.x}px`,
+                      marginTop: `${imagePosition.y}px`
+                    }}
+                  />
                 </div>
-                <img 
-                  src={previewImage} 
-                  alt="Profile Preview" 
-                  className="object-cover w-full h-full"
-                  style={{ 
-                    transform: `scale(${zoomLevel / 100})`,
-                    transformOrigin: 'center',
-                    marginLeft: `${imagePosition.x}px`,
-                    marginTop: `${imagePosition.y}px`
-                  }}
-                />
+                
+                {/* Delete button positioned on top right of the avatar */}
+                {onDeleteImage && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-8 w-8 rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteImage();
+                    }}
+                    title="Remove profile picture"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               
               {/* Image adjustment controls */}

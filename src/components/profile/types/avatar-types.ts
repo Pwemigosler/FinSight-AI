@@ -20,4 +20,5 @@ export interface AvatarEditorProps {
   isDragging: boolean;
   fileInputRef: React.RefObject<HTMLInputElement>;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleDeleteAvatar?: () => void;
 }

@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/auth";
@@ -187,6 +186,7 @@ const AccountSetup = () => {
             onDragLeave={avatarHandler.handleDragLeave}
             onDrop={avatarHandler.handleDrop}
             onFileSelect={avatarHandler.processSelectedFile}
+            onDeleteImage={avatarHandler.deleteImage}
           />
         );
       case "assistant":

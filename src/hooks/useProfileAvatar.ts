@@ -130,6 +130,31 @@ export const useProfileAvatar = () => {
   const handleDialogClose = () => {
     setIsDialogOpen(false);
   };
+  
+  // Add delete avatar functionality
+  const handleDeleteAvatar = async () => {
+    try {
+      console.log("[Profile] Removing profile picture");
+      
+      await updateUserProfile({
+        avatar: null,
+        avatarSettings: null
+      });
+      
+      setPreviewImage(null);
+      setZoomLevel(100);
+      setImagePosition({ x: 0, y: 0 });
+      setIsDialogOpen(false);
+      
+      toast("Profile picture removed");
+      
+      // Force a re-render of the avatar after update
+      setAvatarKey(Date.now());
+    } catch (error) {
+      console.error("[Profile] Error removing profile picture:", error);
+      toast("Failed to remove profile picture");
+    }
+  };
 
   const handleUpload = () => {
     if (!previewImage) return;
@@ -176,6 +201,7 @@ export const useProfileAvatar = () => {
     handleDragLeave,
     handleDrop,
     handleDialogClose,
-    handleUpload
+    handleUpload,
+    handleDeleteAvatar
   };
 };

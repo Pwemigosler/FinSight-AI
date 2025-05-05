@@ -103,6 +103,16 @@ export const useAvatarHandler = ({
     };
     reader.readAsDataURL(file);
   };
+  
+  // New function to delete the uploaded image
+  const deleteImage = () => {
+    setPreviewImage(null);
+    setAvatarModified(true);
+    setAvatarAdjusted(false);
+    setZoomLevel(100);
+    setImagePosition({ x: 0, y: 0 });
+    toast("Profile image removed");
+  };
 
   return {
     previewImage,
@@ -120,7 +130,8 @@ export const useAvatarHandler = ({
     handleImageMouseMove,
     handleImageMouseUp,
     processSelectedFile,
-    setPreviewImage
+    setPreviewImage,
+    deleteImage
   };
 };
 

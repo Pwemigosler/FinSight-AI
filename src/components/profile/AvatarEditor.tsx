@@ -12,6 +12,7 @@ import {
 import AvatarImageEditor from "./avatar/AvatarImageEditor";
 import AvatarDropZone from "./avatar/AvatarDropZone";
 import { AvatarEditorProps } from "./types/avatar-types";
+import { Trash2 } from "lucide-react";
 
 const AvatarEditor: React.FC<AvatarEditorProps> = ({
   isOpen,
@@ -28,7 +29,8 @@ const AvatarEditor: React.FC<AvatarEditorProps> = ({
   handleDragLeave,
   isDragging,
   fileInputRef,
-  handleFileChange
+  handleFileChange,
+  handleDeleteAvatar
 }) => {
   // Handle clicking the empty image container or "change image" text
   const handleImageContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -79,9 +81,25 @@ const AvatarEditor: React.FC<AvatarEditorProps> = ({
         </div>
         
         <DialogFooter className="flex space-x-2 sm:justify-between">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            
+            {/* Delete button */}
+            {previewImage && handleDeleteAvatar && (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={handleDeleteAvatar}
+                className="flex items-center"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Remove
+              </Button>
+            )}
+          </div>
+          
           <Button 
             type="button" 
             onClick={handleUpload}
