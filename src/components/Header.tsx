@@ -53,20 +53,35 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         "Timestamp:", timestamp,
         "Source:", source || 'unknown');
       
-      // Only process if this is a newer event than the last one we processed
-      // or if we're getting an event from account setup or setup completion
-      const isNewerEvent = timestamp > lastAvatarUpdateTime.current;
+      // Prioritize account setup related events
       const isPrioritySource = source === 'account-setup' || 
+                             source === 'account-setup-final' ||
                              source === 'setup-completion' || 
                              source === 'setup-completion-delayed';
       
+      // Only process if this is a newer event than the last one we processed
+      // or if we're getting an event from account setup or setup completion
+      const isNewerEvent = timestamp > lastAvatarUpdateTime.current;
+      
       if ((isNewerEvent || isPrioritySource) && avatarData) {
-        lastAvatarUpdateTime.current = timestamp;
-        setCachedAvatarData(avatarData);
-        setAvatarError(false);
-        avatarRetryCount.current = 0;
-        setAvatarKey(prev => prev + 1);
-        console.log("[Header] Updated avatar from event");
+        // Always prioritize account-setup-final, it should override any other event
+        if (source === 'account-setup-final') {
+          console.log("[Header] Prioritizing account-setup-final event");
+          lastAvatarUpdateTime.current = timestamp;
+          setCachedAvatarData(avatarData);
+          setAvatarError(false);
+          avatarRetryCount.current = 0;
+          setAvatarKey(prev => prev + 1000); // Big increase to ensure new key
+        }
+        // Then handle other events
+        else {
+          lastAvatarUpdateTime.current = timestamp;
+          setCachedAvatarData(avatarData);
+          setAvatarError(false);
+          avatarRetryCount.current = 0;
+          setAvatarKey(prev => prev + 1);
+        }
+        console.log("[Header] Updated avatar from event, source:", source);
       }
     };
 
@@ -163,6 +178,30 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       }, 500);
     }
   };
+
+  // Force avatar refresh when the path changes to account setup
+  // This helps ensure the avatar is up to date after setup is completed
+  useEffect(() => {
+    // Only fire once when component mounts
+    const refreshAvatarFromLS = () => {
+      try {
+        const savedUserJson = localStorage.getItem("finsight_user");
+        if (savedUserJson) {
+          const savedUser = JSON.parse(savedUserJson);
+          if (savedUser?.avatar) {
+            console.log("[Header] Initial path change - forcing avatar refresh from localStorage");
+            setCachedAvatarData(savedUser.avatar);
+            setAvatarKey(prev => prev + 100); // Big jump to ensure new key
+          }
+        }
+      } catch (error) {
+        console.error("[Header] Error refreshing avatar on path change:", error);
+      }
+    };
+    
+    // When the component mounts, refresh avatar
+    refreshAvatarFromLS();
+  }, []);
 
   return (
     <header className="bg-white border-b border-gray-100 p-4 flex justify-between items-center sticky top-0 z-10">

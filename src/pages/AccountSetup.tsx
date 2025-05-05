@@ -87,7 +87,7 @@ const AccountSetup = () => {
         setTimeout(() => {
           console.log("[AccountSetup] Setup completed successfully, navigating to home");
           navigate("/");
-        }, 800); // Increased delay for reliable UI updates
+        }, 1200); // Increased delay for reliable UI updates
       } else {
         toast.error("There was a problem completing your setup");
         setIsCompleting(false);

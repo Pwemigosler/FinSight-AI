@@ -111,6 +111,18 @@ export const useAccountSetupForm = () => {
             source: 'account-setup'
           }
         }));
+        
+        // Add a short delay and send an additional "final" event to ensure components catch it
+        setTimeout(() => {
+          console.log("[AccountSetup] Dispatching final avatar update event");
+          window.dispatchEvent(new CustomEvent('avatar-updated', { 
+            detail: { 
+              avatarData: finalUserData.avatar,
+              timestamp: Date.now() + 100,
+              source: 'account-setup-final'
+            }
+          }));
+        }, 300);
       }
       
       return true;
