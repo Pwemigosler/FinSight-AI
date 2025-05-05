@@ -31,14 +31,11 @@ export const getCharacterImageUrl = (characterId: string, imageError: boolean): 
   const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
   const imagePath = characterImages[finalId as keyof typeof characterImages];
   
-  // Prepare local path for the character image as fallback
-  const localUrl = `/characters/${imagePath}`;
-  
-  // Always try to get the Supabase URL first, even on login page
+  // Always try to get the Supabase URL first, regardless of route
   try {
     const supabaseUrl = getPublicUrl(imagePath);
     if (supabaseUrl) {
-      console.log(`Loading character ${characterId} from Supabase storage`);
+      console.log(`Loading character ${characterId} from Supabase storage at ${supabaseUrl}`);
       return supabaseUrl;
     }
   } catch (error) {
@@ -48,7 +45,7 @@ export const getCharacterImageUrl = (characterId: string, imageError: boolean): 
   
   // Use local fallback if Supabase URL isn't available
   console.log(`Using local file fallback for character ${finalId}`);
-  return localUrl;
+  return `/characters/${imagePath}`;
 };
 
 // Get placeholder URL based on state

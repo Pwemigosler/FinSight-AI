@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Check, ImageIcon } from "lucide-react";
-import { isLoginRoute } from "./utils/avatar-utils";
 
 export interface CharacterData {
   id: string;
@@ -26,10 +25,15 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
   const [retryCount, setRetryCount] = useState(0);
   const [imageSrc, setImageSrc] = useState(character.thumbnailUrl);
   
-  // Add timestamp to image URL to prevent caching issues
+  // Update image source when character changes or thumbnail URL changes
   useEffect(() => {
+    // Reset error state when character changes
+    setImageError(false);
+    setRetryCount(0);
+    
+    // Add timestamp to prevent caching issues
     setImageSrc(`${character.thumbnailUrl}?t=${Date.now()}`);
-  }, [character.thumbnailUrl]);
+  }, [character.id, character.thumbnailUrl]);
   
   const handleImageError = () => {
     console.error(`Failed to load character thumbnail: ${character.id} from URL: ${imageSrc}`);

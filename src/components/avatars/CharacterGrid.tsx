@@ -1,7 +1,6 @@
 
 import React from "react";
 import CharacterOption, { CharacterData } from "./CharacterOption";
-import { isLoginRoute } from "./utils/avatar-utils";
 
 interface CharacterGridProps {
   characters: CharacterData[];
@@ -16,7 +15,7 @@ const CharacterGrid: React.FC<CharacterGridProps> = ({
   onSelectCharacter,
   addTimeStampToUrl
 }) => {
-  // Process character URLs to ensure they have proper timestamps
+  // Process character URLs to ensure they have proper timestamps and use Supabase when available
   const processCharacterUrl = (character: CharacterData): CharacterData => {
     // Always ensure the URL is fresh with a timestamp
     return {
