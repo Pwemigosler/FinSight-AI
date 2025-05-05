@@ -6,3 +6,4 @@ export * from './useAvatarActions';
 export * from './useImageState';
 export * from './profileImageUtils';
 export * from './useProfileForm';
+export * from './useAvatarSync';

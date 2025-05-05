@@ -1,10 +1,9 @@
-
-import { useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { useImageState } from "./useImageState";
 import { useAvatarFileHandler } from "./useAvatarFileHandler";
 import { useAvatarDialog } from "./useAvatarDialog";
 import { useAvatarActions } from "./useAvatarActions";
+import { useAvatarSync } from "./useAvatarSync";
 
 /**
  * Main hook for profile avatar functionality
@@ -26,6 +25,15 @@ export const useProfileAvatar = () => {
   
   // Use avatar actions hook
   const { handleDeleteAvatar, handleUpload } = useAvatarActions(updateUserProfile);
+  
+  // Use avatar sync hook to keep avatar state in sync with user data
+  useAvatarSync(
+    user,
+    fileHandlerHook.setPreviewImage,
+    imageStateHook.setZoomLevel,
+    imageStateHook.setImagePosition,
+    dialogHook.updateAvatarKey
+  );
 
   // Wrapped handlers to provide necessary parameters
   const handleProfilePictureClick = () => {
@@ -58,39 +66,6 @@ export const useProfileAvatar = () => {
       dialogHook.updateAvatarKey
     );
   };
-
-  // Update local state when user changes
-  useEffect(() => {
-    if (user) {
-      console.log("[Profile] User updated:", 
-        "Name:", user.name,
-        "Avatar exists:", !!user.avatar,
-        "Avatar length:", user.avatar?.length || 0,
-        "Avatar settings:", user.avatarSettings ? 
-          `zoom:${user.avatarSettings.zoom}, pos:(${user.avatarSettings.position.x},${user.avatarSettings.position.y})` : 
-          "none"
-      );
-      
-      // Always update preview image when user avatar changes
-      if (user.avatar) {
-        fileHandlerHook.setPreviewImage(user.avatar);
-        console.log("[Profile] Setting preview image from user avatar, length:", user.avatar.length);
-      } else {
-        console.log("[Profile] No avatar found in user data");
-        fileHandlerHook.setPreviewImage(null);
-      }
-      
-      // Initialize zoom and position from user settings if available
-      if (user.avatarSettings) {
-        imageStateHook.setZoomLevel(user.avatarSettings.zoom);
-        imageStateHook.setImagePosition(user.avatarSettings.position);
-        console.log("[Profile] Setting zoom and position from user settings");
-      }
-      
-      // Force re-render of avatar
-      dialogHook.updateAvatarKey();
-    }
-  }, [user, imageStateHook.setZoomLevel, imageStateHook.setImagePosition, fileHandlerHook.setPreviewImage, dialogHook.updateAvatarKey]);
 
   return {
     // Dialog props
