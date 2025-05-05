@@ -55,7 +55,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               data-position-scale={positionScale}
             />
           ) : null}
-          <AvatarFallback className="bg-ptcustom-blue text-white text-xl">
+          <AvatarFallback className="bg-finsight-purple text-white text-xl">
             {getInitials()}
           </AvatarFallback>
         </Avatar>

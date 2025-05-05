@@ -55,7 +55,7 @@ const ChatBot = () => {
     <div className="flex flex-col h-full max-w-4xl mx-auto bg-white rounded-lg shadow-md relative">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <div className="h-8 w-8 overflow-hidden rounded-full bg-ptcustom-blue flex items-center justify-center">
+          <div className="h-8 w-8 overflow-hidden rounded-full bg-finsight-purple flex items-center justify-center">
             {/* Avatar in title bar */}
             <img 
               src={getCharacterImageUrl(characterId, false) + `?t=${Date.now()}`} // Add cache busting
@@ -67,7 +67,7 @@ const ChatBot = () => {
               }}
             />
           </div>
-          PT Custom AI Assistant
+          FinSight AI Assistant
         </CardTitle>
       </CardHeader>
       
