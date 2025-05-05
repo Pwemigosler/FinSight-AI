@@ -42,6 +42,31 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     navigate('/');
   };
 
+  // Listen for avatar update events
+  useEffect(() => {
+    const handleAvatarUpdate = (event: CustomEvent) => {
+      const { avatarData, timestamp } = event.detail;
+      console.log("[Header] Received avatar-updated event:", 
+        "Has avatar:", !!avatarData, 
+        "Length:", avatarData?.length || 0,
+        "Timestamp:", timestamp);
+      
+      if (avatarData) {
+        setCachedAvatarData(avatarData);
+        setAvatarError(false);
+        avatarRetryCount.current = 0;
+        setAvatarKey(prev => prev + 1);
+      }
+    };
+
+    // Add event listener for avatar updates
+    window.addEventListener('avatar-updated', handleAvatarUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('avatar-updated', handleAvatarUpdate as EventListener);
+    };
+  }, []);
+
   // Force re-render of avatar when user changes
   useEffect(() => {
     if (user) {
@@ -71,20 +96,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     }
   }, [user]);
 
-  // Update specifically when avatar changes
+  // Check localStorage for avatar changes as fallback
   useEffect(() => {
-    const handleAvatarUpdate = () => {
-      if (user?.avatar) {
-        console.log("[Header] Avatar changed, length:", user.avatar.length);
-        setCachedAvatarData(user.avatar);
-        setAvatarError(false);
-        avatarRetryCount.current = 0;
-        setAvatarKey(prev => prev + 1);
-      }
-    };
-    
-    handleAvatarUpdate();
-    
     // Poll for avatar changes from localStorage
     // This helps catch changes that might have happened in another component
     const checkAvatarInterval = setInterval(() => {
@@ -107,7 +120,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     }, 2000);
     
     return () => clearInterval(checkAvatarInterval);
-  }, [user?.avatar, cachedAvatarData]);
+  }, [cachedAvatarData]);
 
   const handleAvatarError = () => {
     avatarRetryCount.current += 1;
@@ -162,7 +175,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer">
-              <Avatar className="h-8 w-8" key={`avatar-${avatarKey}-${Date.now()}`}>
+              <Avatar className="h-8 w-8" key={`avatar-${avatarKey}`}>
                 {(cachedAvatarData || user?.avatar) && !avatarError ? (
                   <AvatarImage 
                     src={cachedAvatarData || user?.avatar} 

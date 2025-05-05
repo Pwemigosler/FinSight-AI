@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, LogIn, UserPlus, AlertCircle } from "lucide-react";
+import { Lock, LogIn, UserPlus, AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -25,16 +25,15 @@ const Login = () => {
     setErrorMessage("");
     
     try {
+      // Normalize email to handle case sensitivity issues
+      const normalizedEmail = email.toLowerCase();
+      
       let success;
       if (isLogin) {
-        success = await login(email, password);
+        success = await login(normalizedEmail, password);
         if (!success) {
-          // Check the console logs for specific error messages
-          const errorText = "Please check your email and password.";
-          setErrorMessage("Login failed. " + errorText);
-          toast("Login failed", {
-            description: errorText
-          });
+          // The toast is handled in the auth context now
+          setErrorMessage("Login failed. Please check the details below and try again.");
         }
       } else {
         // Verify passwords match for signup
@@ -47,13 +46,10 @@ const Login = () => {
           return;
         }
         
-        success = await signup(name, email, password);
+        success = await signup(name, normalizedEmail, password);
         if (!success) {
-          const errorText = "This email might already be in use or there was a server error.";
-          setErrorMessage("Signup failed. " + errorText);
-          toast("Signup failed", {
-            description: errorText
-          });
+          // The toast is handled in the auth context
+          setErrorMessage("Signup failed. This email might already be in use or there was a server error.");
         } else {
           toast("Account created successfully!", {
             description: "Please complete your account setup."
@@ -99,6 +95,16 @@ const Login = () => {
             <div className="p-3 text-sm bg-red-50 border border-red-200 rounded flex items-center gap-2 text-red-700">
               <AlertCircle className="h-4 w-4" />
               <span>{errorMessage}</span>
+            </div>
+          )}
+          
+          {isLogin && (
+            <div className="p-3 text-sm bg-blue-50 border border-blue-100 rounded flex items-center gap-2 text-blue-700">
+              <Info className="h-4 w-4 flex-shrink-0" />
+              <span>
+                If your email hasn't been verified, please check your inbox for the verification email 
+                or try signing up with a new account.
+              </span>
             </div>
           )}
           

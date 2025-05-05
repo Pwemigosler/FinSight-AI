@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { User } from "../../types/user";
 import { AuthContextType, BankCard } from "./types";
@@ -43,6 +42,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               // Get profile data from Supabase when auth state changes
               const userData = await userService.getUserProfile(newSession.user.id);
               setUser(userData);
+              
+              // Force update avatar state when user is updated
+              if (userData) {
+                console.log("[AuthContext] Updated user from auth state change, triggering avatar refresh");
+                // Use a custom event to notify components about avatar updates
+                window.dispatchEvent(new CustomEvent('avatar-updated', { 
+                  detail: { avatarData: userData.avatar, timestamp: Date.now() }
+                }));
+              }
             } else {
               setUser(null);
             }
@@ -53,6 +61,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) {
           const userData = await userService.getUserProfile(session.user.id);
           setUser(userData);
+          
+          // Also trigger avatar update event on initial load
+          if (userData) {
+            console.log("[AuthContext] Loaded initial user, triggering avatar refresh");
+            window.dispatchEvent(new CustomEvent('avatar-updated', { 
+              detail: { avatarData: userData.avatar, timestamp: Date.now() }
+            }));
+          }
         }
         
         // Load linked cards
@@ -98,6 +114,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "Avatar length:", updatedUser.avatar?.length || 0);
       
       setUser(updatedUser);
+      
+      // Dispatch event for avatar update to notify all components
+      if (updates.avatar !== undefined) {
+        console.log("[AuthContext] Avatar updated, dispatching avatar-updated event");
+        window.dispatchEvent(new CustomEvent('avatar-updated', { 
+          detail: { avatarData: updatedUser.avatar, timestamp: Date.now() }
+        }));
+      }
     } else if (!updatedUser) {
       console.error("[AuthContext] Failed to update user profile");
     } else {
@@ -166,19 +190,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           toast("Email not verified", {
             description: "Please check your email for a verification link or contact support if you didn't receive it.",
           });
-        } else if (error.message.includes("Invalid login")) {
+          return false;
+        } 
+        else if (error.message.includes("Invalid login")) {
           toast("Invalid credentials", {
             description: "Please check your email and password.",
           });
-        } else {
+          return false;
+        } 
+        // Handle other errors
+        else {
           toast("Login error", {
             description: error.message || "An unexpected error occurred during login."
           });
+          return false;
         }
-        
-        return false;
       }
 
+      // Successfully logged in
+      toast("Login successful", {
+        description: "Welcome back!"
+      });
       return true;
     } catch (e) {
       console.error("[AuthContext] Unexpected login error:", e);
