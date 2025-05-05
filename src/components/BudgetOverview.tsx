@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { BudgetCategory } from '@/types/budget';
 import { useAuth } from '@/contexts/auth';
+import { useNavigate } from 'react-router-dom';
 
 const BudgetOverview = () => {
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
@@ -14,6 +15,7 @@ const BudgetOverview = () => {
   const [editValue, setEditValue] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   // Fetch categories whenever the component is mounted or shown
   useEffect(() => {
@@ -78,6 +80,17 @@ const BudgetOverview = () => {
     setEditingCategory(null);
   };
 
+  const handleViewAllClick = () => {
+    navigate('/');
+    // We need to wait for navigation to complete and then set the active view to "budgets"
+    setTimeout(() => {
+      const budgetsButton = document.querySelector('button[data-view="budgets"]');
+      if (budgetsButton) {
+        (budgetsButton as HTMLButtonElement).click();
+      }
+    }, 100);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="space-y-4">
@@ -95,10 +108,13 @@ const BudgetOverview = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-lg font-bold">Budget Overview</h2>
-        <div className="flex items-center gap-1 text-sm font-medium text-finsight-purple">
+        <button 
+          onClick={handleViewAllClick}
+          className="flex items-center gap-1 text-sm font-medium text-finsight-purple hover:underline"
+        >
           View All
           <ArrowUpRight className="h-4 w-4" />
-        </div>
+        </button>
       </div>
 
       {isLoading ? (

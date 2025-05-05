@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -17,10 +17,21 @@ import BudgetsView from "@/components/BudgetsView";
 import ReportsView from "@/components/ReportsView";
 import SettingsView from "@/components/SettingsView";
 import Header from "@/components/Header";
+import { useTheme } from "@/contexts/theme/ThemeContext";
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState("dashboard");
+  const { isDarkMode, isCompactView } = useTheme();
+
+  useEffect(() => {
+    // Apply dark mode class to body
+    document.body.classList.toggle('dark', isDarkMode);
+    document.body.classList.toggle('compact', isCompactView);
+    return () => {
+      document.body.classList.remove('dark', 'compact');
+    };
+  }, [isDarkMode, isCompactView]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -39,7 +50,7 @@ const Index = () => {
       
       <div className="flex flex-1 overflow-hidden">
         <aside 
-          className={`bg-white border-r border-gray-100 w-64 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col 
+          className={`bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700 w-64 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col 
                      ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} 
                      fixed md:relative h-[calc(100vh-64px)] z-20`}
         >
@@ -49,38 +60,43 @@ const Index = () => {
                 variant={activeView === "dashboard" ? "default" : "ghost"} 
                 className={`w-full justify-start gap-3 ${activeView === "dashboard" ? "bg-ptcustom-blue text-white" : ""}`}
                 onClick={() => handleNavigation("dashboard")}
+                data-view="dashboard"
               >
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
               </Button>
               <Button 
                 variant={activeView === "transactions" ? "default" : "ghost"} 
-                className={`w-full justify-start gap-3 ${activeView === "transactions" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
+                className={`w-full justify-start gap-3 ${activeView === "transactions" ? "bg-ptcustom-blue text-white" : "text-gray-500 dark:text-gray-300"}`}
                 onClick={() => handleNavigation("transactions")}
+                data-view="transactions"
               >
                 <CreditCard className="h-5 w-5" />
                 Transactions
               </Button>
               <Button 
                 variant={activeView === "budgets" ? "default" : "ghost"} 
-                className={`w-full justify-start gap-3 ${activeView === "budgets" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
+                className={`w-full justify-start gap-3 ${activeView === "budgets" ? "bg-ptcustom-blue text-white" : "text-gray-500 dark:text-gray-300"}`}
                 onClick={() => handleNavigation("budgets")}
+                data-view="budgets"
               >
                 <ListChecks className="h-5 w-5" />
                 Budgets
               </Button>
               <Button 
                 variant={activeView === "goals" ? "default" : "ghost"} 
-                className={`w-full justify-start gap-3 ${activeView === "goals" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
+                className={`w-full justify-start gap-3 ${activeView === "goals" ? "bg-ptcustom-blue text-white" : "text-gray-500 dark:text-gray-300"}`}
                 onClick={() => handleNavigation("goals")}
+                data-view="goals"
               >
                 <Target className="h-5 w-5" />
                 Goals
               </Button>
               <Button 
                 variant={activeView === "reports" ? "default" : "ghost"} 
-                className={`w-full justify-start gap-3 ${activeView === "reports" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
+                className={`w-full justify-start gap-3 ${activeView === "reports" ? "bg-ptcustom-blue text-white" : "text-gray-500 dark:text-gray-300"}`}
                 onClick={() => handleNavigation("reports")}
+                data-view="reports"
               >
                 <LineChart className="h-5 w-5" />
                 Reports
@@ -88,12 +104,13 @@ const Index = () => {
             </div>
           </div>
           
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-4 border-t border-gray-100 dark:border-gray-700">
             <div className="space-y-1">
               <Button 
                 variant={activeView === "settings" ? "default" : "ghost"}
-                className={`w-full justify-start gap-3 ${activeView === "settings" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
+                className={`w-full justify-start gap-3 ${activeView === "settings" ? "bg-ptcustom-blue text-white" : "text-gray-500 dark:text-gray-300"}`}
                 onClick={() => handleNavigation("settings")}
+                data-view="settings"
               >
                 <Settings className="h-5 w-5" />
                 Settings
@@ -109,7 +126,7 @@ const Index = () => {
           />
         )}
         
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
           <div className="max-w-[1600px] mx-auto">
             <div className="hidden md:block">
               {activeView === "dashboard" && <Dashboard />}
