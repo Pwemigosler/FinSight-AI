@@ -81,6 +81,11 @@ export const useAccountSetupForm = () => {
           zoom: avatarHandler.zoomLevel,
           position: avatarHandler.imagePosition
         };
+        
+        console.log("[AccountSetup] Saving avatar settings:", 
+          "Zoom:", avatarHandler.zoomLevel,
+          "Position X:", avatarHandler.imagePosition.x,
+          "Position Y:", avatarHandler.imagePosition.y);
       }
       
       console.log("[AccountSetup] Saving profile data:", 
