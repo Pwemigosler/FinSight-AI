@@ -1,58 +1,53 @@
 
-import { uploadFile } from './supabaseStorage';
+import { uploadFile, checkFileExists } from './supabaseStorage';
+
+// List of default character images to ensure they exist in storage
+const defaultCharacters = ['fin', 'luna', 'oliver', 'zoe'];
 
 /**
- * Utility function to upload character images to Supabase storage
- * This would typically be called from an admin panel or initialization script
+ * Uploads character images from public/characters to Supabase storage
+ * This is called during app initialization to ensure characters exist
  */
 export const uploadCharacterImages = async (): Promise<void> => {
-  const characters = [
-    { id: "fin", path: "/characters/fin.png" },
-    { id: "luna", path: "/characters/luna.png" },
-    { id: "oliver", path: "/characters/oliver.png" },
-    { id: "zoe", path: "/characters/zoe.png" }
-  ];
-  
-  console.log(`Attempting to upload ${characters.length} character images to Supabase`);
-  
-  for (const character of characters) {
-    try {
-      console.log(`Fetching local image for ${character.id} from ${character.path}`);
-      // Fetch the local image file
-      const response = await fetch(character.path);
-      if (!response.ok) {
-        console.error(`Failed to fetch local image for ${character.id}:`, response.statusText);
-        console.error(`HTTP Status: ${response.status}`);
-        continue;
-      }
+  try {
+    console.log("Starting character image uploads...");
+    
+    for (const character of defaultCharacters) {
+      const fileName = `${character}.png`;
+      // Check if this character image already exists in Supabase
+      const exists = await checkFileExists(fileName);
       
-      const blob = await response.blob();
-      console.log(`Successfully fetched ${character.id} image, size: ${blob.size} bytes, type: ${blob.type}`);
-      
-      if (blob.size === 0) {
-        console.error(`Empty blob for ${character.id}, skipping upload`);
-        continue;
-      }
-      
-      // Upload to Supabase
-      const filePath = `${character.id}.png`;
-      console.log(`Uploading ${character.id} to Supabase storage as ${filePath}`);
-      
-      const uploaded = await uploadFile(
-        filePath,
-        blob,
-        blob.type
-      );
-      
-      if (uploaded) {
-        console.log(`Successfully uploaded ${character.id} to Supabase storage`);
+      if (!exists) {
+        console.log(`Character ${character} doesn't exist in storage, uploading from public folder...`);
+        try {
+          // Fetch from public folder
+          const response = await fetch(`/characters/${fileName}`);
+          
+          if (!response.ok) {
+            console.error(`Failed to fetch local character image for ${character}: ${response.status} ${response.statusText}`);
+            continue;
+          }
+          
+          const blob = await response.blob();
+          
+          // Upload to Supabase
+          const success = await uploadFile(fileName, blob, 'image/png');
+          
+          if (success) {
+            console.log(`Successfully uploaded ${character} to storage`);
+          } else {
+            console.error(`Failed to upload ${character} to storage`);
+          }
+        } catch (fetchError) {
+          console.error(`Error fetching/uploading ${character} image:`, fetchError);
+        }
       } else {
-        console.error(`Failed to upload ${character.id} to Supabase storage`);
+        console.log(`Character ${character} already exists in storage, skipping upload`);
       }
-    } catch (error) {
-      console.error(`Error uploading ${character.id}:`, error);
     }
+    
+    console.log("Character image upload process completed");
+  } catch (error) {
+    console.error("Error in uploadCharacterImages:", error);
   }
-  
-  console.log("Character image upload process completed");
 };
