@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * Hook to manage profile form state and actions
@@ -10,6 +10,7 @@ import { toast } from "sonner";
  */
 export const useProfileForm = () => {
   const { user, updateUserProfile } = useAuth();
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [profileName, setProfileName] = useState(user?.name || "");
   const [profileEmail, setProfileEmail] = useState(user?.email || "");
@@ -24,13 +25,22 @@ export const useProfileForm = () => {
 
   const handleSave = () => {
     if (!profileName.trim()) {
-      toast("Name cannot be empty");
+      toast({
+        title: "Error",
+        description: "Name cannot be empty",
+        variant: "destructive"
+      });
       return;
     }
     
     updateUserProfile({
       name: profileName,
       email: profileEmail,
+    });
+    
+    toast({
+      title: "Success",
+      description: "Profile information updated successfully"
     });
     
     setIsEditing(false);
