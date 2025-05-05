@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, LogIn, UserPlus } from "lucide-react";
+import { Lock, LogIn, UserPlus, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -15,25 +15,31 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { login, signup, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage("");
     
     try {
       let success;
       if (isLogin) {
         success = await login(email, password);
         if (!success) {
+          // Check the console logs for specific error messages
+          const errorText = "Please check your email and password.";
+          setErrorMessage("Login failed. " + errorText);
           toast("Login failed", {
-            description: "Please check your email and password."
+            description: errorText
           });
         }
       } else {
         // Verify passwords match for signup
         if (password !== confirmPassword) {
+          setErrorMessage("Passwords don't match");
           toast("Passwords don't match", {
             description: "Please make sure your passwords match."
           });
@@ -43,8 +49,10 @@ const Login = () => {
         
         success = await signup(name, email, password);
         if (!success) {
+          const errorText = "This email might already be in use or there was a server error.";
+          setErrorMessage("Signup failed. " + errorText);
           toast("Signup failed", {
-            description: "This email might already be in use or there was a server error."
+            description: errorText
           });
         } else {
           toast("Account created successfully!", {
@@ -58,8 +66,10 @@ const Login = () => {
       }
     } catch (error) {
       console.error("[Login] Error during authentication:", error);
+      const errorText = "An unexpected error occurred. Please try again.";
+      setErrorMessage(isLogin ? "Login failed. " + errorText : "Signup failed. " + errorText);
       toast(isLogin ? "Login failed" : "Signup failed", {
-        description: "An unexpected error occurred. Please try again."
+        description: errorText
       });
     } finally {
       setIsLoading(false);
@@ -85,6 +95,13 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {errorMessage && (
+            <div className="p-3 text-sm bg-red-50 border border-red-200 rounded flex items-center gap-2 text-red-700">
+              <AlertCircle className="h-4 w-4" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
@@ -195,6 +212,7 @@ const Login = () => {
               setEmail("");
               setPassword("");
               setConfirmPassword("");
+              setErrorMessage("");
             }}
           >
             {isLogin ? "Need an account? Sign up" : "Already have an account? Login"}

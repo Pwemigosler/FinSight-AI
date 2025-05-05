@@ -5,6 +5,7 @@ import { AuthContextType, BankCard } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { UserService } from "./UserService";
 import { BankCardService } from "./BankCardService";
+import { toast } from "sonner";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -151,36 +152,78 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Authentication
   const login = async (email: string, password: string): Promise<boolean> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      console.error("[AuthContext] Login error:", error.message);
+      if (error) {
+        console.error("[AuthContext] Login error:", error.message);
+        
+        // Provide specific messages for common errors
+        if (error.message.includes("Email not confirmed")) {
+          toast("Email not verified", {
+            description: "Please check your email for a verification link or contact support if you didn't receive it.",
+          });
+        } else if (error.message.includes("Invalid login")) {
+          toast("Invalid credentials", {
+            description: "Please check your email and password.",
+          });
+        } else {
+          toast("Login error", {
+            description: error.message || "An unexpected error occurred during login."
+          });
+        }
+        
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      console.error("[AuthContext] Unexpected login error:", e);
+      toast("Login failed", {
+        description: "An unexpected error occurred. Please try again later.",
+      });
       return false;
     }
-
-    return true;
   };
 
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name: name,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+          }
         }
-      }
-    });
+      });
 
-    if (error) {
-      console.error("[AuthContext] Signup error:", error.message);
+      if (error) {
+        console.error("[AuthContext] Signup error:", error.message);
+        toast("Signup error", {
+          description: error.message || "An unexpected error occurred during signup."
+        });
+        return false;
+      }
+
+      if (data?.user && !data.session) {
+        // This means email confirmation is required
+        toast("Verification required", {
+          description: "A verification link has been sent to your email address.",
+        });
+      }
+
+      return true;
+    } catch (e) {
+      console.error("[AuthContext] Unexpected signup error:", e);
+      toast("Signup failed", {
+        description: "An unexpected error occurred. Please try again later.",
+      });
       return false;
     }
-
-    return true;
   };
 
   const logout = async () => {
