@@ -90,15 +90,28 @@ export const useAccountSetupForm = () => {
       
       // First update the user profile with all data
       await updateUserProfile(finalUserData);
-
-      // Wait a moment to ensure the data is saved in localStorage
-      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Wait to ensure the data is saved in localStorage
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       // Set the character in avatar context
       setCharacterId(formData.assistantCharacter);
       
       // Mark setup as complete with separate call to ensure the most recent data is used
       await completeAccountSetup();
+      
+      // Explicitly dispatch avatar update event to force UI refresh
+      // This ensures the header and other components update immediately
+      if (finalUserData.avatar) {
+        console.log("[AccountSetup] Manually dispatching avatar-updated event after setup");
+        window.dispatchEvent(new CustomEvent('avatar-updated', { 
+          detail: { 
+            avatarData: finalUserData.avatar,
+            timestamp: Date.now(),
+            source: 'account-setup'
+          }
+        }));
+      }
       
       return true;
     } catch (error) {

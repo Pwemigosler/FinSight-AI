@@ -15,6 +15,7 @@ const AccountSetup = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isCompleting, setIsCompleting] = useState(false);
   
   // Custom hooks
   const { formData, loading, handleInputChange, handleCharacterSelect, completeSetup } = useAccountSetupForm();
@@ -68,6 +69,9 @@ const AccountSetup = () => {
 
   const handleFinalSubmit = async () => {
     try {
+      if (isCompleting) return; // Prevent multiple submission attempts
+      setIsCompleting(true);
+      
       console.log("[AccountSetup] Final submit with data:", 
         "Name:", formData.fullName,
         "Avatar exists:", !!avatarHandler.previewImage,
@@ -76,17 +80,22 @@ const AccountSetup = () => {
       const success = await completeSetup(avatarHandler);
       
       if (success) {
-        // Navigate to home page with a slight delay to ensure all saves are complete
+        toast.success("Account setup completed successfully!");
+        
+        // Show completion message with a more substantial delay
+        // This gives time for avatar events to propagate and state to update
         setTimeout(() => {
           console.log("[AccountSetup] Setup completed successfully, navigating to home");
           navigate("/");
-        }, 300);
+        }, 800); // Increased delay for reliable UI updates
       } else {
-        toast("There was a problem completing your setup");
+        toast.error("There was a problem completing your setup");
+        setIsCompleting(false);
       }
     } catch (error) {
       console.error("[AccountSetup] Error completing setup:", error);
-      toast("There was a problem completing your setup");
+      toast.error("There was a problem completing your setup");
+      setIsCompleting(false);
     }
   };
 
@@ -137,7 +146,7 @@ const AccountSetup = () => {
             currentStep={currentStep}
             currentStepIndex={currentStepIndex}
             stepsLength={setupSteps.length}
-            loading={loading}
+            loading={loading || isCompleting}
             goToPreviousStep={goToPreviousStep}
             handleContinue={handleContinue}
           />

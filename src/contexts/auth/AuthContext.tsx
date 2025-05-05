@@ -48,7 +48,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 console.log("[AuthContext] Updated user from auth state change, triggering avatar refresh");
                 // Use a custom event to notify components about avatar updates
                 window.dispatchEvent(new CustomEvent('avatar-updated', { 
-                  detail: { avatarData: userData.avatar, timestamp: Date.now() }
+                  detail: { 
+                    avatarData: userData.avatar, 
+                    timestamp: Date.now(),
+                    source: 'auth-state-change'
+                  }
                 }));
               }
             } else {
@@ -66,7 +70,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (userData) {
             console.log("[AuthContext] Loaded initial user, triggering avatar refresh");
             window.dispatchEvent(new CustomEvent('avatar-updated', { 
-              detail: { avatarData: userData.avatar, timestamp: Date.now() }
+              detail: { 
+                avatarData: userData.avatar, 
+                timestamp: Date.now(),
+                source: 'initial-load'
+              }
             }));
           }
         }
@@ -119,8 +127,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (updates.avatar !== undefined) {
         console.log("[AuthContext] Avatar updated, dispatching avatar-updated event");
         window.dispatchEvent(new CustomEvent('avatar-updated', { 
-          detail: { avatarData: updatedUser.avatar, timestamp: Date.now() }
+          detail: { 
+            avatarData: updatedUser.avatar, 
+            timestamp: updateTimeStamp,
+            source: 'profile-update'
+          }
         }));
+        
+        // Dispatch a second time after a short delay to ensure UI components catch it
+        // This helps components that might have missed the first event due to timing
+        setTimeout(() => {
+          console.log("[AuthContext] Sending delayed avatar-updated event");
+          window.dispatchEvent(new CustomEvent('avatar-updated', { 
+            detail: { 
+              avatarData: updatedUser.avatar, 
+              timestamp: updateTimeStamp + 1, 
+              source: 'profile-update-delayed'
+            }
+          }));
+        }, 300);
       }
     } else if (!updatedUser) {
       console.error("[AuthContext] Failed to update user profile");
@@ -151,6 +176,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "Has completed setup:", updatedUser.hasCompletedSetup);
       
       setUser(updatedUser);
+      
+      // Always dispatch avatar update event when account setup completes
+      // This ensures the header and other components show the avatar immediately
+      if (updatedUser.avatar) {
+        console.log("[AuthContext] Dispatching avatar-updated event after setup completion");
+        window.dispatchEvent(new CustomEvent('avatar-updated', { 
+          detail: { 
+            avatarData: updatedUser.avatar, 
+            timestamp: updateTimeStamp,
+            source: 'setup-completion'
+          }
+        }));
+        
+        // Send another event after a delay to catch any components that missed the first one
+        setTimeout(() => {
+          console.log("[AuthContext] Sending delayed avatar-updated event after setup completion");
+          window.dispatchEvent(new CustomEvent('avatar-updated', { 
+            detail: { 
+              avatarData: updatedUser.avatar, 
+              timestamp: updateTimeStamp + 1,
+              source: 'setup-completion-delayed'
+            }
+          }));
+        }, 300);
+      }
     } else if (!updatedUser) {
       console.error("[AuthContext] Failed to complete account setup");
     } else {

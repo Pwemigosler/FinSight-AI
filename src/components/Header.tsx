@@ -26,6 +26,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const [avatarError, setAvatarError] = useState(false);
   const avatarRetryCount = useRef(0);
   const [cachedAvatarData, setCachedAvatarData] = useState<string | undefined>(user?.avatar);
+  const lastAvatarUpdateTime = useRef<number>(0);
   
   // Get initials for avatar fallback
   const getInitials = () => {
@@ -45,17 +46,27 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   // Listen for avatar update events
   useEffect(() => {
     const handleAvatarUpdate = (event: CustomEvent) => {
-      const { avatarData, timestamp } = event.detail;
+      const { avatarData, timestamp, source } = event.detail;
       console.log("[Header] Received avatar-updated event:", 
         "Has avatar:", !!avatarData, 
         "Length:", avatarData?.length || 0,
-        "Timestamp:", timestamp);
+        "Timestamp:", timestamp,
+        "Source:", source || 'unknown');
       
-      if (avatarData) {
+      // Only process if this is a newer event than the last one we processed
+      // or if we're getting an event from account setup or setup completion
+      const isNewerEvent = timestamp > lastAvatarUpdateTime.current;
+      const isPrioritySource = source === 'account-setup' || 
+                             source === 'setup-completion' || 
+                             source === 'setup-completion-delayed';
+      
+      if ((isNewerEvent || isPrioritySource) && avatarData) {
+        lastAvatarUpdateTime.current = timestamp;
         setCachedAvatarData(avatarData);
         setAvatarError(false);
         avatarRetryCount.current = 0;
         setAvatarKey(prev => prev + 1);
+        console.log("[Header] Updated avatar from event");
       }
     };
 
@@ -78,12 +89,12 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       if (user.avatar) {
         setCachedAvatarData(user.avatar);
         console.log("[Header] User avatar updated, length:", user.avatar.length);
+        
+        // Force re-render avatar when user changes
+        setAvatarKey(prev => prev + 1);
       } else {
         console.log("[Header] User updated but no avatar present");
       }
-      
-      // Force re-render by updating key
-      setAvatarKey(prev => prev + 1);
       
       console.log("[Header] User updated:", 
         "Name:", user.name,
@@ -93,6 +104,20 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           `zoom:${user.avatarSettings.zoom}, pos:(${user.avatarSettings.position.x},${user.avatarSettings.position.y})` : 
           "none"
       );
+      
+      // Send a synthetic avatar update event to ensure all components are in sync
+      if (user.avatar) {
+        const eventTimestamp = Date.now();
+        lastAvatarUpdateTime.current = eventTimestamp;
+        
+        window.dispatchEvent(new CustomEvent('avatar-updated', { 
+          detail: { 
+            avatarData: user.avatar, 
+            timestamp: eventTimestamp,
+            source: 'user-object-change'
+          }
+        }));
+      }
     }
   }, [user]);
 
@@ -187,6 +212,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                     }}
                     onError={handleAvatarError}
                     data-avatar-length={user?.avatar?.length || 0}
+                    data-avatar-key={avatarKey}
                   />
                 ) : null}
                 <AvatarFallback className="bg-finsight-purple text-white">{getInitials()}</AvatarFallback>
