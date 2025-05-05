@@ -63,15 +63,15 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// FinSight custom colors
-				finsight: {
-					purple: {
-						DEFAULT: '#9b87f5',
-						dark: '#6E59A5',
-						light: '#E5DEFF',
+				// PT Custom Projects colors
+				ptcustom: {
+					blue: {
+						DEFAULT: '#0EA5E9',
+						dark: '#0284C7',
+						light: '#E0F2FE',
 					},
+					teal: '#374151',
 					orange: '#F97316',
-					blue: '#0EA5E9',
 					green: '#10B981',
 					red: '#EF4444',
 					gray: '#8E9196',
@@ -132,7 +132,7 @@ export default {
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-				'gradient-purple': 'linear-gradient(to right, #9b87f5, #6E59A5)',
+				'gradient-blue': 'linear-gradient(to right, #0EA5E9, #0284C7)',
 			}
 		}
 	},

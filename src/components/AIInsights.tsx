@@ -9,7 +9,7 @@ const insights = [
     message: "You've reduced dining expenses by 15% this month. Keep it up!",
     icon: <Award className="h-5 w-5" />,
     bgColor: 'bg-green-50',
-    iconColor: 'text-finsight-green',
+    iconColor: 'text-ptcustom-green',
   },
   {
     id: 2,
@@ -17,7 +17,7 @@ const insights = [
     message: 'Subscription spending increased by $45 compared to last month.',
     icon: <AlertTriangle className="h-5 w-5" />,
     bgColor: 'bg-orange-50',
-    iconColor: 'text-finsight-orange',
+    iconColor: 'text-ptcustom-orange',
   },
   {
     id: 3,
@@ -25,15 +25,15 @@ const insights = [
     message: 'Based on your recent spending, you could save an additional $320 next month.',
     icon: <TrendingUp className="h-5 w-5" />,
     bgColor: 'bg-blue-50',
-    iconColor: 'text-finsight-blue',
+    iconColor: 'text-ptcustom-blue',
   },
   {
     id: 4,
     type: 'suggestion',
     message: 'Your electricity bill seems higher than usual. Consider energy-saving options.',
     icon: <Sparkles className="h-5 w-5" />,
-    bgColor: 'bg-purple-50',
-    iconColor: 'text-finsight-purple',
+    bgColor: 'bg-blue-50',
+    iconColor: 'text-ptcustom-blue',
   },
 ];
 
@@ -42,7 +42,7 @@ const AIInsights = () => {
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Brain className="h-5 w-5 text-finsight-purple" />
+          <Brain className="h-5 w-5 text-ptcustom-blue" />
           <h2 className="text-lg font-bold">AI Financial Insights</h2>
         </div>
         

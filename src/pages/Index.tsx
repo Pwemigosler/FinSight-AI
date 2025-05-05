@@ -47,7 +47,7 @@ const Index = () => {
             <div className="space-y-1">
               <Button 
                 variant={activeView === "dashboard" ? "default" : "ghost"} 
-                className={`w-full justify-start gap-3 ${activeView === "dashboard" ? "bg-finsight-purple text-white" : ""}`}
+                className={`w-full justify-start gap-3 ${activeView === "dashboard" ? "bg-ptcustom-blue text-white" : ""}`}
                 onClick={() => handleNavigation("dashboard")}
               >
                 <LayoutDashboard className="h-5 w-5" />
@@ -55,7 +55,7 @@ const Index = () => {
               </Button>
               <Button 
                 variant={activeView === "transactions" ? "default" : "ghost"} 
-                className={`w-full justify-start gap-3 ${activeView === "transactions" ? "bg-finsight-purple text-white" : "text-gray-500"}`}
+                className={`w-full justify-start gap-3 ${activeView === "transactions" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
                 onClick={() => handleNavigation("transactions")}
               >
                 <CreditCard className="h-5 w-5" />
@@ -63,7 +63,7 @@ const Index = () => {
               </Button>
               <Button 
                 variant={activeView === "budgets" ? "default" : "ghost"} 
-                className={`w-full justify-start gap-3 ${activeView === "budgets" ? "bg-finsight-purple text-white" : "text-gray-500"}`}
+                className={`w-full justify-start gap-3 ${activeView === "budgets" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
                 onClick={() => handleNavigation("budgets")}
               >
                 <ListChecks className="h-5 w-5" />
@@ -71,7 +71,7 @@ const Index = () => {
               </Button>
               <Button 
                 variant={activeView === "goals" ? "default" : "ghost"} 
-                className={`w-full justify-start gap-3 ${activeView === "goals" ? "bg-finsight-purple text-white" : "text-gray-500"}`}
+                className={`w-full justify-start gap-3 ${activeView === "goals" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
                 onClick={() => handleNavigation("goals")}
               >
                 <Target className="h-5 w-5" />
@@ -79,7 +79,7 @@ const Index = () => {
               </Button>
               <Button 
                 variant={activeView === "reports" ? "default" : "ghost"} 
-                className={`w-full justify-start gap-3 ${activeView === "reports" ? "bg-finsight-purple text-white" : "text-gray-500"}`}
+                className={`w-full justify-start gap-3 ${activeView === "reports" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
                 onClick={() => handleNavigation("reports")}
               >
                 <LineChart className="h-5 w-5" />
@@ -92,7 +92,7 @@ const Index = () => {
             <div className="space-y-1">
               <Button 
                 variant={activeView === "settings" ? "default" : "ghost"}
-                className={`w-full justify-start gap-3 ${activeView === "settings" ? "bg-finsight-purple text-white" : "text-gray-500"}`}
+                className={`w-full justify-start gap-3 ${activeView === "settings" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
                 onClick={() => handleNavigation("settings")}
               >
                 <Settings className="h-5 w-5" />

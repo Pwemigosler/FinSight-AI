@@ -46,7 +46,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               data-avatar-length={user?.avatar?.length || 0}
             />
           ) : null}
-          <AvatarFallback className="bg-finsight-purple text-white text-xl">
+          <AvatarFallback className="bg-ptcustom-blue text-white text-xl">
             {getInitials()}
           </AvatarFallback>
         </Avatar>

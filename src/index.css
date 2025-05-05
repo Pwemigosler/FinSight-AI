@@ -5,14 +5,14 @@
 @import './styles/avatarAnimations.css';
 
 :root {
-  --finsight-purple: #9b87f5;
-  --finsight-purple-dark: #7e69ab;
-  --finsight-blue: #33a9f0;
-  --finsight-green: #10b981;
-  --finsight-red: #ef4444;
-  --finsight-yellow: #f59e0b;
-  --finsight-gray: #8e9196;
-  --finsight-gray-light: #f1f0fb;
+  --ptcustom-blue: #0EA5E9;
+  --ptcustom-blue-dark: #0284C7;
+  --ptcustom-teal: #374151;
+  --ptcustom-green: #10b981;
+  --ptcustom-red: #ef4444;
+  --ptcustom-yellow: #f59e0b;
+  --ptcustom-gray: #8e9196;
+  --ptcustom-gray-light: #f1f0fb;
 }
 
 @layer base {
@@ -23,9 +23,9 @@
     --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
-    --primary: 262.1 83.3% 57.8%;
+    --primary: 199 95% 48%;
     --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
+    --secondary: 220 26% 14%;
     --secondary-foreground: 220.9 39.3% 11%;
     --muted: 220 14.3% 95.9%;
     --muted-foreground: 220 8.9% 46.1%;
@@ -35,7 +35,7 @@
     --destructive-foreground: 210 20% 98%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 262.1 83.3% 57.8%;
+    --ring: 199 95% 48%;
     --radius: 0.5rem;
   }
 
@@ -46,7 +46,7 @@
     --card-foreground: 210 20% 98%;
     --popover: 224 71.4% 4.1%;
     --popover-foreground: 210 20% 98%;
-    --primary: 263.4 70% 50.4%;
+    --primary: 199 95% 48%;
     --primary-foreground: 210 20% 98%;
     --secondary: 215 27.9% 16.9%;
     --secondary-foreground: 210 20% 98%;
@@ -58,7 +58,7 @@
     --destructive-foreground: 210 20% 98%;
     --border: 215 27.9% 16.9%;
     --input: 215 27.9% 16.9%;
-    --ring: 263.4 70% 50.4%;
+    --ring: 199 95% 48%;
   }
 }
 
@@ -71,62 +71,62 @@
   }
 }
 
-.bg-finsight-purple {
-  background-color: var(--finsight-purple);
+.bg-ptcustom-blue {
+  background-color: var(--ptcustom-blue);
 }
 
-.bg-finsight-purple-dark {
-  background-color: var(--finsight-purple-dark);
+.bg-ptcustom-blue-dark {
+  background-color: var(--ptcustom-blue-dark);
 }
 
-.bg-finsight-blue {
-  background-color: var(--finsight-blue);
+.bg-ptcustom-teal {
+  background-color: var(--ptcustom-teal);
 }
 
-.bg-finsight-green {
-  background-color: var(--finsight-green);
+.bg-ptcustom-green {
+  background-color: var(--ptcustom-green);
 }
 
-.bg-finsight-red {
-  background-color: var(--finsight-red);
+.bg-ptcustom-red {
+  background-color: var(--ptcustom-red);
 }
 
-.bg-finsight-yellow {
-  background-color: var(--finsight-yellow);
+.bg-ptcustom-yellow {
+  background-color: var(--ptcustom-yellow);
 }
 
-.bg-finsight-gray {
-  background-color: var(--finsight-gray);
+.bg-ptcustom-gray {
+  background-color: var(--ptcustom-gray);
 }
 
-.bg-finsight-gray-light {
-  background-color: var(--finsight-gray-light);
+.bg-ptcustom-gray-light {
+  background-color: var(--ptcustom-gray-light);
 }
 
-.text-finsight-purple {
-  color: var(--finsight-purple);
+.text-ptcustom-blue {
+  color: var(--ptcustom-blue);
 }
 
-.text-finsight-purple-dark {
-  color: var(--finsight-purple-dark);
+.text-ptcustom-blue-dark {
+  color: var(--ptcustom-blue-dark);
 }
 
-.text-finsight-blue {
-  color: var(--finsight-blue);
+.text-ptcustom-teal {
+  color: var(--ptcustom-teal);
 }
 
-.text-finsight-green {
-  color: var(--finsight-green);
+.text-ptcustom-green {
+  color: var(--ptcustom-green);
 }
 
-.text-finsight-red {
-  color: var(--finsight-red);
+.text-ptcustom-red {
+  color: var(--ptcustom-red);
 }
 
-.text-finsight-yellow {
-  color: var(--finsight-yellow);
+.text-ptcustom-yellow {
+  color: var(--ptcustom-yellow);
 }
 
-.text-finsight-gray {
-  color: var(--finsight-gray);
+.text-ptcustom-gray {
+  color: var(--ptcustom-gray);
 }

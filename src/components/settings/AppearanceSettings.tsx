@@ -30,7 +30,7 @@ export const AppearanceSettings = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5 flex items-center gap-2">
-              <Sun className="h-5 w-5 text-orange-500" />
+              <Sun className="h-5 w-5 text-ptcustom-yellow" />
               <div>
                 <Label htmlFor="dark-mode">Dark Mode</Label>
                 <p className="text-sm text-muted-foreground">
@@ -48,7 +48,7 @@ export const AppearanceSettings = () => {
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5 flex items-center gap-2">
-              <PencilLine className="h-5 w-5 text-blue-500" />
+              <PencilLine className="h-5 w-5 text-ptcustom-blue" />
               <div>
                 <Label htmlFor="compact-view">Compact View</Label>
                 <p className="text-sm text-muted-foreground">
