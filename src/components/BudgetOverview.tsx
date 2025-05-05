@@ -154,7 +154,7 @@ const BudgetOverview = () => {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <span className={Number(category.spent) > Number(category.allocated) ? 'text-finsight-red font-medium' : ''}>
+                    <span className={Number(category.spent) > Number(category.allocated) ? 'text-ptcustom-red font-medium' : ''}>
                       ${category.spent} <span className="text-gray-400">/ ${category.allocated}</span>
                     </span>
                     <Button 

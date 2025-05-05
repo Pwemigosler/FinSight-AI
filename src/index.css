@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -61,6 +62,15 @@
     --spacing-small: 0.75rem;
     --spacing-medium: 1rem;
     --spacing-large: 1.5rem;
+  }
+  
+  /* Add smooth transitions for theme changes */
+  html {
+    transition: color 0.3s ease, background-color 0.3s ease;
+  }
+
+  body {
+    transition: color 0.3s ease, background-color 0.3s ease;
   }
 }
 

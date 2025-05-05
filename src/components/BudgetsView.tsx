@@ -264,7 +264,7 @@ const BudgetsView = () => {
             </div>
             {isLoading ? (
               <div className="flex justify-center items-center h-40">
-                <Loader2 className="h-8 w-8 animate-spin text-finsight-purple" />
+                <Loader2 className="h-8 w-8 animate-spin text-ptcustom-blue" />
               </div>
             ) : budgets.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -306,7 +306,7 @@ const BudgetsView = () => {
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <span className={Number(budget.spent) > Number(budget.allocated) ? 'text-finsight-red font-bold' : ''}>
+                            <span className={Number(budget.spent) > Number(budget.allocated) ? 'text-ptcustom-red font-bold' : ''}>
                               ${budget.spent} <span className="text-gray-400">/ ${budget.allocated}</span>
                             </span>
                             <Button 
@@ -323,7 +323,7 @@ const BudgetsView = () => {
                       <Progress 
                         value={(Number(budget.spent) / Number(budget.allocated)) * 100} 
                         className="h-2 bg-gray-100" 
-                        indicatorClassName={Number(budget.spent) > Number(budget.allocated) ? 'bg-finsight-red' : budget.color}
+                        indicatorClassName={Number(budget.spent) > Number(budget.allocated) ? 'bg-ptcustom-red' : budget.color}
                       />
                     </div>
                   );

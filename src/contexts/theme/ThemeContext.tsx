@@ -30,9 +30,9 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     
     // Update primary color CSS variables when dark mode changes
     if (isDarkMode) {
-      document.documentElement.style.setProperty('--primary', '226 69% 49%'); // blue in dark mode
+      document.documentElement.style.setProperty('--primary', '226 69% 49%'); // consistent blue in dark mode
     } else {
-      document.documentElement.style.setProperty('--primary', '226 69% 49%'); // blue in light mode
+      document.documentElement.style.setProperty('--primary', '226 69% 49%'); // consistent blue in light mode
     }
   }, [isDarkMode]);
 

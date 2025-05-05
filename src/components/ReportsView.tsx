@@ -32,8 +32,8 @@ const monthlyExpensesData = [
 ];
 
 const categorySpendingData = [
-  { name: 'Housing', value: 1800, color: '#9b87f5' },
-  { name: 'Food', value: 650, color: '#7E69AB' },
+  { name: 'Housing', value: 1800, color: '#0EA5E9' },
+  { name: 'Food', value: 650, color: '#0284C7' },
   { name: 'Transportation', value: 320, color: '#F97316' },
   { name: 'Entertainment', value: 410, color: '#0EA5E9' },
   { name: 'Utilities', value: 310, color: '#10B981' },
@@ -103,10 +103,10 @@ const ReportsView = () => {
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <FileBarChart className="h-5 w-5 text-finsight-purple" />
+                <FileBarChart className="h-5 w-5 text-ptcustom-blue" />
                 Income vs. Expenses
               </CardTitle>
-              <Button variant="ghost" size="sm" className="text-xs text-finsight-purple">
+              <Button variant="ghost" size="sm" className="text-xs text-ptcustom-blue">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
                 Details
               </Button>
@@ -124,7 +124,7 @@ const ReportsView = () => {
                   <YAxis tickFormatter={(value) => `$${value}`} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Bar name="Income" dataKey="income" fill="#9b87f5" />
+                  <Bar name="Income" dataKey="income" fill="#0EA5E9" />
                   <Bar name="Expenses" dataKey="expenses" fill="#F97316" />
                 </BarChart>
               </ResponsiveContainer>
@@ -137,10 +137,10 @@ const ReportsView = () => {
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <FilePieChart className="h-5 w-5 text-finsight-purple" />
+                <FilePieChart className="h-5 w-5 text-ptcustom-blue" />
                 Spending by Category
               </CardTitle>
-              <Button variant="ghost" size="sm" className="text-xs text-finsight-purple">
+              <Button variant="ghost" size="sm" className="text-xs text-ptcustom-blue">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
                 Details
               </Button>
@@ -185,10 +185,10 @@ const ReportsView = () => {
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <FileBarChart className="h-5 w-5 text-finsight-purple" />
+                <FileBarChart className="h-5 w-5 text-ptcustom-blue" />
                 Savings History
               </CardTitle>
-              <Button variant="ghost" size="sm" className="text-xs text-finsight-purple">
+              <Button variant="ghost" size="sm" className="text-xs text-ptcustom-blue">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
                 Details
               </Button>
@@ -205,11 +205,11 @@ const ReportsView = () => {
                   <Line
                     type="monotone"
                     dataKey="amount"
-                    stroke="#9b87f5"
+                    stroke="#0EA5E9"
                     strokeWidth={2}
                     name="Savings"
-                    dot={{ fill: '#9b87f5', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: '#6E59A5' }}
+                    dot={{ fill: '#0EA5E9', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: '#0284C7' }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -223,7 +223,7 @@ const ReportsView = () => {
         <Card>
           <CardContent className="p-6">
             <h3 className="text-lg font-bold mb-2">Average Monthly Savings</h3>
-            <p className="text-3xl font-bold text-finsight-purple">
+            <p className="text-3xl font-bold text-ptcustom-blue">
               ${savingsHistoryData.reduce((sum, item) => sum + item.amount, 0) / savingsHistoryData.length}
             </p>
             <p className="text-sm text-gray-500 mt-1">
@@ -235,7 +235,7 @@ const ReportsView = () => {
         <Card>
           <CardContent className="p-6">
             <h3 className="text-lg font-bold mb-2">Highest Expense Category</h3>
-            <p className="text-3xl font-bold text-finsight-purple">
+            <p className="text-3xl font-bold text-ptcustom-blue">
               Housing
             </p>
             <p className="text-sm text-gray-500 mt-1">
@@ -247,7 +247,7 @@ const ReportsView = () => {
         <Card>
           <CardContent className="p-6">
             <h3 className="text-lg font-bold mb-2">Year-to-Date Savings</h3>
-            <p className="text-3xl font-bold text-finsight-purple">
+            <p className="text-3xl font-bold text-ptcustom-blue">
               $12,680
             </p>
             <p className="text-sm text-gray-500 mt-1">

@@ -46,7 +46,7 @@ const NotificationBell: React.FC = () => {
     >
       <Bell className="h-5 w-5" />
       {hasNotifications && (
-        <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-finsight-red"></span>
+        <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-ptcustom-red"></span>
       )}
     </Button>
   );
