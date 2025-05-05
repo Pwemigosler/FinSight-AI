@@ -1,4 +1,3 @@
-
 import { Bell, ChevronDown, Menu, LogOut, User, Settings, Bot } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -41,6 +40,14 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
   const handleLogoClick = () => {
     navigate('/');
+  };
+
+  // Calculate avatar position scale factor based on the size difference
+  // Editor preview is 32x32 or 48x48 while header avatar is 8x8
+  const calculatePositionScale = () => {
+    // The header avatar is 8x8, so we need to scale down the position values
+    // Since we're applying transforms to a smaller image, use a smaller factor
+    return 0.15; // Adjusted scaling factor for position values
   };
 
   // Listen for avatar update events
@@ -104,6 +111,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       if (user.avatar) {
         setCachedAvatarData(user.avatar);
         console.log("[Header] User avatar updated, length:", user.avatar.length);
+        console.log("[Header] Avatar settings:", user.avatarSettings ? 
+          `zoom:${user.avatarSettings.zoom}, pos:(${user.avatarSettings.position.x},${user.avatarSettings.position.y})` : 
+          "none");
         
         // Force re-render avatar when user changes
         setAvatarKey(prev => prev + 1);
@@ -203,6 +213,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     refreshAvatarFromLS();
   }, []);
 
+  // Get the position scale factor
+  const positionScale = calculatePositionScale();
+
   return (
     <header className="bg-white border-b border-gray-100 p-4 flex justify-between items-center sticky top-0 z-10">
       <div className="flex items-center gap-2">
@@ -246,12 +259,13 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                     alt={user?.name || "User avatar"}
                     style={{ 
                       transform: user?.avatarSettings ? `scale(${user.avatarSettings.zoom / 100})` : undefined,
-                      marginLeft: user?.avatarSettings ? `${user.avatarSettings.position.x * 0.25}px` : undefined,
-                      marginTop: user?.avatarSettings ? `${user.avatarSettings.position.y * 0.25}px` : undefined,
+                      marginLeft: user?.avatarSettings ? `${user.avatarSettings.position.x * positionScale}px` : undefined,
+                      marginTop: user?.avatarSettings ? `${user.avatarSettings.position.y * positionScale}px` : undefined,
                     }}
                     onError={handleAvatarError}
                     data-avatar-length={user?.avatar?.length || 0}
                     data-avatar-key={avatarKey}
+                    data-position-scale={positionScale}
                   />
                 ) : null}
                 <AvatarFallback className="bg-finsight-purple text-white">{getInitials()}</AvatarFallback>
