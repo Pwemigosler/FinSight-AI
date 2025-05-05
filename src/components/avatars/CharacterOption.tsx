@@ -1,7 +1,8 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Check, ImageIcon } from "lucide-react";
+import { isLoginRoute } from "./utils/avatar-utils";
 
 export interface CharacterData {
   id: string;
@@ -22,10 +23,32 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
   onSelect,
 }) => {
   const [imageError, setImageError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [imageSrc, setImageSrc] = useState(character.thumbnailUrl);
+  
+  // Update image source when on login route
+  useEffect(() => {
+    if (isLoginRoute() && !character.thumbnailUrl.startsWith('/characters/')) {
+      // For login route, ensure we're using local paths
+      const characterId = character.id.toLowerCase();
+      setImageSrc(`/characters/${characterId}.png?t=${Date.now()}`);
+    } else {
+      setImageSrc(`${character.thumbnailUrl}?t=${Date.now()}`);
+    }
+  }, [character.id, character.thumbnailUrl]);
   
   const handleImageError = () => {
-    console.error(`Failed to load character thumbnail: ${character.id} from URL: ${character.thumbnailUrl}`);
-    setImageError(true);
+    console.error(`Failed to load character thumbnail: ${character.id} from URL: ${imageSrc}`);
+    
+    // Try once more with explicit path if on login route
+    if (isLoginRoute() && retryCount < 1) {
+      setRetryCount(prev => prev + 1);
+      const fallbackUrl = `/characters/${character.id.toLowerCase()}.png?t=${Date.now()}`;
+      console.log(`Trying fallback local URL: ${fallbackUrl}`);
+      setImageSrc(fallbackUrl);
+    } else {
+      setImageError(true);
+    }
   };
 
   return (
@@ -45,7 +68,7 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
         </div>
       ) : (
         <img
-          src={`${character.thumbnailUrl}?t=${Date.now()}`} // Add cache busting parameter
+          src={imageSrc}
           alt={character.name}
           className="w-full h-40 object-cover"
           onError={handleImageError}

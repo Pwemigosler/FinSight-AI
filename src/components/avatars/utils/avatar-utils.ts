@@ -12,6 +12,12 @@ export const characterImages = {
   "zoe": "zoe.png"
 };
 
+// Check if current route is login page
+export const isLoginRoute = (): boolean => {
+  const pathname = window.location.pathname;
+  return pathname === '/login' || pathname.includes('/login');
+};
+
 // Get character image URL with fallback to placeholder
 export const getCharacterImageUrl = (characterId: string, imageError: boolean): string => {
   if (imageError) {
@@ -26,19 +32,30 @@ export const getCharacterImageUrl = (characterId: string, imageError: boolean): 
   const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
   const imagePath = characterImages[finalId as keyof typeof characterImages];
   
-  // Try to get URL from local public folder first for unauthenticated state
+  // Prepare local path for the character image
   const localUrl = `/characters/${imagePath}`;
   
-  // Only try Supabase URL if we're not already in an error state
+  // On login page, always prioritize local files
+  if (isLoginRoute()) {
+    console.log(`Login route detected, using local file for character ${finalId}`);
+    return localUrl;
+  }
+  
+  // For authenticated routes, try Supabase URL first
   if (!imageError) {
-    const supabaseUrl = getPublicUrl(imagePath);
-    if (supabaseUrl) {
-      console.log(`Loading character ${characterId} from Supabase storage`);
-      return supabaseUrl;
+    try {
+      const supabaseUrl = getPublicUrl(imagePath);
+      if (supabaseUrl) {
+        console.log(`Loading character ${characterId} from Supabase storage`);
+        return supabaseUrl;
+      }
+    } catch (error) {
+      console.error(`Error getting Supabase URL for ${imagePath}:`, error);
+      // Continue to fallback
     }
   }
   
-  console.log(`Loading character ${characterId} from local files`);
+  console.log(`Using local file fallback for character ${finalId}`);
   return localUrl;
 };
 
