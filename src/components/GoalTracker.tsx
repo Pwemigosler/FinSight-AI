@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Target, Plus, PiggyBank, Home, Car, Briefcase } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,8 +19,8 @@ const goalsData = [
     targetAmount: 10000,
     date: '2024-03-01',
     icon: <PiggyBank className="h-5 w-5" />,
-    color: 'bg-ptcustom-blue',
-    textColor: 'text-ptcustom-blue',
+    color: 'bg-finsight-blue',
+    textColor: 'text-finsight-blue',
   },
   {
     id: 'g2',
@@ -28,8 +29,8 @@ const goalsData = [
     targetAmount: 50000,
     date: '2025-06-01',
     icon: <Home className="h-5 w-5" />,
-    color: 'bg-ptcustom-blue-dark',
-    textColor: 'text-ptcustom-blue-dark',
+    color: 'bg-finsight-purple',
+    textColor: 'text-finsight-purple',
   },
   {
     id: 'g3',
@@ -38,17 +39,17 @@ const goalsData = [
     targetAmount: 20000,
     date: '2024-12-01',
     icon: <Car className="h-5 w-5" />,
-    color: 'bg-ptcustom-orange',
-    textColor: 'text-ptcustom-orange',
+    color: 'bg-finsight-orange',
+    textColor: 'text-finsight-orange',
   },
 ];
 
 // Goal icon options
 const iconOptions = [
-  { name: 'PiggyBank', icon: <PiggyBank className="h-5 w-5" />, color: 'bg-ptcustom-blue', textColor: 'text-ptcustom-blue' },
-  { name: 'Home', icon: <Home className="h-5 w-5" />, color: 'bg-ptcustom-blue-dark', textColor: 'text-ptcustom-blue-dark' },
-  { name: 'Car', icon: <Car className="h-5 w-5" />, color: 'bg-ptcustom-orange', textColor: 'text-ptcustom-orange' },
-  { name: 'Business', icon: <Briefcase className="h-5 w-5" />, color: 'bg-ptcustom-green', textColor: 'text-ptcustom-green' },
+  { name: 'PiggyBank', icon: <PiggyBank className="h-5 w-5" />, color: 'bg-finsight-blue', textColor: 'text-finsight-blue' },
+  { name: 'Home', icon: <Home className="h-5 w-5" />, color: 'bg-finsight-purple', textColor: 'text-finsight-purple' },
+  { name: 'Car', icon: <Car className="h-5 w-5" />, color: 'bg-finsight-orange', textColor: 'text-finsight-orange' },
+  { name: 'Business', icon: <Briefcase className="h-5 w-5" />, color: 'bg-finsight-green', textColor: 'text-finsight-green' },
 ];
 
 const GoalTracker = () => {
@@ -137,8 +138,8 @@ const GoalTracker = () => {
       targetAmount: newGoal.targetAmount,
       date: newGoal.date,
       icon: selectedIcon?.icon || <PiggyBank className="h-5 w-5" />,
-      color: selectedIcon?.color || 'bg-ptcustom-blue',
-      textColor: selectedIcon?.textColor || 'text-ptcustom-blue',
+      color: selectedIcon?.color || 'bg-finsight-blue',
+      textColor: selectedIcon?.textColor || 'text-finsight-blue',
     };
 
     // Add new goal to list

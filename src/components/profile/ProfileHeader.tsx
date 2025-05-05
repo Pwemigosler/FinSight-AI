@@ -27,14 +27,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       .substring(0, 2);
   };
 
-  // Calculate position scale based on avatar size (24x24)
-  const calculatePositionScale = () => {
-    // For the profile header avatar (24x24), use a slightly larger scale
-    return 0.3;
-  };
-
-  const positionScale = calculatePositionScale();
-
   return (
     <Card>
       <CardContent className="pt-6 flex flex-col items-center">
@@ -45,14 +37,13 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               alt={user.name || "Profile"} 
               style={{ 
                 transform: user.avatarSettings ? `scale(${user.avatarSettings.zoom / 100})` : undefined,
-                marginLeft: user.avatarSettings ? `${user.avatarSettings.position.x * positionScale}px` : undefined,
-                marginTop: user.avatarSettings ? `${user.avatarSettings.position.y * positionScale}px` : undefined,
+                marginLeft: user.avatarSettings ? `${user.avatarSettings.position.x * 0.25}px` : undefined,
+                marginTop: user.avatarSettings ? `${user.avatarSettings.position.y * 0.25}px` : undefined,
               }}
               onError={() => {
                 console.error("[Profile] Failed to load avatar image in profile display");
               }}
               data-avatar-length={user?.avatar?.length || 0}
-              data-position-scale={positionScale}
             />
           ) : null}
           <AvatarFallback className="bg-ptcustom-blue text-white text-xl">

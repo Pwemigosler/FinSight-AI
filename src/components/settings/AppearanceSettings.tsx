@@ -1,46 +1,21 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PencilLine, Sun, Save } from "lucide-react";
-import { useTheme } from "@/contexts/theme/ThemeContext";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { PencilLine, Sun } from "lucide-react";
 
 export const AppearanceSettings = () => {
-  const { isDarkMode, isCompactView, toggleDarkMode, toggleCompactView } = useTheme();
-  const { toast } = useToast();
-  
   const [appearance, setAppearance] = useState({
-    darkMode: isDarkMode,
-    compactView: isCompactView
+    darkMode: false,
+    compactView: false
   });
-
-  // Update local state when context values change
-  useEffect(() => {
-    setAppearance({
-      darkMode: isDarkMode,
-      compactView: isCompactView
-    });
-  }, [isDarkMode, isCompactView]);
 
   const handleAppearanceChange = (key: string, checked: boolean) => {
     setAppearance(prev => ({
       ...prev,
       [key]: checked
     }));
-    
-    if (key === 'darkMode') {
-      toggleDarkMode();
-    } else if (key === 'compactView') {
-      toggleCompactView();
-    }
-    
-    toast({
-      title: "Settings Updated",
-      description: `${key === 'darkMode' ? 'Dark mode' : 'Compact view'} has been ${checked ? 'enabled' : 'disabled'}.`
-    });
   };
 
   return (

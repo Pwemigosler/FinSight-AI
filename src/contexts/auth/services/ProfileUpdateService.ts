@@ -1,6 +1,6 @@
 
 import { User } from "../../../types/user";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DefaultsService } from "./DefaultsService";
 import { UserStorageService } from "./UserStorageService";
@@ -78,22 +78,12 @@ export class ProfileUpdateService {
       
       // Save to localStorage as a backup
       this.storageService.saveUser(updatedUser);
-      
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
+      toast("Profile updated successfully");
       
       return updatedUser;
     } catch (error) {
       console.error("[ProfileUpdateService] Error updating profile:", error);
-      
-      toast({
-        title: "Error",
-        description: "Failed to update profile",
-        variant: "destructive",
-      });
-      
+      toast("Failed to update profile");
       return null;
     }
   }
@@ -207,22 +197,12 @@ export class ProfileUpdateService {
       this.storageService.saveUser(updatedUser);
       
       console.log("[ProfileUpdateService] Account setup completed successfully");
-      
-      toast({
-        title: "Success",
-        description: "Account setup completed!",
-      });
+      toast("Account setup completed!");
       
       return updatedUser;
     } catch (error) {
       console.error("[ProfileUpdateService] Error completing setup:", error);
-      
-      toast({
-        title: "Error",
-        description: "Failed to complete account setup",
-        variant: "destructive",
-      });
-      
+      toast("Failed to complete account setup");
       return null;
     }
   }

@@ -1,5 +1,5 @@
 
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ImagePosition } from "@/components/profile/types/avatar-types";
 
 /**
@@ -11,8 +11,6 @@ import { ImagePosition } from "@/components/profile/types/avatar-types";
 export const useAvatarActions = (
   updateUserProfile: (data: any) => Promise<void>
 ) => {
-  const { toast } = useToast();
-
   const handleDeleteAvatar = async (
     setPreviewImage: (img: string | null) => void,
     setZoomLevel: (zoom: number) => void,
@@ -33,20 +31,13 @@ export const useAvatarActions = (
       setImagePosition({ x: 0, y: 0 });
       setIsDialogOpen(false);
       
-      toast({
-        title: "Success",
-        description: "Profile picture removed"
-      });
+      toast("Profile picture removed");
       
       // Force a re-render of the avatar after update
       updateAvatarKey();
     } catch (error) {
       console.error("[Profile] Error removing profile picture:", error);
-      toast({
-        title: "Error",
-        description: "Failed to remove profile picture",
-        variant: "destructive"
-      });
+      toast("Failed to remove profile picture");
     }
   };
 
@@ -74,20 +65,13 @@ export const useAvatarActions = (
     }).then(() => {
       console.log("[Profile] Profile picture updated successfully");
       setIsDialogOpen(false);
-      toast({
-        title: "Success",
-        description: "Profile picture updated successfully"
-      });
+      toast("Profile picture updated successfully");
       
       // Force a re-render of the avatar after update
       updateAvatarKey();
     }).catch(error => {
       console.error("[Profile] Error updating profile picture:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile picture",
-        variant: "destructive"
-      });
+      toast("Failed to update profile picture");
     });
   };
   

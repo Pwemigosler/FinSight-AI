@@ -75,7 +75,7 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
         <div
           className={`py-2 px-4 rounded-lg ${
             message.sender === "user"
-              ? "bg-ptcustom-blue text-white rounded-tr-none"
+              ? "bg-finsight-purple text-white rounded-tr-none"
               : "bg-gray-100 text-gray-800 rounded-tl-none"
           }`}
         >
@@ -119,8 +119,8 @@ const MessageBubble = ({ message, user }: MessageBubbleProps) => {
                 className="h-6 w-6 rounded-full p-0"
               >
                 {isThisElementSpeaking ? 
-                  <VolumeX className="h-3 w-3 text-ptcustom-blue" /> : 
-                  <Volume2 className="h-3 w-3 text-ptcustom-blue" />
+                  <VolumeX className="h-3 w-3 text-finsight-purple" /> : 
+                  <Volume2 className="h-3 w-3 text-finsight-purple" />
                 }
               </Button>
             )}

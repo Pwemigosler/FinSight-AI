@@ -1,4 +1,3 @@
-
 import { ArrowUpRight, Edit, Check, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { getBudgetCategories, updateCategoryAmount } from '@/services/fundAllocationService';
@@ -8,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { BudgetCategory } from '@/types/budget';
 import { useAuth } from '@/contexts/auth';
-import { useNavigate } from 'react-router-dom';
 
 const BudgetOverview = () => {
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
@@ -16,7 +14,6 @@ const BudgetOverview = () => {
   const [editValue, setEditValue] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
 
   // Fetch categories whenever the component is mounted or shown
   useEffect(() => {
@@ -81,17 +78,6 @@ const BudgetOverview = () => {
     setEditingCategory(null);
   };
 
-  const handleViewAllClick = () => {
-    navigate('/');
-    // We need to wait for navigation to complete and then set the active view to "budgets"
-    setTimeout(() => {
-      const budgetsButton = document.querySelector('button[data-view="budgets"]');
-      if (budgetsButton) {
-        (budgetsButton as HTMLButtonElement).click();
-      }
-    }, 100);
-  };
-
   if (!isAuthenticated) {
     return (
       <div className="space-y-4">
@@ -109,18 +95,15 @@ const BudgetOverview = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-lg font-bold">Budget Overview</h2>
-        <button 
-          onClick={handleViewAllClick}
-          className="flex items-center gap-1 text-sm font-medium text-ptcustom-blue hover:underline"
-        >
+        <div className="flex items-center gap-1 text-sm font-medium text-finsight-purple">
           View All
           <ArrowUpRight className="h-4 w-4" />
-        </button>
+        </div>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-40">
-          <Loader2 className="h-6 w-6 animate-spin text-ptcustom-blue" />
+          <Loader2 className="h-6 w-6 animate-spin text-finsight-purple" />
         </div>
       ) : categories.length === 0 ? (
         <div className="text-center py-4 text-gray-500">
@@ -154,7 +137,7 @@ const BudgetOverview = () => {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <span className={Number(category.spent) > Number(category.allocated) ? 'text-ptcustom-red font-medium' : ''}>
+                    <span className={Number(category.spent) > Number(category.allocated) ? 'text-finsight-red font-medium' : ''}>
                       ${category.spent} <span className="text-gray-400">/ ${category.allocated}</span>
                     </span>
                     <Button 
@@ -171,7 +154,7 @@ const BudgetOverview = () => {
               <Progress 
                 value={(Number(category.spent) / Number(category.allocated)) * 100} 
                 className="h-2 bg-gray-100" 
-                indicatorClassName={Number(category.spent) > Number(category.allocated) ? 'bg-ptcustom-red' : category.color}
+                indicatorClassName={Number(category.spent) > Number(category.allocated) ? 'bg-finsight-red' : category.color}
               />
             </div>
           ))}

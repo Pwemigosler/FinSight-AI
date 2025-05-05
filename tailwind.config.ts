@@ -70,8 +70,6 @@ export default {
 						dark: '#0284C7',
 						light: '#E0F2FE',
 					},
-					purple: '#6E59A5',
-					yellow: '#F59E0B',
 					teal: '#374151',
 					orange: '#F97316',
 					green: '#10B981',

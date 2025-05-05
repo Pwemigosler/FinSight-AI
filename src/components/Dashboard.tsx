@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { ArrowUpRight, BadgeDollarSign, CreditCard, LineChart, PiggyBank, Wallet } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,8 +15,6 @@ import BudgetOverview from './BudgetOverview';
 import AIInsights from './AIInsights';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ReceiptCard from './dashboard/ReceiptCard';
-import { useNavigate } from 'react-router-dom';
-import { useTheme } from '@/contexts/theme/ThemeContext';
 
 // Mock data for initial display
 const spendingData = [
@@ -35,7 +32,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="bg-white p-3 border border-gray-100 rounded-md shadow-md">
         <p className="font-medium">{`${label}`}</p>
-        <p className="font-bold text-ptcustom-blue">{`$${payload[0].value}`}</p>
+        <p className="font-bold text-finsight-purple">{`$${payload[0].value}`}</p>
       </div>
     );
   }
@@ -46,25 +43,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
-  const { isDarkMode, isCompactView } = useTheme();
 
   useEffect(() => {
     // Simulate data loading
     const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
-
-  const handleViewReportsClick = () => {
-    navigate('/');
-    // We need to wait for navigation to complete and then set the active view to "reports"
-    setTimeout(() => {
-      const reportsButton = document.querySelector('button[data-view="reports"]');
-      if (reportsButton) {
-        (reportsButton as HTMLButtonElement).click();
-      }
-    }, 100);
-  };
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
@@ -103,42 +87,29 @@ const Dashboard = () => {
 
       {/* Spending Chart, Budget Overview, and Receipt Card */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className={`lg:col-span-2 animate-fade-in animate-delay-100 ${isCompactView ? 'p-2' : 'p-0'}`}>
-          <div className={`p-4 ${isCompactView ? 'p-3' : 'p-6'}`}>
+        <Card className="lg:col-span-2 animate-fade-in animate-delay-100">
+          <div className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Spending Trends</h2>
-              <button 
-                onClick={handleViewReportsClick}
-                className="flex items-center gap-1 text-sm font-medium text-ptcustom-blue hover:underline cursor-pointer"
-              >
+              <div className="flex items-center gap-1 text-sm font-medium text-finsight-purple">
                 View Details
                 <ArrowUpRight className="h-4 w-4" />
-              </button>
+              </div>
             </div>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsLineChart data={spendingData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? "#333" : "#f0f0f0"} />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    stroke={isDarkMode ? "#aaa" : "#666"}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tickFormatter={(value) => `$${value}`} 
-                    stroke={isDarkMode ? "#aaa" : "#666"}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
                   <Tooltip content={<CustomTooltip />} />
                   <Line
                     type="monotone"
                     dataKey="amount"
-                    stroke="#0EA5E9"
+                    stroke="#9b87f5"
                     strokeWidth={2}
-                    dot={{ fill: '#0EA5E9', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: '#0284C7' }}
+                    dot={{ fill: '#9b87f5', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: '#6E59A5' }}
                   />
                 </RechartsLineChart>
               </ResponsiveContainer>
@@ -147,7 +118,7 @@ const Dashboard = () => {
         </Card>
 
         <Card className="animate-fade-in animate-delay-200">
-          <CardContent className={`${isCompactView ? 'p-3' : 'p-6'}`}>
+          <CardContent className="p-6">
             <BudgetOverview />
           </CardContent>
         </Card>

@@ -36,13 +36,13 @@ const ReceiptCard = () => {
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Receipt className="h-5 w-5 text-ptcustom-blue" />
+            <Receipt className="h-5 w-5 text-finsight-purple" />
             Recent Receipts
           </CardTitle>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-xs text-ptcustom-blue"
+            className="text-xs text-finsight-purple"
             onClick={navigateToReceipts}
           >
             <ArrowUpRight className="h-3 w-3 mr-1" />
@@ -53,7 +53,7 @@ const ReceiptCard = () => {
       <CardContent>
         {isLoading ? (
           <div className="flex justify-center items-center py-6">
-            <Loader2 className="h-6 w-6 animate-spin text-ptcustom-blue" />
+            <Loader2 className="h-6 w-6 animate-spin text-finsight-purple" />
           </div>
         ) : recentReceipts.length > 0 ? (
           <div className="space-y-3">
@@ -65,7 +65,7 @@ const ReceiptCard = () => {
               >
                 {receipt.file_type?.includes('pdf') ? (
                   <div className="bg-gray-100 h-10 w-10 rounded flex items-center justify-center">
-                    <FileText className="h-5 w-5 text-ptcustom-blue" />
+                    <FileText className="h-5 w-5 text-finsight-purple" />
                   </div>
                 ) : receipt.full_url ? (
                   <img 
@@ -75,7 +75,7 @@ const ReceiptCard = () => {
                   />
                 ) : (
                   <div className="bg-gray-100 h-10 w-10 rounded flex items-center justify-center">
-                    <Receipt className="h-5 w-5 text-ptcustom-blue" />
+                    <Receipt className="h-5 w-5 text-finsight-purple" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -89,7 +89,7 @@ const ReceiptCard = () => {
             
             <Button 
               variant="outline" 
-              className="w-full mt-2 text-ptcustom-blue border-ptcustom-blue/30"
+              className="w-full mt-2 text-finsight-purple border-finsight-purple/30"
               onClick={navigateToReceipts}
             >
               View All Receipts
@@ -103,7 +103,7 @@ const ReceiptCard = () => {
               Upload your first receipt to keep track of your expenses.
             </p>
             <Button 
-              className="mt-3 bg-ptcustom-blue hover:bg-ptcustom-blue-dark" 
+              className="mt-3 bg-finsight-purple hover:bg-finsight-purple/90" 
               size="sm"
               onClick={navigateToReceipts}
             >
