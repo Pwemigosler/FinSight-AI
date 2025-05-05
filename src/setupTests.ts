@@ -1,23 +1,25 @@
 
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Mock implementation for window.matchMedia
-window.matchMedia = window.matchMedia || function() {
-  return {
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
     matches: false,
-    addListener: function() {},
-    removeListener: function() {},
-    addEventListener: function() {},
-    removeEventListener: function() {},
-    dispatchEvent: function() {
-      return true;
-    },
-  };
-};
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(() => true),
+  })),
+});
 
 // Suppress console errors during tests
 const originalError = console.error;
-beforeAll(() => {
+beforeEach(() => {
   console.error = (...args) => {
     if (
       typeof args[0] === 'string' && 
@@ -30,6 +32,6 @@ beforeAll(() => {
   };
 });
 
-afterAll(() => {
+afterEach(() => {
   console.error = originalError;
 });

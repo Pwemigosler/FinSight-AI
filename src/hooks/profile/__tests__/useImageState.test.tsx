@@ -1,5 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { useImageState } from "../useImageState";
+import { describe, expect, test, vi } from "vitest";
 
 describe("useImageState hook", () => {
   test("should initialize with default values when no arguments provided", () => {
@@ -44,8 +45,8 @@ describe("useImageState hook", () => {
   test("should start dragging on mouse down", () => {
     const { result } = renderHook(() => useImageState());
     const mouseDownEvent = {
-      preventDefault: jest.fn(),
-      stopPropagation: jest.fn(),
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
       clientX: 100,
       clientY: 100
     } as unknown as React.MouseEvent<HTMLDivElement>;
@@ -71,8 +72,8 @@ describe("useImageState hook", () => {
     
     // Simulate mouse move event
     const mouseMoveEvent = {
-      preventDefault: jest.fn(),
-      stopPropagation: jest.fn(),
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
       clientX: 120,
       clientY: 110
     } as unknown as React.MouseEvent<HTMLDivElement>;
@@ -97,8 +98,8 @@ describe("useImageState hook", () => {
     
     // Simulate mouse move event
     const mouseMoveEvent = {
-      preventDefault: jest.fn(),
-      stopPropagation: jest.fn(),
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
       clientX: 120,
       clientY: 110
     } as unknown as React.MouseEvent<HTMLDivElement>;
@@ -122,8 +123,8 @@ describe("useImageState hook", () => {
     
     // Simulate mouse up event
     const mouseUpEvent = {
-      preventDefault: jest.fn(),
-      stopPropagation: jest.fn()
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn()
     } as unknown as React.MouseEvent<HTMLDivElement>;
     
     act(() => {
