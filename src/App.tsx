@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import Profile from './pages/Profile';
 import Chat from './pages/Chat';
+import Settings from './pages/Settings';
 import AccountSetup from './pages/AccountSetup';
 import { AuthProvider } from './contexts/auth';
 import { AvatarProvider } from './contexts/AvatarContext';
@@ -25,6 +26,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/chat" element={<Chat />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="/setup" element={<AccountSetup />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

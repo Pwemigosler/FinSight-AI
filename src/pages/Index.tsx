@@ -18,11 +18,13 @@ import ReportsView from "@/components/ReportsView";
 import SettingsView from "@/components/SettingsView";
 import Header from "@/components/Header";
 import { useTheme } from "@/contexts/theme/ThemeContext";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState("dashboard");
   const { isDarkMode, isCompactView } = useTheme();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Apply dark mode class to body
@@ -38,6 +40,11 @@ const Index = () => {
   };
 
   const handleNavigation = (view: string) => {
+    if (view === "settings") {
+      navigate('/settings');
+      return;
+    }
+    
     setActiveView(view);
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
@@ -107,8 +114,8 @@ const Index = () => {
           <div className="p-4 border-t border-gray-100 dark:border-gray-700">
             <div className="space-y-1">
               <Button 
-                variant={activeView === "settings" ? "default" : "ghost"}
-                className={`w-full justify-start gap-3 ${activeView === "settings" ? "bg-ptcustom-blue text-white" : "text-gray-500 dark:text-gray-300"}`}
+                variant="ghost"
+                className="w-full justify-start gap-3 text-gray-500 dark:text-gray-300"
                 onClick={() => handleNavigation("settings")}
                 data-view="settings"
               >
@@ -134,7 +141,6 @@ const Index = () => {
               {activeView === "goals" && <GoalTracker />}
               {activeView === "budgets" && <BudgetsView />}
               {activeView === "reports" && <ReportsView />}
-              {activeView === "settings" && <SettingsView />}
             </div>
             
             <div className="md:hidden">
@@ -165,11 +171,6 @@ const Index = () => {
                 <TabsContent value="reports">
                   <div className="p-4">
                     <ReportsView />
-                  </div>
-                </TabsContent>
-                <TabsContent value="settings">
-                  <div className="p-4">
-                    <SettingsView />
                   </div>
                 </TabsContent>
               </Tabs>

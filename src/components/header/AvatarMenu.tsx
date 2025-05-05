@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/auth";
 import { useAvatarDisplay } from "./hooks/useAvatarDisplay";
+import { toast } from "sonner";
 
 interface AvatarMenuProps {
   user: any;
@@ -28,6 +29,17 @@ const AvatarMenu: React.FC<AvatarMenuProps> = ({ user }) => {
     getInitials,
     positionScale 
   } = useAvatarDisplay(user);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+      toast("You have been logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast("Failed to log out. Please try again.");
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -71,7 +83,7 @@ const AvatarMenu: React.FC<AvatarMenuProps> = ({ user }) => {
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           className="text-red-500 cursor-pointer"
-          onClick={logout}
+          onClick={handleLogout}
         >
           <LogOut className="h-4 w-4 mr-2" /> Sign out
         </DropdownMenuItem>
