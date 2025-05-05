@@ -45,14 +45,17 @@ export class UserService {
       // Get auth user data for email
       const { data: authUser } = await supabase.auth.getUser();
       
-      // Combine profile and auth data
+      // Properly cast the JSON data to our TypeScript types
+      // We need to ensure proper typing for avatar_settings and preferences
       const user: User = {
         id: profile.id,
         email: authUser?.user?.email || '',
         name: profile.name,
         avatar: profile.avatar,
-        avatarSettings: profile.avatar_settings,
-        preferences: profile.preferences,
+        // Type cast avatar_settings from Json to AvatarSettings
+        avatarSettings: profile.avatar_settings as unknown as User['avatarSettings'],
+        // Type cast preferences from Json to UserPreferences
+        preferences: profile.preferences as unknown as User['preferences'],
         hasCompletedSetup: profile.has_completed_setup
       };
 
