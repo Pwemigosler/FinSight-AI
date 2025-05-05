@@ -1,3 +1,4 @@
+
 import { AvatarState } from '../types/avatar-types';
 import { getPublicUrl } from '@/utils/supabaseStorage';
 

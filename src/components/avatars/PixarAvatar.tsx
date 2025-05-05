@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { PixarAvatarProps } from "./types/avatar-types";
 import { 
-  getCharacterImageUrl, 
   getAnimationConfig, 
   sizeClasses, 
   getStateGlowClass, 
   getStateAnimationClass 
 } from "./utils/avatar-utils";
 import AvatarStateEffects from "./parts/AvatarStateEffects";
+import { useAvatarImage } from "./hooks/useAvatarImage";
 
 const PixarAvatar: React.FC<PixarAvatarProps> = ({
   state = "idle",
@@ -18,11 +19,14 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
   onClick
 }) => {
   const [currentFrame, setCurrentFrame] = useState(0);
-  const animationRef = useRef<number | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-  const [uniqueId] = useState(`avatar-${Math.random().toString(36).substring(2, 9)}`);
+  const {
+    isLoaded,
+    imageError,
+    uniqueId,
+    handleImageLoad,
+    handleImageError,
+    getImageUrl
+  } = useAvatarImage(characterId);
   
   // Animate the avatar based on its state
   useEffect(() => {
@@ -41,41 +45,8 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
     
     return () => {
       clearInterval(intervalId);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
     };
   }, [state, characterId]);
-
-  const handleImageLoad = () => {
-    console.log(`Successfully loaded image for character: ${characterId}`);
-    setIsLoaded(true);
-    setImageError(false);
-    setRetryCount(0);
-  };
-  
-  const handleImageError = () => {
-    console.error(`Failed to load character image: ${characterId} (attempt ${retryCount + 1})`);
-    
-    // Retry loading the image a few times before showing error state
-    if (retryCount < 2) {
-      setRetryCount(prev => prev + 1);
-      // Try again after a short delay with a cache-busting parameter
-      setTimeout(() => {
-        const img = new Image();
-        const imageUrl = getCharacterImageUrl(characterId, false) + `?t=${Date.now()}`;
-        img.src = imageUrl;
-        img.onload = handleImageLoad;
-        img.onerror = () => {
-          setImageError(true);
-          setIsLoaded(true); // Still mark as loaded so we show something
-        };
-      }, 500);
-    } else {
-      setImageError(true);
-      setIsLoaded(true); // Still mark as loaded so we show something
-    }
-  };
 
   // Get enhanced animation class based on state
   const getEnhancedAnimationClass = () => {
@@ -113,7 +84,7 @@ const PixarAvatar: React.FC<PixarAvatarProps> = ({
       data-character={characterId}
     >
       <img
-        src={getCharacterImageUrl(characterId, imageError) + (retryCount > 0 ? `?retry=${retryCount}&t=${Date.now()}` : '')}
+        src={getImageUrl()}
         alt={`${characterId} avatar in ${state} state`}
         className="w-full h-full object-cover"
         onLoad={handleImageLoad}
