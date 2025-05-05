@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -44,7 +45,16 @@ const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, needsAccountSetup } = useAuth();
+  const { isAuthenticated, needsAccountSetup, loading } = useAuth();
+  
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-finsight-purple border-t-transparent"></div>
+      </div>
+    );
+  }
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -60,7 +70,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Setup route component
 const SetupRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, needsAccountSetup } = useAuth();
+  const { isAuthenticated, needsAccountSetup, loading } = useAuth();
+  
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-finsight-purple border-t-transparent"></div>
+      </div>
+    );
+  }
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -84,7 +103,16 @@ const Settings = () => {
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  
+  // Show loading state during initial auth check
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-finsight-purple border-t-transparent"></div>
+      </div>
+    );
+  }
   
   return (
     <Routes>

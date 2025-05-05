@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/auth";
@@ -14,7 +15,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login, signup } = useAuth();
+  const { login, signup, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,6 +26,11 @@ const Login = () => {
       let success;
       if (isLogin) {
         success = await login(email, password);
+        if (!success) {
+          toast("Login failed", {
+            description: "Please check your email and password."
+          });
+        }
       } else {
         // Verify passwords match for signup
         if (password !== confirmPassword) {
@@ -36,11 +42,25 @@ const Login = () => {
         }
         
         success = await signup(name, email, password);
+        if (!success) {
+          toast("Signup failed", {
+            description: "This email might already be in use or there was a server error."
+          });
+        } else {
+          toast("Account created successfully!", {
+            description: "Please complete your account setup."
+          });
+        }
       }
       
       if (success) {
         navigate("/");
       }
+    } catch (error) {
+      console.error("[Login] Error during authentication:", error);
+      toast(isLogin ? "Login failed" : "Signup failed", {
+        description: "An unexpected error occurred. Please try again."
+      });
     } finally {
       setIsLoading(false);
     }
@@ -139,9 +159,9 @@ const Login = () => {
             <Button
               type="submit"
               className="w-full bg-finsight-purple hover:bg-finsight-purple-dark"
-              disabled={isLoading}
+              disabled={isLoading || authLoading}
             >
-              {isLoading ? (
+              {isLoading || authLoading ? (
                 <span className="flex items-center gap-2">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                   {isLogin ? "Logging in..." : "Signing up..."}

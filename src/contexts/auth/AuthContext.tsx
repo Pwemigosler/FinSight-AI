@@ -2,6 +2,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { User } from "../../types/user";
 import { AuthContextType, BankCard } from "./types";
+import { supabase } from "@/integrations/supabase/client";
 import { UserService } from "./UserService";
 import { BankCardService } from "./BankCardService";
 
@@ -19,61 +20,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [linkedCards, setLinkedCards] = useState<BankCard[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
   
   // Initialize services
   const userService = new UserService();
   const bankCardService = new BankCardService();
 
-  // Load user data and linked cards from localStorage on mount
+  // Initialize auth state with Supabase session
   useEffect(() => {
-    const loadStoredData = () => {
+    const initializeAuth = async () => {
+      setLoading(true);
       try {
-        // Load user data
-        const savedUser = userService.getStoredUser();
-        setUser(savedUser);
+        // Get the current session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        // Set up auth change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (_event, newSession) => {
+            if (newSession?.user) {
+              // Get profile data from Supabase when auth state changes
+              const userData = await userService.getUserProfile(newSession.user.id);
+              setUser(userData);
+            } else {
+              setUser(null);
+            }
+          }
+        );
+
+        // Load initial user data if session exists
+        if (session?.user) {
+          const userData = await userService.getUserProfile(session.user.id);
+          setUser(userData);
+        }
         
         // Load linked cards
         const cards = bankCardService.getCards();
         setLinkedCards(cards);
+        
+        setInitialized(true);
       } catch (error) {
-        console.error("[AuthContext] Error loading stored auth data:", error);
-        // If there's an error parsing, reset the storage
+        console.error("[AuthContext] Error initializing auth:", error);
         localStorage.removeItem("finsight_user");
         localStorage.removeItem("finsight_linked_cards");
       } finally {
+        setLoading(false);
         setInitialized(true);
       }
     };
 
-    loadStoredData();
+    initializeAuth();
   }, []);
-
-  // Add a periodic check for localStorage changes
-  useEffect(() => {
-    if (!initialized) return;
-    
-    // Check for user data changes in localStorage that might have been made by other components
-    const checkInterval = setInterval(() => {
-      try {
-        const storedUser = userService.getStoredUser();
-        
-        // If there's no current user or the localStorage user is newer (determined by timestamps)
-        if (
-          (storedUser && !user) ||
-          (storedUser && user && 
-           JSON.stringify(storedUser) !== JSON.stringify(user))
-        ) {
-          console.log("[AuthContext] Detected user change in localStorage, updating state");
-          setUser(storedUser);
-        }
-      } catch (error) {
-        console.error("[AuthContext] Error checking localStorage:", error);
-      }
-    }, 1000); // Check every second
-    
-    return () => clearInterval(checkInterval);
-  }, [initialized, user]);
 
   // User profile management
   const updateUserProfile = async (updates: Partial<User>): Promise<void> => {
@@ -85,10 +82,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       "Has avatar:", !!updates.avatar,
       "Avatar length:", updates.avatar?.length || 0);
     
+    if (!user) {
+      console.error("[AuthContext] Cannot update profile: No user logged in");
+      return;
+    }
+    
     const updatedUser = await userService.updateProfile(user, updates);
     
     // Only update state if this is the most recent update request
-    // This prevents race conditions where older updates override newer ones
     if (updateTimeStamp >= lastUpdateTime && updatedUser) {
       console.log("[AuthContext] Setting updated user to state:", 
         "Name:", updatedUser.name,
@@ -108,6 +109,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLastUpdateTime(updateTimeStamp);
     
     console.log("[AuthContext] Completing account setup");
+    
+    if (!user) {
+      console.error("[AuthContext] Cannot complete setup: No user logged in");
+      return;
+    }
     
     const updatedUser = await userService.completeAccountSetup(user);
     
@@ -145,32 +151,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Authentication
   const login = async (email: string, password: string): Promise<boolean> => {
-    const loggedInUser = await userService.login(email, password);
-    if (loggedInUser) {
-      setUser(loggedInUser);
-      return true;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error("[AuthContext] Login error:", error.message);
+      return false;
     }
-    return false;
+
+    return true;
   };
 
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
-    const newUser = await userService.signup(name, email, password);
-    if (newUser) {
-      setUser(newUser);
-      return true;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name,
+        }
+      }
+    });
+
+    if (error) {
+      console.error("[AuthContext] Signup error:", error.message);
+      return false;
     }
-    return false;
+
+    return true;
   };
 
-  const logout = () => {
-    userService.logout();
+  const logout = async () => {
+    await supabase.auth.signOut();
+    userService.logout(); // Clear local storage
     setUser(null);
   };
 
   // Check if user needs to complete account setup
   const needsAccountSetup = user !== null && user.hasCompletedSetup !== true;
 
-  // Only render children once we've checked localStorage
+  // Only render children once we've checked localStorage and Supabase
   if (!initialized) {
     return null; // Or a loading spinner
   }
@@ -188,6 +210,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setDefaultCard,
     completeAccountSetup,
     needsAccountSetup,
+    loading
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

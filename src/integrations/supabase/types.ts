@@ -42,6 +42,39 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar: string | null
+          avatar_settings: Json | null
+          created_at: string | null
+          has_completed_setup: boolean | null
+          id: string
+          name: string | null
+          preferences: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar?: string | null
+          avatar_settings?: Json | null
+          created_at?: string | null
+          has_completed_setup?: boolean | null
+          id: string
+          name?: string | null
+          preferences?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar?: string | null
+          avatar_settings?: Json | null
+          created_at?: string | null
+          has_completed_setup?: boolean | null
+          id?: string
+          name?: string | null
+          preferences?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       receipts: {
         Row: {
           file_name: string

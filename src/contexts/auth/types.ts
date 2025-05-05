@@ -22,4 +22,5 @@ export interface AuthContextType {
   setDefaultCard: (cardId: string) => void;
   completeAccountSetup: () => Promise<void>;
   needsAccountSetup: boolean;
+  loading: boolean;
 }

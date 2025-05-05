@@ -1,9 +1,9 @@
 
 import { User } from "../../types/user";
+import { supabase } from "@/integrations/supabase/client";
 import { DefaultsService } from "./services/DefaultsService";
 import { UserStorageService } from "./services/UserStorageService";
 import { ProfileUpdateService } from "./services/ProfileUpdateService";
-import { AuthService } from "./services/AuthService";
 
 /**
  * Main service that coordinates user-related operations
@@ -13,13 +13,59 @@ export class UserService {
   private defaultsService: DefaultsService;
   private storageService: UserStorageService;
   private profileService: ProfileUpdateService;
-  private authService: AuthService;
   
   constructor() {
     this.defaultsService = new DefaultsService();
     this.storageService = new UserStorageService();
     this.profileService = new ProfileUpdateService();
-    this.authService = new AuthService();
+  }
+
+  /**
+   * Retrieves the user profile from Supabase
+   */
+  async getUserProfile(userId: string): Promise<User | null> {
+    try {
+      // Get user data from Supabase
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error("[UserService] Error getting user profile:", error);
+        return null;
+      }
+      
+      if (!profile) {
+        console.error("[UserService] No profile found for user:", userId);
+        return null;
+      }
+      
+      // Get auth user data for email
+      const { data: authUser } = await supabase.auth.getUser();
+      
+      // Combine profile and auth data
+      const user: User = {
+        id: profile.id,
+        email: authUser?.user?.email || '',
+        name: profile.name,
+        avatar: profile.avatar,
+        avatarSettings: profile.avatar_settings,
+        preferences: profile.preferences,
+        hasCompletedSetup: profile.has_completed_setup
+      };
+
+      // Save user data to localStorage for offline access
+      this.storageService.saveUser(user);
+      
+      return user;
+    } catch (error) {
+      console.error("[UserService] Error fetching user profile:", error);
+      
+      // Fall back to stored user if available
+      return this.getStoredUser();
+    }
   }
 
   /**
@@ -44,23 +90,9 @@ export class UserService {
   }
 
   /**
-   * Handles user login
-   */
-  async login(email: string, password: string): Promise<User | null> {
-    return this.authService.login(email, password);
-  }
-
-  /**
-   * Handles user signup
-   */
-  async signup(name: string, email: string, password: string): Promise<User | null> {
-    return this.authService.signup(name, email, password);
-  }
-
-  /**
    * Logs out the user
    */
   logout(): void {
-    this.authService.logout();
+    this.storageService.clearUserData();
   }
 }

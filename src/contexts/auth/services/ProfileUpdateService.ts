@@ -1,6 +1,7 @@
 
 import { User } from "../../../types/user";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { DefaultsService } from "./DefaultsService";
 import { UserStorageService } from "./UserStorageService";
 
@@ -20,33 +21,71 @@ export class ProfileUpdateService {
    * Updates the user profile with new values
    */
   async updateProfile(currentUser: User | null, updates: Partial<User>): Promise<User | null> {
-    return new Promise((resolve, reject) => {
-      try {
-        if (!currentUser) {
-          console.error("[ProfileUpdateService] Cannot update profile: No user logged in");
-          reject(new Error("No user logged in"));
-          return null;
-        }
-        
-        this.logUpdateDetails(updates);
-        
-        // Create a deep copy of the user object
-        const updatedUser = this.applyUserUpdates(currentUser, updates);
-        
-        // Save to localStorage
-        this.storageService.saveUser(updatedUser);
-        toast("Profile updated successfully");
-        
-        // Give the browser a moment to process localStorage changes
-        setTimeout(() => resolve(updatedUser), 50);
-        
-        return updatedUser;
-      } catch (error) {
-        console.error("[ProfileUpdateService] Error updating profile:", error);
-        reject(error);
-        return null;
+    try {
+      if (!currentUser) {
+        console.error("[ProfileUpdateService] Cannot update profile: No user logged in");
+        throw new Error("No user logged in");
       }
-    });
+      
+      this.logUpdateDetails(updates);
+      
+      // Prepare data for Supabase update
+      const supabaseUpdates: any = {};
+      
+      // Handle name field
+      if (updates.name !== undefined) {
+        supabaseUpdates.name = updates.name;
+      }
+      
+      // Handle avatar
+      if (updates.avatar !== undefined) {
+        supabaseUpdates.avatar = updates.avatar;
+      }
+      
+      // Handle avatar settings
+      if (updates.avatarSettings) {
+        supabaseUpdates.avatar_settings = updates.avatarSettings;
+      }
+      
+      // Handle preferences
+      if (updates.preferences) {
+        // Merge with existing preferences if available
+        supabaseUpdates.preferences = {
+          ...currentUser.preferences || {},
+          ...updates.preferences
+        };
+      }
+      
+      // Update profile in Supabase
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(supabaseUpdates)
+        .eq('id', currentUser.id)
+        .select();
+      
+      if (error) {
+        console.error("[ProfileUpdateService] Supabase update error:", error);
+        throw error;
+      }
+      
+      if (!data || data.length === 0) {
+        console.error("[ProfileUpdateService] No data returned from update");
+        throw new Error("No data returned from update");
+      }
+      
+      // Create a deep copy of the user object
+      const updatedUser = this.applyUserUpdates(currentUser, updates);
+      
+      // Save to localStorage as a backup
+      this.storageService.saveUser(updatedUser);
+      toast("Profile updated successfully");
+      
+      return updatedUser;
+    } catch (error) {
+      console.error("[ProfileUpdateService] Error updating profile:", error);
+      toast("Failed to update profile");
+      return null;
+    }
   }
 
   /**
@@ -119,50 +158,52 @@ export class ProfileUpdateService {
   }
 
   /**
-   * Marks the account setup as complete
+   * Marks the account setup as complete in Supabase
    */
   async completeAccountSetup(currentUser: User | null): Promise<User | null> {
-    return new Promise((resolve, reject) => {
-      try {
-        if (!currentUser) {
-          console.error("[ProfileUpdateService] Cannot complete setup: No user logged in");
-          reject(new Error("No user logged in"));
-          return null;
-        }
-        
-        // IMPORTANT: Get the most recent user data from localStorage
-        // This fixes the issue where profile data is lost when completing setup
-        const freshUserData = this.storageService.getStoredUser() || currentUser;
-        
-        // Make a complete copy of the current user object
-        const updatedUser = { ...freshUserData };
-        
-        // Only update the hasCompletedSetup flag, preserving everything else
-        updatedUser.hasCompletedSetup = true;
-
-        console.log("[ProfileUpdateService] Completing setup with complete user data:", 
-          "Name:", updatedUser.name,
-          "User has avatar:", !!updatedUser.avatar,
-          "Avatar length:", updatedUser.avatar?.length || 0,
-          "Avatar settings:", updatedUser.avatarSettings ? 
-            `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
-            "none");
-        
-        // Save to localStorage with full data
-        this.storageService.saveUser(updatedUser);
-        
-        console.log("[ProfileUpdateService] Account setup completed successfully");
-        toast("Account setup completed!");
-        
-        // Give the browser time to process localStorage changes
-        setTimeout(() => resolve(updatedUser), 100);
-        
-        return updatedUser;
-      } catch (error) {
-        console.error("[ProfileUpdateService] Error completing setup:", error);
-        reject(error);
-        return null;
+    try {
+      if (!currentUser) {
+        console.error("[ProfileUpdateService] Cannot complete setup: No user logged in");
+        throw new Error("No user logged in");
       }
-    });
+      
+      // Update the has_completed_setup flag in Supabase
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ has_completed_setup: true })
+        .eq('id', currentUser.id)
+        .select();
+      
+      if (error) {
+        console.error("[ProfileUpdateService] Supabase update error:", error);
+        throw error;
+      }
+      
+      // Make a complete copy of the current user object
+      const updatedUser = { ...currentUser };
+      
+      // Only update the hasCompletedSetup flag, preserving everything else
+      updatedUser.hasCompletedSetup = true;
+
+      console.log("[ProfileUpdateService] Completing setup with complete user data:", 
+        "Name:", updatedUser.name,
+        "User has avatar:", !!updatedUser.avatar,
+        "Avatar length:", updatedUser.avatar?.length || 0,
+        "Avatar settings:", updatedUser.avatarSettings ? 
+          `zoom:${updatedUser.avatarSettings.zoom}, pos:(${updatedUser.avatarSettings.position.x},${updatedUser.avatarSettings.position.y})` : 
+          "none");
+      
+      // Save to localStorage with full data as a backup
+      this.storageService.saveUser(updatedUser);
+      
+      console.log("[ProfileUpdateService] Account setup completed successfully");
+      toast("Account setup completed!");
+      
+      return updatedUser;
+    } catch (error) {
+      console.error("[ProfileUpdateService] Error completing setup:", error);
+      toast("Failed to complete account setup");
+      return null;
+    }
   }
 }
