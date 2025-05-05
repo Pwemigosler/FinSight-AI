@@ -15,7 +15,6 @@ import TransactionsView from "@/components/TransactionsView";
 import GoalTracker from "@/components/GoalTracker";
 import BudgetsView from "@/components/BudgetsView";
 import ReportsView from "@/components/ReportsView";
-import SettingsView from "@/components/SettingsView";
 import Header from "@/components/Header";
 import { useTheme } from "@/contexts/theme/ThemeContext";
 import { useNavigate } from "react-router-dom";

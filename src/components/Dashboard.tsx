@@ -35,7 +35,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="bg-white p-3 border border-gray-100 rounded-md shadow-md">
         <p className="font-medium">{`${label}`}</p>
-        <p className="font-bold text-finsight-purple">{`$${payload[0].value}`}</p>
+        <p className="font-bold text-ptcustom-blue">{`$${payload[0].value}`}</p>
       </div>
     );
   }
@@ -109,7 +109,7 @@ const Dashboard = () => {
               <h2 className="text-lg font-bold">Spending Trends</h2>
               <button 
                 onClick={handleViewReportsClick}
-                className="flex items-center gap-1 text-sm font-medium text-finsight-purple hover:underline cursor-pointer"
+                className="flex items-center gap-1 text-sm font-medium text-ptcustom-blue hover:underline cursor-pointer"
               >
                 View Details
                 <ArrowUpRight className="h-4 w-4" />
@@ -135,10 +135,10 @@ const Dashboard = () => {
                   <Line
                     type="monotone"
                     dataKey="amount"
-                    stroke="#9b87f5"
+                    stroke="#0EA5E9"
                     strokeWidth={2}
-                    dot={{ fill: '#9b87f5', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: '#6E59A5' }}
+                    dot={{ fill: '#0EA5E9', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: '#0284C7' }}
                   />
                 </RechartsLineChart>
               </ResponsiveContainer>

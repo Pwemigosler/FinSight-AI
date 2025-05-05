@@ -36,8 +36,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             className="flex items-center cursor-pointer" 
             onClick={handleLogoClick}
           >
-            <h1 className="text-xl font-bold text-finsight-purple-dark">
-              FinSight<span className="ml-1 text-finsight-purple">AI</span>
+            <h1 className="text-xl font-bold text-ptcustom-blue-dark">
+              FinSight<span className="ml-1 text-ptcustom-blue">AI</span>
             </h1>
           </div>
         </div>

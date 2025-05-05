@@ -1,3 +1,4 @@
+
 import { ArrowUpRight, Edit, Check, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { getBudgetCategories, updateCategoryAmount } from '@/services/fundAllocationService';
@@ -110,7 +111,7 @@ const BudgetOverview = () => {
         <h2 className="text-lg font-bold">Budget Overview</h2>
         <button 
           onClick={handleViewAllClick}
-          className="flex items-center gap-1 text-sm font-medium text-finsight-purple hover:underline"
+          className="flex items-center gap-1 text-sm font-medium text-ptcustom-blue hover:underline"
         >
           View All
           <ArrowUpRight className="h-4 w-4" />
@@ -119,7 +120,7 @@ const BudgetOverview = () => {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-40">
-          <Loader2 className="h-6 w-6 animate-spin text-finsight-purple" />
+          <Loader2 className="h-6 w-6 animate-spin text-ptcustom-blue" />
         </div>
       ) : categories.length === 0 ? (
         <div className="text-center py-4 text-gray-500">
@@ -170,7 +171,7 @@ const BudgetOverview = () => {
               <Progress 
                 value={(Number(category.spent) / Number(category.allocated)) * 100} 
                 className="h-2 bg-gray-100" 
-                indicatorClassName={Number(category.spent) > Number(category.allocated) ? 'bg-finsight-red' : category.color}
+                indicatorClassName={Number(category.spent) > Number(category.allocated) ? 'bg-ptcustom-red' : category.color}
               />
             </div>
           ))}

@@ -61,7 +61,7 @@ const AvatarMenu: React.FC<AvatarMenuProps> = ({ user }) => {
                 data-position-scale={positionScale}
               />
             ) : null}
-            <AvatarFallback className="bg-finsight-purple text-white">{getInitials()}</AvatarFallback>
+            <AvatarFallback className="bg-ptcustom-blue text-white">{getInitials()}</AvatarFallback>
           </Avatar>
           <span className="text-sm font-medium hidden md:inline">{user?.name || "User"}</span>
           <ChevronDown className="h-4 w-4 text-gray-500" />
