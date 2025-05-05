@@ -16,75 +16,46 @@ export const useProfileAvatar = () => {
   const { user, updateUserProfile } = useAuth();
 
   // Use the extracted image state hook
-  const {
-    zoomLevel,
-    setZoomLevel,
-    imagePosition,
-    setImagePosition,
-    handleImageMouseDown,
-    handleImageMouseMove,
-    handleImageMouseUp,
-    isDraggingImage
-  } = useImageState(user?.avatarSettings?.zoom, user?.avatarSettings?.position);
-
+  const imageStateHook = useImageState(user?.avatarSettings?.zoom, user?.avatarSettings?.position);
+  
   // Use file handling hook
-  const {
-    fileInputRef,
-    previewImage,
-    setPreviewImage,
-    isDragging,
-    handleFileSelect,
-    handleFileChange,
-    handleDragOver,
-    handleDragLeave,
-    handleDrop
-  } = useAvatarFileHandler();
-
+  const fileHandlerHook = useAvatarFileHandler();
+  
   // Use dialog state hook
-  const {
-    isDialogOpen,
-    setIsDialogOpen,
-    avatarKey,
-    handleDialogClose,
-    handleProfilePictureClick: baseHandleProfilePictureClick,
-    updateAvatarKey
-  } = useAvatarDialog();
-
+  const dialogHook = useAvatarDialog();
+  
   // Use avatar actions hook
-  const {
-    handleDeleteAvatar: baseHandleDeleteAvatar,
-    handleUpload: baseHandleUpload
-  } = useAvatarActions(updateUserProfile);
+  const { handleDeleteAvatar, handleUpload } = useAvatarActions(updateUserProfile);
 
   // Wrapped handlers to provide necessary parameters
   const handleProfilePictureClick = () => {
-    baseHandleProfilePictureClick(
+    dialogHook.handleProfilePictureClick(
       user?.avatar,
-      previewImage,
-      setPreviewImage,
+      fileHandlerHook.previewImage,
+      fileHandlerHook.setPreviewImage,
       user?.avatarSettings,
-      setZoomLevel,
-      setImagePosition
+      imageStateHook.setZoomLevel,
+      imageStateHook.setImagePosition
     );
   };
 
-  const handleDeleteAvatar = async () => {
-    await baseHandleDeleteAvatar(
-      setPreviewImage,
-      setZoomLevel,
-      setImagePosition,
-      setIsDialogOpen,
-      updateAvatarKey
+  const handleAvatarDelete = async () => {
+    await handleDeleteAvatar(
+      fileHandlerHook.setPreviewImage,
+      imageStateHook.setZoomLevel,
+      imageStateHook.setImagePosition,
+      dialogHook.setIsDialogOpen,
+      dialogHook.updateAvatarKey
     );
   };
 
-  const handleUpload = () => {
-    baseHandleUpload(
-      previewImage,
-      zoomLevel,
-      imagePosition,
-      setIsDialogOpen,
-      updateAvatarKey
+  const handleAvatarUpload = () => {
+    handleUpload(
+      fileHandlerHook.previewImage,
+      imageStateHook.zoomLevel,
+      imageStateHook.imagePosition,
+      dialogHook.setIsDialogOpen,
+      dialogHook.updateAvatarKey
     );
   };
 
@@ -102,48 +73,55 @@ export const useProfileAvatar = () => {
       
       // Always update preview image when user avatar changes
       if (user.avatar) {
-        setPreviewImage(user.avatar);
+        fileHandlerHook.setPreviewImage(user.avatar);
         console.log("[Profile] Setting preview image from user avatar, length:", user.avatar.length);
       } else {
         console.log("[Profile] No avatar found in user data");
-        setPreviewImage(null);
+        fileHandlerHook.setPreviewImage(null);
       }
       
       // Initialize zoom and position from user settings if available
       if (user.avatarSettings) {
-        setZoomLevel(user.avatarSettings.zoom);
-        setImagePosition(user.avatarSettings.position);
+        imageStateHook.setZoomLevel(user.avatarSettings.zoom);
+        imageStateHook.setImagePosition(user.avatarSettings.position);
         console.log("[Profile] Setting zoom and position from user settings");
       }
       
       // Force re-render of avatar
-      updateAvatarKey();
+      dialogHook.updateAvatarKey();
     }
-  }, [user, setZoomLevel, setImagePosition, setPreviewImage, updateAvatarKey]);
+  }, [user, imageStateHook.setZoomLevel, imageStateHook.setImagePosition, fileHandlerHook.setPreviewImage, dialogHook.updateAvatarKey]);
 
   return {
-    isDialogOpen,
-    previewImage,
-    isDragging,
-    zoomLevel,
-    setZoomLevel,
-    imagePosition,
-    setImagePosition,
-    avatarKey,
-    fileInputRef,
+    // Dialog props
+    isDialogOpen: dialogHook.isDialogOpen,
+    avatarKey: dialogHook.avatarKey,
+    handleDialogClose: dialogHook.handleDialogClose,
+    
+    // Image state props
+    zoomLevel: imageStateHook.zoomLevel,
+    setZoomLevel: imageStateHook.setZoomLevel,
+    imagePosition: imageStateHook.imagePosition,
+    setImagePosition: imageStateHook.setImagePosition,
+    handleImageMouseDown: imageStateHook.handleImageMouseDown,
+    handleImageMouseMove: imageStateHook.handleImageMouseMove,
+    handleImageMouseUp: imageStateHook.handleImageMouseUp,
+    isDraggingImage: imageStateHook.isDraggingImage,
+    
+    // File handler props
+    previewImage: fileHandlerHook.previewImage,
+    fileInputRef: fileHandlerHook.fileInputRef,
+    isDragging: fileHandlerHook.isDragging,
+    handleFileSelect: fileHandlerHook.handleFileSelect,
+    handleFileChange: fileHandlerHook.handleFileChange,
+    handleDragOver: fileHandlerHook.handleDragOver,
+    handleDragLeave: fileHandlerHook.handleDragLeave,
+    handleDrop: fileHandlerHook.handleDrop,
+    
+    // Wrapped handlers
     handleProfilePictureClick,
-    handleFileSelect,
-    handleFileChange,
-    handleDragOver,
-    handleDragLeave,
-    handleDrop,
-    handleDialogClose,
-    handleUpload,
-    handleDeleteAvatar,
-    handleImageMouseDown,
-    handleImageMouseMove,
-    handleImageMouseUp,
-    isDraggingImage
+    handleDeleteAvatar: handleAvatarDelete,
+    handleUpload: handleAvatarUpload
   };
 };
 
