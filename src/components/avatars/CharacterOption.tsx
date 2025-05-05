@@ -26,23 +26,18 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
   const [retryCount, setRetryCount] = useState(0);
   const [imageSrc, setImageSrc] = useState(character.thumbnailUrl);
   
-  // Update image source when on login route
+  // Add timestamp to image URL to prevent caching issues
   useEffect(() => {
-    if (isLoginRoute() && !character.thumbnailUrl.startsWith('/characters/')) {
-      // For login route, ensure we're using local paths
-      const characterId = character.id.toLowerCase();
-      setImageSrc(`/characters/${characterId}.png?t=${Date.now()}`);
-    } else {
-      setImageSrc(`${character.thumbnailUrl}?t=${Date.now()}`);
-    }
-  }, [character.id, character.thumbnailUrl]);
+    setImageSrc(`${character.thumbnailUrl}?t=${Date.now()}`);
+  }, [character.thumbnailUrl]);
   
   const handleImageError = () => {
     console.error(`Failed to load character thumbnail: ${character.id} from URL: ${imageSrc}`);
     
-    // Try once more with explicit path if on login route
-    if (isLoginRoute() && retryCount < 1) {
+    if (retryCount < 1) {
       setRetryCount(prev => prev + 1);
+      
+      // Try with local fallback path
       const fallbackUrl = `/characters/${character.id.toLowerCase()}.png?t=${Date.now()}`;
       console.log(`Trying fallback local URL: ${fallbackUrl}`);
       setImageSrc(fallbackUrl);

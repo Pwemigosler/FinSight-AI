@@ -1,9 +1,23 @@
 
 import { CharacterData } from "../CharacterOption";
 import { characterImages } from "./avatar-utils";
+import { getPublicUrl } from "@/utils/supabaseStorage";
 
-// Ensure paths include the full local URL for login page
+// Get full character thumbnail URL with preference for Supabase storage
 const getFullThumbnailPath = (characterId: string): string => {
+  // Try to get Supabase URL first
+  try {
+    const imagePath = characterImages[characterId as keyof typeof characterImages];
+    const supabaseUrl = getPublicUrl(imagePath);
+    
+    if (supabaseUrl) {
+      return supabaseUrl;
+    }
+  } catch (error) {
+    console.error(`Error getting Supabase URL for ${characterId}:`, error);
+  }
+  
+  // Fallback to local path
   return `/characters/${characterImages[characterId as keyof typeof characterImages]}`;
 };
 

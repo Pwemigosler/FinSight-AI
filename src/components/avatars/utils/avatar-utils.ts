@@ -1,4 +1,3 @@
-
 import { AvatarState } from '../types/avatar-types';
 import { getPublicUrl } from '@/utils/supabaseStorage';
 
@@ -32,29 +31,22 @@ export const getCharacterImageUrl = (characterId: string, imageError: boolean): 
   const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
   const imagePath = characterImages[finalId as keyof typeof characterImages];
   
-  // Prepare local path for the character image
+  // Prepare local path for the character image as fallback
   const localUrl = `/characters/${imagePath}`;
   
-  // On login page, always prioritize local files
-  if (isLoginRoute()) {
-    console.log(`Login route detected, using local file for character ${finalId}`);
-    return localUrl;
-  }
-  
-  // For authenticated routes, try Supabase URL first
-  if (!imageError) {
-    try {
-      const supabaseUrl = getPublicUrl(imagePath);
-      if (supabaseUrl) {
-        console.log(`Loading character ${characterId} from Supabase storage`);
-        return supabaseUrl;
-      }
-    } catch (error) {
-      console.error(`Error getting Supabase URL for ${imagePath}:`, error);
-      // Continue to fallback
+  // Always try to get the Supabase URL first, even on login page
+  try {
+    const supabaseUrl = getPublicUrl(imagePath);
+    if (supabaseUrl) {
+      console.log(`Loading character ${characterId} from Supabase storage`);
+      return supabaseUrl;
     }
+  } catch (error) {
+    console.error(`Error getting Supabase URL for ${imagePath}:`, error);
+    // Continue to fallback
   }
   
+  // Use local fallback if Supabase URL isn't available
   console.log(`Using local file fallback for character ${finalId}`);
   return localUrl;
 };

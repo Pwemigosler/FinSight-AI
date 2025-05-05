@@ -16,15 +16,8 @@ const CharacterGrid: React.FC<CharacterGridProps> = ({
   onSelectCharacter,
   addTimeStampToUrl
 }) => {
-  // Process character URLs based on login status
+  // Process character URLs to ensure they have proper timestamps
   const processCharacterUrl = (character: CharacterData): CharacterData => {
-    if (isLoginRoute() && !character.thumbnailUrl.startsWith('/characters/')) {
-      // Force local path for login page
-      return {
-        ...character,
-        thumbnailUrl: `/characters/${character.id.toLowerCase()}.png`
-      };
-    }
     return {
       ...character,
       thumbnailUrl: addTimeStampToUrl(character.thumbnailUrl)
