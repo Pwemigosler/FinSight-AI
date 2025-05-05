@@ -130,8 +130,12 @@ export class ProfileUpdateService {
           return null;
         }
         
+        // IMPORTANT: Get the most recent user data from localStorage
+        // This fixes the issue where profile data is lost when completing setup
+        const freshUserData = this.storageService.getStoredUser() || currentUser;
+        
         // Make a complete copy of the current user object
-        const updatedUser = { ...currentUser };
+        const updatedUser = { ...freshUserData };
         
         // Only update the hasCompletedSetup flag, preserving everything else
         updatedUser.hasCompletedSetup = true;

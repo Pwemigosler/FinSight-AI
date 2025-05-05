@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [linkedCards, setLinkedCards] = useState<BankCard[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
   
   // Initialize services
   const userService = new UserService();
@@ -48,18 +49,81 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loadStoredData();
   }, []);
 
+  // Add a periodic check for localStorage changes
+  useEffect(() => {
+    if (!initialized) return;
+    
+    // Check for user data changes in localStorage that might have been made by other components
+    const checkInterval = setInterval(() => {
+      try {
+        const storedUser = userService.getStoredUser();
+        
+        // If there's no current user or the localStorage user is newer (determined by timestamps)
+        if (
+          (storedUser && !user) ||
+          (storedUser && user && 
+           JSON.stringify(storedUser) !== JSON.stringify(user))
+        ) {
+          console.log("[AuthContext] Detected user change in localStorage, updating state");
+          setUser(storedUser);
+        }
+      } catch (error) {
+        console.error("[AuthContext] Error checking localStorage:", error);
+      }
+    }, 1000); // Check every second
+    
+    return () => clearInterval(checkInterval);
+  }, [initialized, user]);
+
   // User profile management
   const updateUserProfile = async (updates: Partial<User>): Promise<void> => {
+    const updateTimeStamp = Date.now();
+    setLastUpdateTime(updateTimeStamp);
+    
+    console.log("[AuthContext] Updating user profile with:", 
+      "Name:", updates.name,
+      "Has avatar:", !!updates.avatar,
+      "Avatar length:", updates.avatar?.length || 0);
+    
     const updatedUser = await userService.updateProfile(user, updates);
-    if (updatedUser) {
+    
+    // Only update state if this is the most recent update request
+    // This prevents race conditions where older updates override newer ones
+    if (updateTimeStamp >= lastUpdateTime && updatedUser) {
+      console.log("[AuthContext] Setting updated user to state:", 
+        "Name:", updatedUser.name,
+        "Has avatar:", !!updatedUser.avatar,
+        "Avatar length:", updatedUser.avatar?.length || 0);
+      
       setUser(updatedUser);
+    } else if (!updatedUser) {
+      console.error("[AuthContext] Failed to update user profile");
+    } else {
+      console.log("[AuthContext] Skipped stale user update");
     }
   };
 
   const completeAccountSetup = async (): Promise<void> => {
+    const updateTimeStamp = Date.now();
+    setLastUpdateTime(updateTimeStamp);
+    
+    console.log("[AuthContext] Completing account setup");
+    
     const updatedUser = await userService.completeAccountSetup(user);
-    if (updatedUser) {
+    
+    // Only update state if this is the most recent update request
+    if (updateTimeStamp >= lastUpdateTime && updatedUser) {
+      console.log("[AuthContext] Setting completed setup user to state:", 
+        "Name:", updatedUser.name,
+        "Has avatar:", !!updatedUser.avatar,
+        "Avatar length:", updatedUser.avatar?.length || 0,
+        "Has completed setup:", updatedUser.hasCompletedSetup);
+      
       setUser(updatedUser);
+    } else if (!updatedUser) {
+      console.error("[AuthContext] Failed to complete account setup");
+    } else {
+      console.log("[AuthContext] Skipped stale user update");
     }
   };
 

@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { User } from "../../../types/user";
 import { DefaultsService } from "./DefaultsService";
@@ -8,6 +7,7 @@ import { DefaultsService } from "./DefaultsService";
  */
 export class UserStorageService {
   private defaultsService: DefaultsService;
+  private lastSaveTimestamp: number = 0;
   
   constructor() {
     this.defaultsService = new DefaultsService();
@@ -56,18 +56,52 @@ export class UserStorageService {
   }
 
   /**
-   * Saves user to localStorage
+   * Safely saves user to localStorage with a check for possible race conditions
+   * by verifying there hasn't been a more recent save operation
    */
   saveUser(user: User): void {
-    console.log("[UserStorageService] Saving updated user:", 
+    const saveTime = Date.now();
+    this.lastSaveTimestamp = saveTime;
+    
+    // Log save operation details
+    console.log("[UserStorageService] Saving user at timestamp", saveTime, ":", 
       "Name:", user.name,
       "Avatar exists:", !!user.avatar, 
+      "Avatar length:", user.avatar?.length || 0,
       "Avatar settings:", user.avatarSettings ? 
         `zoom:${user.avatarSettings.zoom}, pos:(${user.avatarSettings.position.x},${user.avatarSettings.position.y})` : 
         "none",
-      "Preferences:", user.preferences ? JSON.stringify(user.preferences) : "none");
+      "Preferences:", user.preferences ? JSON.stringify(user.preferences) : "none",
+      "HasCompletedSetup:", user.hasCompletedSetup);
     
-    localStorage.setItem("finsight_user", JSON.stringify(user));
+    // Wait a bit before saving to ensure any newer save operations happen first
+    setTimeout(() => {
+      // Only save if this is still the most recent save operation
+      if (saveTime >= this.lastSaveTimestamp) {
+        try {
+          // Check for any newer data that might have been saved while we were waiting
+          const currentData = localStorage.getItem("finsight_user");
+          if (currentData) {
+            const currentUser = JSON.parse(currentData);
+            
+            // If current data is newer (has completed setup) and we're trying to save data that hasn't,
+            // we should merge the data instead of overwriting
+            if (currentUser.hasCompletedSetup && !user.hasCompletedSetup) {
+              console.log("[UserStorageService] Merging with more recent user data");
+              // Keep the completed setup flag from the current data
+              user.hasCompletedSetup = true;
+            }
+          }
+          
+          localStorage.setItem("finsight_user", JSON.stringify(user));
+          console.log("[UserStorageService] User saved successfully at timestamp", saveTime);
+        } catch (error) {
+          console.error("[UserStorageService] Error saving user:", error);
+        }
+      } else {
+        console.log("[UserStorageService] Skipped outdated save operation from timestamp", saveTime);
+      }
+    }, 10);
   }
 
   /**

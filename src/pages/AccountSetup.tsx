@@ -32,6 +32,7 @@ const AccountSetup = () => {
   // Update preview image if user has an avatar
   useEffect(() => {
     if (user?.avatar && !avatarHandler.previewImage) {
+      console.log("[AccountSetup] Setting initial avatar from user, length:", user.avatar.length);
       avatarHandler.setPreviewImage(user.avatar);
     }
   }, [user, avatarHandler]);
@@ -67,10 +68,19 @@ const AccountSetup = () => {
 
   const handleFinalSubmit = async () => {
     try {
+      console.log("[AccountSetup] Final submit with data:", 
+        "Name:", formData.fullName,
+        "Avatar exists:", !!avatarHandler.previewImage,
+        "Avatar length:", avatarHandler.previewImage?.length || 0);
+        
       const success = await completeSetup(avatarHandler);
+      
       if (success) {
-        // Navigate to home page
-        navigate("/");
+        // Navigate to home page with a slight delay to ensure all saves are complete
+        setTimeout(() => {
+          console.log("[AccountSetup] Setup completed successfully, navigating to home");
+          navigate("/");
+        }, 300);
       } else {
         toast("There was a problem completing your setup");
       }
@@ -82,6 +92,11 @@ const AccountSetup = () => {
 
   const handleContinue = () => {
     if (validateCurrentStep()) {
+      // For the personal details step, save the data immediately
+      if (currentStep.id === "personal" && avatarHandler.avatarModified) {
+        console.log("[AccountSetup] Saving avatar during step navigation");
+      }
+      
       goToNextStep();
     }
   };

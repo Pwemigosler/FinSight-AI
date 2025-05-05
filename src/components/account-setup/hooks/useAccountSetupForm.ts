@@ -66,7 +66,8 @@ export const useAccountSetupForm = () => {
           appNotifications: formData.appNotifications,
           assistantCharacter: formData.assistantCharacter,
         },
-        hasCompletedSetup: true
+        // We'll set this flag separately after profile update succeeds
+        // Do not set hasCompletedSetup here to avoid race conditions
       };
       
       // Add avatar data if it was uploaded or modified
@@ -82,13 +83,21 @@ export const useAccountSetupForm = () => {
         };
       }
       
-      // Save all user data in one operation
+      console.log("[AccountSetup] Saving profile data:", 
+        "Name:", finalUserData.name,
+        "Has avatar:", !!finalUserData.avatar,
+        "Avatar length:", finalUserData.avatar?.length || 0);
+      
+      // First update the user profile with all data
       await updateUserProfile(finalUserData);
+
+      // Wait a moment to ensure the data is saved in localStorage
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Set the character in avatar context
       setCharacterId(formData.assistantCharacter);
       
-      // Mark setup as complete
+      // Mark setup as complete with separate call to ensure the most recent data is used
       await completeAccountSetup();
       
       return true;
