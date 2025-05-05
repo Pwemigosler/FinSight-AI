@@ -18,6 +18,7 @@ const CharacterGrid: React.FC<CharacterGridProps> = ({
 }) => {
   // Process character URLs to ensure they have proper timestamps
   const processCharacterUrl = (character: CharacterData): CharacterData => {
+    // Always ensure the URL is fresh with a timestamp
     return {
       ...character,
       thumbnailUrl: addTimeStampToUrl(character.thumbnailUrl)

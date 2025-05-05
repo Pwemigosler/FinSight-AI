@@ -5,19 +5,20 @@ import { getPublicUrl } from "@/utils/supabaseStorage";
 
 // Get full character thumbnail URL with preference for Supabase storage
 const getFullThumbnailPath = (characterId: string): string => {
-  // Try to get Supabase URL first
+  // Always try to get Supabase URL first
   try {
     const imagePath = characterImages[characterId as keyof typeof characterImages];
     const supabaseUrl = getPublicUrl(imagePath);
     
     if (supabaseUrl) {
+      console.log(`Using Supabase URL for character ${characterId}`);
       return supabaseUrl;
     }
   } catch (error) {
     console.error(`Error getting Supabase URL for ${characterId}:`, error);
   }
   
-  // Fallback to local path
+  // Fallback to local path only when Supabase is unavailable
   return `/characters/${characterImages[characterId as keyof typeof characterImages]}`;
 };
 
