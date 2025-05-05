@@ -11,8 +11,13 @@
   --ptcustom-green: #10b981;
   --ptcustom-red: #ef4444;
   --ptcustom-yellow: #f59e0b;
+  --ptcustom-orange: #f97316;
   --ptcustom-gray: #8e9196;
   --ptcustom-gray-light: #f1f0fb;
+  
+  /* Adding finsight color variables for compatibility */
+  --finsight-purple: #0EA5E9;
+  --finsight-purple-dark: #0284C7;
 }
 
 @layer base {
@@ -71,6 +76,7 @@
   }
 }
 
+/* Original ptcustom color classes */
 .bg-ptcustom-blue {
   background-color: var(--ptcustom-blue);
 }
@@ -129,4 +135,41 @@
 
 .text-ptcustom-gray {
   color: var(--ptcustom-gray);
+}
+
+/* CSS compatibility layer for legacy finsight color classes */
+.bg-finsight-purple {
+  background-color: var(--ptcustom-blue);
+}
+
+.bg-finsight-purple-dark {
+  background-color: var(--ptcustom-blue-dark);
+}
+
+.text-finsight-purple {
+  color: var(--ptcustom-blue);
+}
+
+.text-finsight-purple-dark {
+  color: var(--ptcustom-blue-dark);
+}
+
+.border-finsight-purple {
+  border-color: var(--ptcustom-blue);
+}
+
+.hover\:bg-finsight-purple:hover {
+  background-color: var(--ptcustom-blue);
+}
+
+.hover\:bg-finsight-purple-dark:hover {
+  background-color: var(--ptcustom-blue-dark);
+}
+
+.hover\:text-finsight-purple:hover {
+  color: var(--ptcustom-blue);
+}
+
+.hover\:border-finsight-purple:hover {
+  border-color: var(--ptcustom-blue);
 }

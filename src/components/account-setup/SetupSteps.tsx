@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Check } from "lucide-react";
 
 // Define the setup steps
 export type SetupStep = {
@@ -70,5 +71,3 @@ export const SetupProgress: React.FC<SetupProgressProps> = ({ steps, currentStep
     </div>
   );
 };
-
-import { Check } from "lucide-react";
