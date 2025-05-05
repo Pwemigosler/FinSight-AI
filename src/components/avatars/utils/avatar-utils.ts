@@ -26,18 +26,19 @@ export const getCharacterImageUrl = (characterId: string, imageError: boolean): 
   const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
   const imagePath = characterImages[finalId as keyof typeof characterImages];
   
-  // Try to get URL from Supabase storage first
-  const supabaseUrl = getPublicUrl(imagePath);
-  
-  if (supabaseUrl) {
-    console.log(`Character requested: ${characterId}, using: ${finalId}, Supabase URL: ${supabaseUrl}`);
-    return supabaseUrl;
-  } 
-  
-  // If Supabase URL isn't available, try local path
+  // Try to get URL from local public folder first for unauthenticated state
   const localUrl = `/characters/${imagePath}`;
-  console.log(`Supabase URL not available for ${finalId}, trying local path: ${localUrl}`);
   
+  // Only try Supabase URL if we're not already in an error state
+  if (!imageError) {
+    const supabaseUrl = getPublicUrl(imagePath);
+    if (supabaseUrl) {
+      console.log(`Loading character ${characterId} from Supabase storage`);
+      return supabaseUrl;
+    }
+  }
+  
+  console.log(`Loading character ${characterId} from local files`);
   return localUrl;
 };
 

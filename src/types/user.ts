@@ -1,4 +1,3 @@
-
 // This file defines the types for user data in the application
 
 export interface AvatarSettings {
@@ -18,6 +17,7 @@ export interface UserPreferences {
   emailNotifications?: boolean;
   appNotifications?: boolean;
   language?: string;
+  speechEnabled?: boolean;  // Added this field
 }
 
 export interface User {
