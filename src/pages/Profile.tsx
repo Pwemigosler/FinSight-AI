@@ -1,11 +1,9 @@
-
 import React from "react";
 import Header from "@/components/Header";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileInfoForm from "@/components/profile/ProfileInfoForm";
 import AvatarEditor from "@/components/profile/AvatarEditor";
-import { useProfileAvatar } from "@/hooks/profile";
-import { useProfileForm } from "@/hooks/useProfileForm";
+import { useProfileAvatar, useProfileForm } from "@/hooks/profile";
 import { useAuth } from "@/contexts/auth";
 
 const Profile = () => {

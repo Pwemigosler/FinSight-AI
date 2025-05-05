@@ -3,6 +3,11 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "sonner";
 
+/**
+ * Hook to manage profile form state and actions
+ * 
+ * @returns Form state and handlers for profile information
+ */
 export const useProfileForm = () => {
   const { user, updateUserProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -39,6 +44,7 @@ export const useProfileForm = () => {
 
   return {
     isEditing,
+    setIsEditing,
     profileName,
     setProfileName,
     profileEmail,
@@ -47,3 +53,5 @@ export const useProfileForm = () => {
     handleCancel
   };
 };
+
+export default useProfileForm;
