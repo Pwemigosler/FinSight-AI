@@ -1,3 +1,4 @@
+
 import { ArrowUpRight, Edit, Check, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { getBudgetCategories, updateCategoryAmount } from '@/services/fundAllocationService';
@@ -8,7 +9,11 @@ import { toast } from 'sonner';
 import { BudgetCategory } from '@/types/budget';
 import { useAuth } from '@/contexts/auth';
 
-const BudgetOverview = () => {
+interface BudgetOverviewProps {
+  onNavigate?: (view: string) => void;
+}
+
+const BudgetOverview = ({ onNavigate }: BudgetOverviewProps) => {
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
@@ -78,6 +83,12 @@ const BudgetOverview = () => {
     setEditingCategory(null);
   };
 
+  const handleViewAll = () => {
+    if (onNavigate) {
+      onNavigate('budgets');
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="space-y-4">
@@ -95,7 +106,10 @@ const BudgetOverview = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-lg font-bold">Budget Overview</h2>
-        <div className="flex items-center gap-1 text-sm font-medium text-finsight-purple">
+        <div 
+          className="flex items-center gap-1 text-sm font-medium text-finsight-purple cursor-pointer hover:underline"
+          onClick={handleViewAll}
+        >
           View All
           <ArrowUpRight className="h-4 w-4" />
         </div>

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { ArrowUpRight, BadgeDollarSign, CreditCard, LineChart, PiggyBank, Wallet } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,7 +41,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-const Dashboard = () => {
+interface DashboardProps {
+  onNavigate?: (view: string) => void;
+}
+
+const Dashboard = ({ onNavigate }: DashboardProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
 
@@ -49,6 +54,12 @@ const Dashboard = () => {
     const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleViewDetails = () => {
+    if (onNavigate) {
+      onNavigate('reports');
+    }
+  };
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
@@ -91,7 +102,10 @@ const Dashboard = () => {
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Spending Trends</h2>
-              <div className="flex items-center gap-1 text-sm font-medium text-finsight-purple">
+              <div 
+                className="flex items-center gap-1 text-sm font-medium text-finsight-purple cursor-pointer hover:underline"
+                onClick={handleViewDetails}
+              >
                 View Details
                 <ArrowUpRight className="h-4 w-4" />
               </div>
@@ -119,7 +133,7 @@ const Dashboard = () => {
 
         <Card className="animate-fade-in animate-delay-200">
           <CardContent className="p-6">
-            <BudgetOverview />
+            <BudgetOverview onNavigate={onNavigate} />
           </CardContent>
         </Card>
       </div>

@@ -112,7 +112,7 @@ const Index = () => {
         <main className="flex-1 overflow-auto">
           <div className="max-w-[1600px] mx-auto">
             <div className="hidden md:block">
-              {activeView === "dashboard" && <Dashboard />}
+              {activeView === "dashboard" && <Dashboard onNavigate={handleNavigation} />}
               {activeView === "transactions" && <TransactionsView />}
               {activeView === "goals" && <GoalTracker />}
               {activeView === "budgets" && <BudgetsView />}
@@ -128,7 +128,7 @@ const Index = () => {
                   <TabsTrigger value="goals">Goals</TabsTrigger>
                 </TabsList>
                 <TabsContent value="dashboard">
-                  <Dashboard />
+                  <Dashboard onNavigate={handleNavigation} />
                 </TabsContent>
                 <TabsContent value="transactions">
                   <div className="p-4">
