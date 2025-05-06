@@ -1,11 +1,12 @@
 
 import React from "react";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 interface NotificationsStepProps {
   emailNotifications: boolean;
   appNotifications: boolean;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onInputChange: (field: string, value: boolean) => void;
 }
 
 export const NotificationsStep: React.FC<NotificationsStepProps> = ({ 
@@ -15,27 +16,35 @@ export const NotificationsStep: React.FC<NotificationsStepProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <Label htmlFor="emailNotifications">Email Notifications</Label>
+          <p className="text-sm text-muted-foreground">
+            Receive important updates via email
+          </p>
+        </div>
+        <Switch
           id="emailNotifications"
           name="emailNotifications"
           checked={emailNotifications}
-          onChange={onInputChange}
-          className="h-4 w-4 rounded border-gray-300"
+          onCheckedChange={(checked) => onInputChange("emailNotifications", checked)}
+          className="data-[state=checked]:bg-finsight-blue"
         />
-        <Label htmlFor="emailNotifications">Email Notifications</Label>
       </div>
-      <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <Label htmlFor="appNotifications">App Notifications</Label>
+          <p className="text-sm text-muted-foreground">
+            Receive alerts in the app
+          </p>
+        </div>
+        <Switch
           id="appNotifications"
           name="appNotifications"
           checked={appNotifications}
-          onChange={onInputChange}
-          className="h-4 w-4 rounded border-gray-300"
+          onCheckedChange={(checked) => onInputChange("appNotifications", checked)}
+          className="data-[state=checked]:bg-finsight-blue"
         />
-        <Label htmlFor="appNotifications">App Notifications</Label>
       </div>
     </div>
   );

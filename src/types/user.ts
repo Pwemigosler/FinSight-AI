@@ -19,7 +19,7 @@ export interface UserPreferences {
   emailNotifications?: boolean;
   appNotifications?: boolean;
   language?: string;
-  speechEnabled?: boolean;  // Added this field
+  speechEnabled?: boolean;
 }
 
 export interface User {
