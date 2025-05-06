@@ -17,12 +17,14 @@ import { AuthProvider, useAuth } from "./contexts/auth";
 import { AvatarProvider } from "./contexts/AvatarContext";
 import { initializeCharacterAvatars } from "./utils/supabaseStorage";
 import { uploadCharacterImages } from "./utils/uploadCharacters";
+import Loading from "./components/ui/loading";
 
 const queryClient = new QueryClient();
 
 // App initialization component
 const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [imagesInitialized, setImagesInitialized] = useState(false);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
   
   useEffect(() => {
     // Initialize character avatars when app starts
@@ -38,6 +40,7 @@ const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) =
         setImagesInitialized(true);
       } catch (error) {
         console.error("Error initializing images:", error);
+        setInitializationError("Failed to initialize images");
         // Even on error, we set initialized to true to avoid blocking the app
         setImagesInitialized(true);
       }
@@ -53,22 +56,22 @@ const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) =
     }, 30 * 60 * 1000); // Check every 30 minutes
     
     return () => clearInterval(imageCheckInterval);
-  }, [imagesInitialized]);
+  }, []);
+  
+  if (!imagesInitialized && !initializationError) {
+    return <Loading fullPage text="Initializing application..." />;
+  }
   
   return <>{children}</>;
 };
 
-// Protected route component
+// Protected route component with stable loading state
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, needsAccountSetup, loading } = useAuth();
   
   // Show loading state
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-finsight-purple border-t-transparent"></div>
-      </div>
-    );
+    return <Loading fullPage text="Loading your account..." />;
   }
   
   if (!isAuthenticated) {
@@ -89,11 +92,7 @@ const SetupRoute = ({ children }: { children: React.ReactNode }) => {
   
   // Show loading state
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-finsight-purple border-t-transparent"></div>
-      </div>
-    );
+    return <Loading fullPage text="Loading your account..." />;
   }
   
   if (!isAuthenticated) {
@@ -117,16 +116,13 @@ const Settings = () => {
   );
 };
 
+// App routes with error boundary
 const AppRoutes = () => {
   const { isAuthenticated, loading } = useAuth();
   
   // Show loading state during initial auth check
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-finsight-purple border-t-transparent"></div>
-      </div>
-    );
+    return <Loading fullPage text="Loading authentication..." />;
   }
   
   return (
@@ -183,10 +179,10 @@ const AppRoutes = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <AvatarProvider>
-        <ThemeProvider attribute="class" defaultTheme="light">
-          <TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="light">
+      <TooltipProvider>
+        <AuthProvider>
+          <AvatarProvider>
             <AppInitializer>
               <Toaster />
               <Sonner />
@@ -194,10 +190,10 @@ const App = () => (
                 <AppRoutes />
               </BrowserRouter>
             </AppInitializer>
-          </TooltipProvider>
-        </ThemeProvider>
-      </AvatarProvider>
-    </AuthProvider>
+          </AvatarProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

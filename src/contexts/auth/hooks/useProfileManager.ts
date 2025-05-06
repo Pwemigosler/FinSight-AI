@@ -10,6 +10,20 @@ export function useProfileManager(
 ) {
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
   
+  // Dispatch a single avatar update event
+  const dispatchAvatarUpdate = (userData: User, timestamp: number, source: string) => {
+    if (userData?.avatar) {
+      console.log(`[AuthContext] Dispatching avatar-updated event (source: ${source})`);
+      window.dispatchEvent(new CustomEvent('avatar-updated', { 
+        detail: { 
+          avatarData: userData.avatar, 
+          timestamp: timestamp,
+          source: source
+        }
+      }));
+    }
+  };
+  
   const updateUserProfile = async (updates: Partial<User>): Promise<void> => {
     const updateTimeStamp = Date.now();
     setLastUpdateTime(updateTimeStamp);
@@ -28,35 +42,11 @@ export function useProfileManager(
     
     // Only update state if this is the most recent update request
     if (updateTimeStamp >= lastUpdateTime && updatedUser) {
-      console.log("[AuthContext] Setting updated user to state:", 
-        "Name:", updatedUser.name,
-        "Has avatar:", !!updatedUser.avatar,
-        "Avatar length:", updatedUser.avatar?.length || 0);
-      
       setUser(updatedUser);
       
-      // Dispatch event for avatar update to notify all components
+      // Dispatch a single avatar update event if avatar was updated
       if (updates.avatar !== undefined) {
-        console.log("[AuthContext] Avatar updated, dispatching avatar-updated event");
-        window.dispatchEvent(new CustomEvent('avatar-updated', { 
-          detail: { 
-            avatarData: updatedUser.avatar, 
-            timestamp: updateTimeStamp,
-            source: 'profile-update'
-          }
-        }));
-        
-        // Dispatch a second time after a short delay to ensure UI components catch it
-        setTimeout(() => {
-          console.log("[AuthContext] Sending delayed avatar-updated event");
-          window.dispatchEvent(new CustomEvent('avatar-updated', { 
-            detail: { 
-              avatarData: updatedUser.avatar, 
-              timestamp: updateTimeStamp + 1, 
-              source: 'profile-update-delayed'
-            }
-          }));
-        }, 300);
+        dispatchAvatarUpdate(updatedUser, updateTimeStamp, 'profile-update');
       }
     } else if (!updatedUser) {
       console.error("[AuthContext] Failed to update user profile");
@@ -80,37 +70,11 @@ export function useProfileManager(
     
     // Only update state if this is the most recent update request
     if (updateTimeStamp >= lastUpdateTime && updatedUser) {
-      console.log("[AuthContext] Setting completed setup user to state:", 
-        "Name:", updatedUser.name,
-        "Has avatar:", !!updatedUser.avatar,
-        "Avatar length:", updatedUser.avatar?.length || 0,
-        "Has completed setup:", updatedUser.hasCompletedSetup);
-      
       setUser(updatedUser);
       
-      // Always dispatch avatar update event when account setup completes
-      // This ensures the header and other components show the avatar immediately
+      // Dispatch avatar update event when account setup completes
       if (updatedUser.avatar) {
-        console.log("[AuthContext] Dispatching avatar-updated event after setup completion");
-        window.dispatchEvent(new CustomEvent('avatar-updated', { 
-          detail: { 
-            avatarData: updatedUser.avatar, 
-            timestamp: updateTimeStamp,
-            source: 'setup-completion'
-          }
-        }));
-        
-        // Send another event after a delay to catch any components that missed the first one
-        setTimeout(() => {
-          console.log("[AuthContext] Sending delayed avatar-updated event after setup completion");
-          window.dispatchEvent(new CustomEvent('avatar-updated', { 
-            detail: { 
-              avatarData: updatedUser.avatar, 
-              timestamp: updateTimeStamp + 1,
-              source: 'setup-completion-delayed'
-            }
-          }));
-        }, 300);
+        dispatchAvatarUpdate(updatedUser, updateTimeStamp, 'setup-completion');
       }
     } else if (!updatedUser) {
       console.error("[AuthContext] Failed to complete account setup");

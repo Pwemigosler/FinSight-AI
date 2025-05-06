@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { User } from "../../types/user";
+import { User } from "../../../types/user";
 import { AuthContextType, BankCard } from "./types";
 import { UserService } from "./UserService";
 import { BankCardService } from "./BankCardService";
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Only render children once we've checked localStorage and Supabase
   if (!initialized) {
-    return null; // Or a loading spinner
+    return null;
   }
 
   const value = {
