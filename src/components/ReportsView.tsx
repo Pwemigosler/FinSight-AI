@@ -12,12 +12,39 @@ import {
   MONTHS,
   calculateAverageSavings
 } from './reports/ReportData';
+import { useToast } from "@/components/ui/use-toast";
 
 const ReportsView = () => {
   const [reportPeriod, setReportPeriod] = useState("last6months");
+  const { toast } = useToast();
   
   const handleReportPeriodChange = (period: string) => {
     setReportPeriod(period);
+  };
+
+  // Handler functions for detail buttons
+  const handleExpensesDetails = () => {
+    toast({
+      title: "Monthly Expenses Details",
+      description: "Detailed monthly expenses view will be available soon.",
+      duration: 3000,
+    });
+  };
+
+  const handleCategoryDetails = () => {
+    toast({
+      title: "Category Spending Details",
+      description: "Detailed category spending breakdown will be available soon.",
+      duration: 3000,
+    });
+  };
+
+  const handleSavingsDetails = () => {
+    toast({
+      title: "Savings History Details",
+      description: "Detailed savings history analytics will be available soon.",
+      duration: 3000,
+    });
   };
 
   const averageSavings = calculateAverageSavings(savingsHistoryData);
@@ -31,13 +58,22 @@ const ReportsView = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Income vs Expenses Chart */}
-        <MonthlyExpensesChart data={monthlyExpensesData} />
+        <MonthlyExpensesChart 
+          data={monthlyExpensesData} 
+          onViewDetails={handleExpensesDetails} 
+        />
 
         {/* Category Spending Chart */}
-        <CategorySpendingChart data={categorySpendingData} />
+        <CategorySpendingChart 
+          data={categorySpendingData} 
+          onViewDetails={handleCategoryDetails}
+        />
 
         {/* Monthly Savings Chart */}
-        <SavingsChart data={savingsHistoryData} />
+        <SavingsChart 
+          data={savingsHistoryData} 
+          onViewDetails={handleSavingsDetails}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
