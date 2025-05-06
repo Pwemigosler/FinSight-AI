@@ -85,6 +85,24 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Compact view styles */
+  body.compact-view {
+    font-size: 0.925rem;
+  }
+  
+  body.compact-view .card {
+    padding: 0.75rem;
+  }
+  
+  body.compact-view .space-y-4 {
+    margin-top: 0.75rem;
+  }
+  
+  body.compact-view button {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
 }
 
 /* Original ptcustom color classes - keeping for backward compatibility */

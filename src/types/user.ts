@@ -1,3 +1,4 @@
+
 // This file defines the types for user data in the application
 
 export interface AvatarSettings {
@@ -10,6 +11,7 @@ export interface AvatarSettings {
 
 export interface UserPreferences {
   theme?: 'light' | 'dark' | 'system';
+  compactView?: boolean;
   assistantCharacter?: string;
   notifications?: boolean;
   currencyFormat?: string;
