@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
-import { User } from "../../types/user";
+import { User } from "../../../types/user";
 import { AuthContextType, BankCard } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { UserService } from "../UserService";
