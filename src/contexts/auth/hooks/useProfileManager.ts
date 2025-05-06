@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { User } from "../../../types/user";
+import { User } from "../../types/user";
 import { UserService } from "../UserService";
 
 export function useProfileManager(

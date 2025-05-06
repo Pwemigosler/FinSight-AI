@@ -22,6 +22,7 @@ export const useAvatarSync = (
 ) => {
   // Track if initial sync has been done
   const initialSyncDone = useRef(false);
+  const lastUpdateTimestamp = useRef<number>(0);
   
   // Update local state when user changes
   useEffect(() => {
@@ -34,6 +35,15 @@ export const useAvatarSync = (
       "Name:", user.name,
       "Avatar exists:", !!user.avatar,
       "Avatar length:", user.avatar?.length || 0);
+    
+    const now = Date.now();
+    // Debounce updates that happen too quickly (within 300ms)
+    if (now - lastUpdateTimestamp.current < 300) {
+      console.log("[Profile] Debouncing avatar update - too soon after last update");
+      return;
+    }
+    
+    lastUpdateTimestamp.current = now;
     
     // Always update preview image when user avatar changes
     if (user.avatar) {

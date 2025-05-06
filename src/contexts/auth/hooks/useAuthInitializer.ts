@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { User } from "../../../types/user";
+import { User } from "../../types/user";
 import { BankCard } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { UserService } from "../UserService";
