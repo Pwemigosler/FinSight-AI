@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Hook to manage profile form state and actions
@@ -10,6 +11,7 @@ import { toast } from "sonner";
  */
 export const useProfileForm = () => {
   const { user, updateUserProfile } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [profileName, setProfileName] = useState(user?.name || "");
   const [profileEmail, setProfileEmail] = useState(user?.email || "");
@@ -37,9 +39,13 @@ export const useProfileForm = () => {
   };
 
   const handleCancel = () => {
+    // Reset form state
     setProfileName(user?.name || "");
     setProfileEmail(user?.email || "");
     setIsEditing(false);
+    
+    // Navigate back to the home page
+    navigate('/');
   };
 
   return {
