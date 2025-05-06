@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Search, Filter, ShoppingCart, Home, CreditCard, Coffee, ArrowDownToLine, ArrowUpFromLine, Plus, Receipt } from 'lucide-react';
+import { Search, Filter, ShoppingCart, Home, CreditCard, Coffee, ArrowDownToLine, ArrowUpFromLine, Plus, Receipt, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -121,6 +138,8 @@ const TransactionsView = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<typeof transactions[0] | null>(null);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const [receiptRefreshTrigger, setReceiptRefreshTrigger] = useState(0);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { linkedCards } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -133,26 +152,102 @@ const TransactionsView = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const newTransaction = {
-      id: `t${transactionsList.length + 1}`,
-      name: values.name,
-      category: values.category,
-      date: values.date,
-      amount: parseFloat(values.amount),
-      icon: <ShoppingCart className="h-4 w-4" />,
-      iconBg: 'bg-green-100',
-      iconColor: 'text-green-600',
-    };
-
-    setTransactionsList([newTransaction, ...transactionsList]);
-    setIsDialogOpen(false);
-    form.reset();
-    
-    toast({
-      title: "Transaction added",
-      description: "Your transaction has been successfully added.",
+  const resetForm = () => {
+    form.reset({
+      name: "",
+      amount: "",
+      category: "",
+      date: new Date().toISOString().split('T')[0],
     });
+  };
+
+  const handleEditTransaction = (transaction: typeof transactions[0]) => {
+    setSelectedTransaction(transaction);
+    form.reset({
+      name: transaction.name,
+      amount: transaction.amount.toString(),
+      category: transaction.category,
+      date: transaction.date,
+    });
+    setIsEditMode(true);
+    setIsDialogOpen(true);
+  };
+
+  const handleDeleteTransaction = (transaction: typeof transactions[0]) => {
+    setSelectedTransaction(transaction);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedTransaction) {
+      const updatedTransactions = transactionsList.filter(
+        t => t.id !== selectedTransaction.id
+      );
+      setTransactionsList(updatedTransactions);
+      setIsDeleteDialogOpen(false);
+      
+      toast({
+        title: "Transaction deleted",
+        description: "The transaction has been successfully deleted.",
+      });
+    }
+  };
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (isEditMode && selectedTransaction) {
+      // Update existing transaction
+      const updatedTransactions = transactionsList.map(transaction => {
+        if (transaction.id === selectedTransaction.id) {
+          return {
+            ...transaction,
+            name: values.name,
+            category: values.category,
+            date: values.date,
+            amount: parseFloat(values.amount),
+          };
+        }
+        return transaction;
+      });
+      
+      setTransactionsList(updatedTransactions);
+      setIsDialogOpen(false);
+      resetForm();
+      setIsEditMode(false);
+      setSelectedTransaction(null);
+      
+      toast({
+        title: "Transaction updated",
+        description: "Your transaction has been successfully updated.",
+      });
+    } else {
+      // Add new transaction
+      const newTransaction = {
+        id: `t${transactionsList.length + 1}`,
+        name: values.name,
+        category: values.category,
+        date: values.date,
+        amount: parseFloat(values.amount),
+        icon: <ShoppingCart className="h-4 w-4" />,
+        iconBg: 'bg-green-100',
+        iconColor: 'text-green-600',
+      };
+
+      setTransactionsList([newTransaction, ...transactionsList]);
+      setIsDialogOpen(false);
+      resetForm();
+      
+      toast({
+        title: "Transaction added",
+        description: "Your transaction has been successfully added.",
+      });
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    resetForm();
+    setIsEditMode(false);
+    setSelectedTransaction(null);
   };
 
   const categories = [...new Set(transactionsList.map(t => t.category))];
@@ -198,16 +293,16 @@ const TransactionsView = () => {
               <ManageLinkedCardsDialog />
             )}
             <LinkBankCardDialog />
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
               <DialogTrigger asChild>
-                <Button>
+                <Button onClick={() => { setIsEditMode(false); resetForm(); }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Transaction
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add New Transaction</DialogTitle>
+                  <DialogTitle>{isEditMode ? "Edit Transaction" : "Add New Transaction"}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -284,7 +379,7 @@ const TransactionsView = () => {
                     />
 
                     <div className="flex justify-end pt-4">
-                      <Button type="submit">Add Transaction</Button>
+                      <Button type="submit">{isEditMode ? "Update Transaction" : "Add Transaction"}</Button>
                     </div>
                   </form>
                 </Form>
@@ -366,15 +461,40 @@ const TransactionsView = () => {
                 <span className={`font-medium ${transaction.amount >= 0 ? 'text-green-600' : ''}`}>
                   {formatAmount(transaction.amount)}
                 </span>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handleOpenReceiptDialog(transaction)}
-                >
-                  <Receipt className="h-4 w-4" />
-                  <span className="sr-only">Receipts</span>
-                </Button>
+                <div className="flex items-center">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleOpenReceiptDialog(transaction)}
+                  >
+                    <Receipt className="h-4 w-4" />
+                    <span className="sr-only">Receipts</span>
+                  </Button>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Options</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEditTransaction(transaction)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleDeleteTransaction(transaction)}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
           ))}
@@ -432,6 +552,24 @@ const TransactionsView = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this transaction? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );
