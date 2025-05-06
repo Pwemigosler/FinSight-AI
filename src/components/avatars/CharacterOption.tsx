@@ -21,14 +21,16 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
   selected,
   onSelect,
 }) => {
-  const [imageError, setImageError] = useState(false);
+  const [supabaseImageError, setSupabaseImageError] = useState(false);
+  const [localImageError, setLocalImageError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [imageSrc, setImageSrc] = useState(character.thumbnailUrl);
   
   // Update image source when character changes or thumbnail URL changes
   useEffect(() => {
     // Reset error state when character changes
-    setImageError(false);
+    setSupabaseImageError(false);
+    setLocalImageError(false);
     setRetryCount(0);
     
     // Add timestamp to prevent caching issues
@@ -38,15 +40,25 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
   const handleImageError = () => {
     console.error(`Failed to load character thumbnail: ${character.id} from URL: ${imageSrc}`);
     
-    if (retryCount < 1) {
+    if (!supabaseImageError) {
+      // First try local path
+      setSupabaseImageError(true);
       setRetryCount(prev => prev + 1);
       
-      // Try with local fallback path
-      const fallbackUrl = `/characters/${character.id.toLowerCase()}.png?t=${Date.now()}`;
-      console.log(`Trying fallback local URL: ${fallbackUrl}`);
+      const localUrl = `/characters/${character.id.toLowerCase()}.png?t=${Date.now()}`;
+      console.log(`Trying local file URL: ${localUrl}`);
+      setImageSrc(localUrl);
+    } else if (!localImageError && retryCount < 2) {
+      // If local path failed once, try again with force refresh
+      setRetryCount(prev => prev + 1);
+      
+      // Try with explicit cache buster
+      const fallbackUrl = `/characters/${character.id.toLowerCase()}.png?nocache=true&t=${Date.now()}&retry=${retryCount}`;
+      console.log(`Trying local URL with cache busting: ${fallbackUrl}`);
       setImageSrc(fallbackUrl);
     } else {
-      setImageError(true);
+      // Both Supabase and local attempts failed
+      setLocalImageError(true);
     }
   };
 
@@ -58,7 +70,7 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
       )}
       onClick={() => onSelect(character)}
     >
-      {imageError ? (
+      {supabaseImageError && localImageError ? (
         <div className="w-full h-40 bg-gray-200 flex items-center justify-center">
           <div className="text-center">
             <ImageIcon className="h-8 w-8 text-gray-400 mx-auto" />

@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
@@ -20,24 +20,38 @@ const queryClient = new QueryClient();
 
 // App initialization component
 const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [imagesInitialized, setImagesInitialized] = useState(false);
+  
   useEffect(() => {
     // Initialize character avatars when app starts
     const init = async () => {
-      await initializeCharacterAvatars();
-      
-      // Upload characters to Supabase on app start
-      // This will fetch from public/characters and upload to storage
       try {
+        console.log("Starting Supabase storage initialization...");
+        await initializeCharacterAvatars();
+        
+        // Upload characters to Supabase on app start
         console.log("Starting character image upload to Supabase...");
         await uploadCharacterImages();
         console.log("Character image upload completed");
+        setImagesInitialized(true);
       } catch (error) {
-        console.error("Error uploading character images:", error);
+        console.error("Error initializing images:", error);
+        // Even on error, we set initialized to true to avoid blocking the app
+        setImagesInitialized(true);
       }
     };
     
-    init().catch(console.error);
-  }, []);
+    init();
+    
+    // Set up periodic check for image availability
+    const imageCheckInterval = setInterval(() => {
+      if (imagesInitialized) {
+        uploadCharacterImages().catch(console.error);
+      }
+    }, 30 * 60 * 1000); // Check every 30 minutes
+    
+    return () => clearInterval(imageCheckInterval);
+  }, [imagesInitialized]);
   
   return <>{children}</>;
 };

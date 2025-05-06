@@ -1,3 +1,4 @@
+
 import { AvatarState } from '../types/avatar-types';
 import { getPublicUrl } from '@/utils/supabaseStorage';
 
@@ -17,9 +18,9 @@ export const isLoginRoute = (): boolean => {
   return pathname === '/login' || pathname.includes('/login');
 };
 
-// Get character image URL with fallback to placeholder
-export const getCharacterImageUrl = (characterId: string, imageError: boolean): string => {
-  if (imageError) {
+// Get character image URL with fallback mechanism
+export const getCharacterImageUrl = (characterId: string, useLocalFallback: boolean): string => {
+  if (useLocalFallback) {
     return getPlaceholderUrl(characterId);
   }
   
@@ -31,7 +32,7 @@ export const getCharacterImageUrl = (characterId: string, imageError: boolean): 
   const finalId = validCharacterIds.includes(normalizedId) ? normalizedId : "fin";
   const imagePath = characterImages[finalId as keyof typeof characterImages];
   
-  // Always try to get the Supabase URL first, regardless of route
+  // Always try to get the Supabase URL first
   try {
     const supabaseUrl = getPublicUrl(imagePath);
     if (supabaseUrl) {
@@ -43,7 +44,7 @@ export const getCharacterImageUrl = (characterId: string, imageError: boolean): 
     // Continue to fallback
   }
   
-  // Use local fallback if Supabase URL isn't available
+  // Return local file path for fallback logic in useAvatarImage hook
   console.log(`Using local file fallback for character ${finalId}`);
   return `/characters/${imagePath}`;
 };
