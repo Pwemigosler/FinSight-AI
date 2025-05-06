@@ -29,6 +29,20 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   onInputChange,
   onCharacterSelect
 }) => {
+  // Create an adapter function for boolean switches in NotificationsStep
+  const handleBooleanChange = (field: string, value: boolean) => {
+    // Create a synthetic event object that mimics what onInputChange expects
+    const syntheticEvent = {
+      target: {
+        name: field,
+        type: 'checkbox',
+        checked: value
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    onInputChange(syntheticEvent);
+  };
+
   switch (currentStepId) {
     case "personal":
       return (
@@ -71,7 +85,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <NotificationsStep 
           emailNotifications={formData.emailNotifications}
           appNotifications={formData.appNotifications}
-          onInputChange={onInputChange}
+          onInputChange={handleBooleanChange}
         />
       );
     default:
