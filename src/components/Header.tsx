@@ -15,9 +15,10 @@ import { useEffect, useState, useRef } from "react";
 
 interface HeaderProps {
   toggleSidebar?: () => void;
+  onLogoClick?: () => void; // New prop for custom logo click behavior
 }
 
-const Header = ({ toggleSidebar }: HeaderProps) => {
+const Header = ({ toggleSidebar, onLogoClick }: HeaderProps) => {
   const isMobile = useIsMobile();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -40,6 +41,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
   const handleLogoClick = () => {
     navigate('/');
+    // Call the onLogoClick callback if provided
+    if (onLogoClick) {
+      onLogoClick();
+    }
   };
 
   // Calculate avatar position scale factor based on the size difference
