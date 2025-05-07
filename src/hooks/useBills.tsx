@@ -35,6 +35,7 @@ const useBills = () => {
       })) || [];
       
       setBills(typedData);
+      console.log('Bills fetched:', typedData.length);
     } catch (error) {
       console.error('Error fetching bills:', error);
       toast.error('Failed to load bills');
@@ -62,8 +63,11 @@ const useBills = () => {
         status: data.status as BillStatus
       };
       
+      // Immediately add the new bill to the local state for instant UI update
       setBills(prevBills => [...prevBills, newBill]);
       toast.success('Bill added successfully');
+      
+      console.log('Bill added:', newBill);
       return newBill;
     } catch (error) {
       console.error('Error adding bill:', error);
@@ -90,11 +94,13 @@ const useBills = () => {
         status: data.status as BillStatus
       };
       
+      // Immediately update the bill in the local state
       setBills(prevBills => 
         prevBills.map(bill => bill.id === id ? updatedBill : bill)
       );
       
       toast.success('Bill updated successfully');
+      console.log('Bill updated:', updatedBill);
       return updatedBill;
     } catch (error) {
       console.error('Error updating bill:', error);
@@ -112,8 +118,10 @@ const useBills = () => {
       
       if (error) throw error;
       
+      // Immediately remove the bill from the local state
       setBills(prevBills => prevBills.filter(bill => bill.id !== id));
       toast.success('Bill deleted successfully');
+      console.log('Bill deleted:', id);
       return true;
     } catch (error) {
       console.error('Error deleting bill:', error);
@@ -151,8 +159,43 @@ const useBills = () => {
     });
   };
   
+  // Subscribe to real-time updates from Supabase
+  const subscribeToUpdates = () => {
+    if (!user) return null;
+    
+    console.log('Setting up real-time subscription for bills');
+    const channel = supabase
+      .channel('bills-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'bills'
+        }, 
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          // Refresh the full bills list when any change is detected
+          // This ensures we have the most up-to-date data
+          fetchBills();
+        }
+      )
+      .subscribe();
+      
+    return channel;
+  };
+  
   useEffect(() => {
     fetchBills();
+    // Set up real-time subscription
+    const channel = subscribeToUpdates();
+    
+    // Cleanup subscription on unmount
+    return () => {
+      if (channel) {
+        console.log('Cleaning up real-time subscription');
+        supabase.removeChannel(channel);
+      }
+    };
   }, [user]);
   
   useEffect(() => {

@@ -16,12 +16,7 @@ const BillsView: React.FC = () => {
   const [view, setView] = useState<'list' | 'calendar'>('list');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { user } = useAuth();
-  const { bills, isLoading, billsTotal, refreshBills } = useBills();
-
-  // Refresh bills when component mounts and when view changes
-  useEffect(() => {
-    refreshBills();
-  }, [view]);
+  const { bills, isLoading, billsTotal } = useBills();
 
   const handleOpenForm = () => {
     if (!user) {
@@ -33,7 +28,6 @@ const BillsView: React.FC = () => {
 
   const handleViewChange = (newView: 'list' | 'calendar') => {
     setView(newView);
-    refreshBills(); // Refresh bills when view changes
   };
 
   return (
@@ -113,16 +107,22 @@ const BillsView: React.FC = () => {
         </Card>
       </div>
 
-      {view === 'list' ? (
-        <BillList 
-          isLoading={isLoading} 
-          bills={bills} 
-        />
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        </div>
       ) : (
-        <BillCalendarView 
-          isLoading={isLoading} 
-          bills={bills} 
-        />
+        view === 'list' ? (
+          <BillList 
+            isLoading={isLoading} 
+            bills={bills} 
+          />
+        ) : (
+          <BillCalendarView 
+            isLoading={isLoading} 
+            bills={bills} 
+          />
+        )
       )}
 
       <BillForm 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -46,7 +45,7 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
   };
 
   const [formValues, setFormValues] = useState<BillFormValues>(initialValues);
-  const { addBill, updateBill, refreshBills } = useBills();
+  const { addBill, updateBill } = useBills();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleChange = (field: keyof BillFormValues, value: any) => {
@@ -56,27 +55,25 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    console.log('Submitting bill form...');
     
     try {
+      const billData = {
+        ...formValues,
+        amount: Number(formValues.amount),
+        due_date: Number(formValues.due_date),
+        next_due_date: formValues.next_due_date.toISOString().split('T')[0]
+      };
+
       if (editBill) {
-        await updateBill(editBill.id, {
-          ...formValues,
-          amount: Number(formValues.amount),
-          due_date: Number(formValues.due_date),
-          next_due_date: formValues.next_due_date.toISOString().split('T')[0]
-        });
+        console.log('Updating bill:', editBill.id);
+        await updateBill(editBill.id, billData);
       } else {
-        await addBill({
-          ...formValues,
-          amount: Number(formValues.amount),
-          due_date: Number(formValues.due_date),
-          next_due_date: formValues.next_due_date.toISOString().split('T')[0]
-        });
+        console.log('Adding new bill:', billData.name);
+        await addBill(billData);
       }
       
-      // Refresh the bills list after successful submission
-      await refreshBills();
-      
+      // Close the form and reset values
       onOpenChange(false);
       setFormValues(initialValues);
     } catch (error) {

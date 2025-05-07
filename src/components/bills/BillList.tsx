@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Bill } from '@/types/bill';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -20,7 +19,7 @@ const BillList: React.FC<BillListProps> = ({ bills, isLoading }) => {
   const [editBill, setEditBill] = useState<{ id: string; values: any } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedBillId, setSelectedBillId] = useState<string | null>(null);
-  const { markAsPaid, deleteBill, refreshBills } = useBills();
+  const { markAsPaid, deleteBill } = useBills();
   
   const handleEdit = (bill: Bill) => {
     setEditBill({
@@ -39,6 +38,7 @@ const BillList: React.FC<BillListProps> = ({ bills, isLoading }) => {
   
   const confirmDelete = async () => {
     if (selectedBillId) {
+      console.log('Deleting bill:', selectedBillId);
       await deleteBill(selectedBillId);
       setDeleteDialogOpen(false);
       setSelectedBillId(null);
@@ -46,8 +46,8 @@ const BillList: React.FC<BillListProps> = ({ bills, isLoading }) => {
   };
   
   const handleMarkAsPaid = async (billId: string) => {
+    console.log('Marking bill as paid:', billId);
     await markAsPaid(billId);
-    await refreshBills();
   };
   
   const filteredBills = bills.filter(bill => 

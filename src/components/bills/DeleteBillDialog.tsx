@@ -10,7 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import useBills from '@/hooks/useBills';
 
 type DeleteBillDialogProps = {
   isOpen: boolean;
@@ -25,13 +24,6 @@ const DeleteBillDialog = ({
   onConfirm,
   billId
 }: DeleteBillDialogProps) => {
-  const { refreshBills } = useBills();
-
-  const handleConfirm = async () => {
-    onConfirm();
-    await refreshBills();
-  };
-
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -43,7 +35,7 @@ const DeleteBillDialog = ({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} className="bg-red-600 hover:bg-red-700">
+          <AlertDialogAction onClick={onConfirm} className="bg-red-600 hover:bg-red-700">
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>
