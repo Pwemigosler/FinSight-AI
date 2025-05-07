@@ -277,20 +277,26 @@ export const useTransactions = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (!selectedTransaction) return;
+  // Updated confirmDelete to return a Promise<boolean>
+  const confirmDelete = async (): Promise<boolean> => {
+    if (!selectedTransaction) return false;
     
     console.log('Deleting transaction:', selectedTransaction);
     
-    // In a real app, this is where you'd delete from Supabase
-    setTransactions(prevTransactions => 
-      prevTransactions.filter(t => t.id !== selectedTransaction.id)
-    );
-    
-    setIsDeleteDialogOpen(false);
-    setSelectedTransaction(null);
-    
-    toast.success("Transaction deleted successfully");
+    try {
+      // In a real app, this is where you'd delete from Supabase
+      setTransactions(prevTransactions => 
+        prevTransactions.filter(t => t.id !== selectedTransaction.id)
+      );
+      
+      setIsDeleteDialogOpen(false);
+      setSelectedTransaction(null);
+      
+      return true; // Return true to indicate successful deletion
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      return false; // Return false to indicate failed deletion
+    }
   };
 
   const handleOpenReceiptDialog = (transaction: TransactionItemType) => {
