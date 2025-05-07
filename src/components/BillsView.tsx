@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth';
-import { Calendar, Plus, Filter, AlertTriangle } from 'lucide-react';
+import { Calendar, Plus, Filter, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BillList from './bills/BillList';
 import BillForm from './bills/BillForm';
@@ -16,6 +16,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 const BillsView: React.FC = () => {
   const [view, setView] = useState<'list' | 'calendar'>('list');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { user } = useAuth();
   const { 
     bills, 
@@ -32,7 +33,7 @@ const BillsView: React.FC = () => {
     
     if (connectionError) {
       interval = setInterval(() => {
-        console.log('Connection error detected, refreshing bills...');
+        console.log('Connection error detected, auto-refreshing bills...');
         refreshBills();
       }, 30000); // Refresh every 30 seconds if there's a connection error
     }
@@ -54,6 +55,21 @@ const BillsView: React.FC = () => {
     setView(newView);
   };
 
+  const handleManualRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    
+    setIsRefreshing(true);
+    try {
+      await refreshBills();
+      toast.success('Bills refreshed successfully');
+    } catch (error) {
+      console.error('Error refreshing bills:', error);
+      toast.error('Failed to refresh bills');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refreshBills, isRefreshing]);
+
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
@@ -62,6 +78,17 @@ const BillsView: React.FC = () => {
           <p className="text-gray-500">Manage your recurring bills and expenses</p>
         </div>
         <div className="flex items-center space-x-2 mt-4 md:mt-0">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="relative"
+            title="Refresh bills"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          
           <Tabs defaultValue="list" className="mr-4">
             <TabsList>
               <TabsTrigger 
@@ -98,10 +125,11 @@ const BillsView: React.FC = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={refreshBills} 
+              onClick={handleManualRefresh} 
+              disabled={isRefreshing}
               className="ml-2"
             >
-              Refresh Now
+              {isRefreshing ? 'Refreshing...' : 'Refresh Now'}
             </Button>
           </AlertDescription>
         </Alert>
@@ -159,6 +187,7 @@ const BillsView: React.FC = () => {
             isLoading={isLoading} 
             bills={bills} 
             realtimeConnected={realtimeConnected}
+            onRefresh={handleManualRefresh}
           />
         ) : (
           <BillCalendarView 

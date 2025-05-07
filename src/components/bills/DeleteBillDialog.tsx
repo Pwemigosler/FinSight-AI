@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,7 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -28,6 +27,14 @@ const DeleteBillDialog = ({
   billId
 }: DeleteBillDialogProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Reset error state when dialog opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+    }
+  }, [isOpen]);
 
   const handleConfirm = async () => {
     if (!billId) {
@@ -36,19 +43,24 @@ const DeleteBillDialog = ({
     }
     
     setIsDeleting(true);
+    setError(null);
+
     try {
       console.log('Confirming deletion for bill:', billId);
       const success = await onConfirm();
       
       if (success) {
         console.log('Delete operation successful');
+        toast.success('Bill deleted successfully');
         onOpenChange(false); // Close the dialog on success
       } else {
         console.error('Delete operation failed');
+        setError('Failed to delete bill. Please try again.');
         toast.error('Failed to delete bill. Please try again.');
       }
     } catch (error) {
       console.error('Error during deletion:', error);
+      setError('An unexpected error occurred during deletion');
       toast.error('An unexpected error occurred during deletion');
     } finally {
       setIsDeleting(false);
@@ -71,6 +83,13 @@ const DeleteBillDialog = ({
             Are you sure you want to delete this bill? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        
+        {error && (
+          <div className="mb-4 p-3 text-sm border border-red-300 bg-red-50 text-red-800 rounded-md">
+            {error}
+          </div>
+        )}
+        
         <AlertDialogFooter>
           <AlertDialogCancel onClick={handleClose} disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction 

@@ -4,7 +4,7 @@ import { Bill } from '@/types/bill';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, Trash2, Search, AlertCircle, Clock, CheckCircle, Wifi, WifiOff } from 'lucide-react';
+import { Edit, Trash2, Search, AlertCircle, Clock, CheckCircle, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import BillForm from './BillForm';
 import DeleteBillDialog from './DeleteBillDialog';
@@ -16,9 +16,15 @@ interface BillListProps {
   bills: Bill[];
   isLoading: boolean;
   realtimeConnected?: boolean;
+  onRefresh?: () => void;
 }
 
-const BillList: React.FC<BillListProps> = ({ bills, isLoading, realtimeConnected = false }) => {
+const BillList: React.FC<BillListProps> = ({ 
+  bills, 
+  isLoading, 
+  realtimeConnected = false,
+  onRefresh 
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editBill, setEditBill] = useState<{ id: string; values: any } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -45,6 +51,7 @@ const BillList: React.FC<BillListProps> = ({ bills, isLoading, realtimeConnected
       console.log('Deleting bill:', selectedBillId);
       const success = await deleteBill(selectedBillId);
       if (success) {
+        console.log('Delete operation successful');
         setDeleteDialogOpen(false);
         setSelectedBillId(null);
       }
@@ -103,28 +110,41 @@ const BillList: React.FC<BillListProps> = ({ bills, isLoading, realtimeConnected
             className="pl-10"
           />
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="ml-2">
-                {realtimeConnected ? (
-                  <Badge variant="outline" className="flex items-center gap-1 bg-green-50 text-green-700 border-green-200">
-                    <Wifi className="h-3 w-3" /> Live
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="flex items-center gap-1 bg-red-50 text-red-700 border-red-200">
-                    <WifiOff className="h-3 w-3" /> Offline
-                  </Badge>
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              {realtimeConnected 
-                ? "Real-time updates are active" 
-                : "Real-time updates are not available"}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onRefresh} 
+              title="Refresh bills"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span className="sr-only">Refresh</span>
+            </Button>
+          )}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  {realtimeConnected ? (
+                    <Badge variant="outline" className="flex items-center gap-1 bg-green-50 text-green-700 border-green-200">
+                      <Wifi className="h-3 w-3" /> Live
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="flex items-center gap-1 bg-red-50 text-red-700 border-red-200">
+                      <WifiOff className="h-3 w-3" /> Offline
+                    </Badge>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                {realtimeConnected 
+                  ? "Real-time updates are active" 
+                  : "Real-time updates are not available"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
       
       <div className="overflow-x-auto">
@@ -216,6 +236,26 @@ const BillList: React.FC<BillListProps> = ({ bills, isLoading, realtimeConnected
       />
     </div>
   );
+};
+
+// Helper functions
+const getBillStatusBadge = (status: string) => {
+  switch (status) {
+    case 'paid':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" /> Paid</span>;
+    case 'overdue':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><AlertCircle className="w-3 h-3 mr-1" /> Overdue</span>;
+    case 'upcoming':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" /> Upcoming</span>;
+    case 'unpaid':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Unpaid</span>;
+    default:
+      return <span>{status}</span>;
+  }
+};
+
+const formatFrequency = (frequency: string) => {
+  return frequency.charAt(0).toUpperCase() + frequency.slice(1);
 };
 
 export default BillList;
