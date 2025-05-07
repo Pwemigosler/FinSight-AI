@@ -16,7 +16,7 @@ const BillsView: React.FC = () => {
   const [view, setView] = useState<'list' | 'calendar'>('list');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { user } = useAuth();
-  const { bills, isLoading, billsTotal } = useBills();
+  const { bills, isLoading, billsTotal, realtimeConnected } = useBills();
 
   const handleOpenForm = () => {
     if (!user) {
@@ -116,6 +116,7 @@ const BillsView: React.FC = () => {
           <BillList 
             isLoading={isLoading} 
             bills={bills} 
+            realtimeConnected={realtimeConnected}
           />
         ) : (
           <BillCalendarView 

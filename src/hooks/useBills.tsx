@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Bill, BillFrequency, BillStatus } from '@/types/bill';
 import { useAuth } from '@/contexts/auth';
@@ -9,6 +9,8 @@ const useBills = () => {
   const [bills, setBills] = useState<Bill[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
   
   const fetchBills = async () => {
     if (!user) {
@@ -164,23 +166,79 @@ const useBills = () => {
     if (!user) return null;
     
     console.log('Setting up real-time subscription for bills');
+    
+    // Clean up any existing subscription first
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+    
     const channel = supabase
       .channel('bills-changes')
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
-          table: 'bills'
+          table: 'bills',
+          filter: `user_id=eq.${user.id}`
         }, 
         (payload) => {
           console.log('Real-time update received:', payload);
-          // Refresh the full bills list when any change is detected
-          // This ensures we have the most up-to-date data
-          fetchBills();
+          
+          // Handle different event types
+          if (payload.eventType === 'INSERT') {
+            const newBill = payload.new as Bill;
+            console.log('Inserting new bill via realtime:', newBill);
+            setBills(prevBills => {
+              // Check if bill already exists to avoid duplicates
+              const exists = prevBills.some(bill => bill.id === newBill.id);
+              if (exists) return prevBills;
+              return [...prevBills, {
+                ...newBill,
+                frequency: newBill.frequency as BillFrequency,
+                status: newBill.status as BillStatus
+              }];
+            });
+          } 
+          else if (payload.eventType === 'UPDATE') {
+            const updatedBill = payload.new as Bill;
+            console.log('Updating bill via realtime:', updatedBill);
+            setBills(prevBills => 
+              prevBills.map(bill => bill.id === updatedBill.id ? {
+                ...updatedBill,
+                frequency: updatedBill.frequency as BillFrequency,
+                status: updatedBill.status as BillStatus
+              } : bill)
+            );
+          } 
+          else if (payload.eventType === 'DELETE') {
+            const deletedBill = payload.old as Bill;
+            console.log('Deleting bill via realtime:', deletedBill);
+            setBills(prevBills => prevBills.filter(bill => bill.id !== deletedBill.id));
+          }
+          
+          // Show toast notification for real-time updates
+          if (payload.eventType === 'INSERT') {
+            toast.info('New bill added');
+          } else if (payload.eventType === 'UPDATE') {
+            toast.info('Bill updated');
+          } else if (payload.eventType === 'DELETE') {
+            toast.info('Bill deleted');
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status);
+        setRealtimeConnected(status === 'SUBSCRIBED');
+        if (status === 'SUBSCRIBED') {
+          toast.success('Real-time updates enabled');
+        } else if (status === 'CHANNEL_ERROR') {
+          toast.error('Real-time connection error');
+          // Attempt to reconnect after a delay
+          setTimeout(subscribeToUpdates, 5000);
+        }
+      });
       
+    channelRef.current = channel;
     return channel;
   };
   
@@ -210,7 +268,8 @@ const useBills = () => {
     updateBill,
     deleteBill,
     markAsPaid,
-    refreshBills: fetchBills
+    refreshBills: fetchBills,
+    realtimeConnected
   };
 };
 

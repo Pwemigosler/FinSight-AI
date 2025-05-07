@@ -1,20 +1,24 @@
+
 import React, { useState } from 'react';
 import { Bill } from '@/types/bill';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, Trash2, Search, AlertCircle, Clock, CheckCircle } from 'lucide-react';
+import { Edit, Trash2, Search, AlertCircle, Clock, CheckCircle, Wifi, WifiOff } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import BillForm from './BillForm';
 import DeleteBillDialog from './DeleteBillDialog';
 import useBills from '@/hooks/useBills';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface BillListProps {
   bills: Bill[];
   isLoading: boolean;
+  realtimeConnected?: boolean;
 }
 
-const BillList: React.FC<BillListProps> = ({ bills, isLoading }) => {
+const BillList: React.FC<BillListProps> = ({ bills, isLoading, realtimeConnected = false }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editBill, setEditBill] = useState<{ id: string; values: any } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -39,10 +43,14 @@ const BillList: React.FC<BillListProps> = ({ bills, isLoading }) => {
   const confirmDelete = async () => {
     if (selectedBillId) {
       console.log('Deleting bill:', selectedBillId);
-      await deleteBill(selectedBillId);
-      setDeleteDialogOpen(false);
-      setSelectedBillId(null);
+      const success = await deleteBill(selectedBillId);
+      if (success) {
+        setDeleteDialogOpen(false);
+        setSelectedBillId(null);
+      }
+      return success;
     }
+    return false;
   };
   
   const handleMarkAsPaid = async (billId: string) => {
@@ -84,8 +92,8 @@ const BillList: React.FC<BillListProps> = ({ bills, isLoading }) => {
 
   return (
     <div className="bg-white rounded-lg shadow">
-      <div className="p-4 border-b">
-        <div className="relative">
+      <div className="p-4 border-b flex items-center justify-between">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           <Input
             type="text"
@@ -95,6 +103,28 @@ const BillList: React.FC<BillListProps> = ({ bills, isLoading }) => {
             className="pl-10"
           />
         </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="ml-2">
+                {realtimeConnected ? (
+                  <Badge variant="outline" className="flex items-center gap-1 bg-green-50 text-green-700 border-green-200">
+                    <Wifi className="h-3 w-3" /> Live
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="flex items-center gap-1 bg-red-50 text-red-700 border-red-200">
+                    <WifiOff className="h-3 w-3" /> Offline
+                  </Badge>
+                )}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              {realtimeConnected 
+                ? "Real-time updates are active" 
+                : "Real-time updates are not available"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       
       <div className="overflow-x-auto">
