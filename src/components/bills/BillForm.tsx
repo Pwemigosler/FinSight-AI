@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { BillFormValues, BillFrequency, BillStatus } from "@/types/bill";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import useBills from "@/hooks/useBills";
+import { toast } from 'sonner';
 
 interface BillFormProps {
   isOpen: boolean;
@@ -32,7 +34,7 @@ const frequencyOptions: BillFrequency[] = ["monthly", "quarterly", "annually", "
 const statusOptions: BillStatus[] = ["upcoming", "paid", "unpaid", "overdue"];
 
 const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) => {
-  const initialValues: BillFormValues = editBill?.values || {
+  const initialValues: BillFormValues = {
     name: '',
     amount: 0,
     due_date: 1,
@@ -48,14 +50,39 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
   const { addBill, updateBill } = useBills();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Reset form when dialog opens/closes or when editBill changes
+  useEffect(() => {
+    if (isOpen) {
+      // If editing, set form values from the bill being edited
+      if (editBill?.values) {
+        setFormValues(editBill.values);
+      } else {
+        // Reset to initial state when adding a new bill
+        setFormValues(initialValues);
+      }
+    }
+  }, [isOpen, editBill]);
+  
   const handleChange = (field: keyof BillFormValues, value: any) => {
     setFormValues(prev => ({ ...prev, [field]: value }));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Basic form validation
+    if (!formValues.name.trim()) {
+      toast.error('Please enter a bill name');
+      return;
+    }
+    
+    if (formValues.amount <= 0) {
+      toast.error('Amount must be greater than zero');
+      return;
+    }
+    
     setIsSubmitting(true);
-    console.log('Submitting bill form...');
+    console.log('Submitting bill form...', formValues);
     
     try {
       const billData = {
@@ -65,19 +92,28 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
         next_due_date: formValues.next_due_date.toISOString().split('T')[0]
       };
 
+      let success = false;
+      
       if (editBill) {
         console.log('Updating bill:', editBill.id);
-        await updateBill(editBill.id, billData);
+        const result = await updateBill(editBill.id, billData);
+        success = !!result;
       } else {
         console.log('Adding new bill:', billData.name);
-        await addBill(billData);
+        const result = await addBill(billData);
+        success = !!result;
       }
       
-      // Close the form and reset values
-      onOpenChange(false);
-      setFormValues(initialValues);
+      // Only close the form if the operation was successful
+      if (success) {
+        console.log('Form submission successful, closing dialog');
+        onOpenChange(false);
+      } else {
+        console.error('Form submission failed, keeping dialog open');
+      }
     } catch (error) {
       console.error("Error submitting bill:", error);
+      toast.error('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -90,9 +126,14 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
     if (numValue > 31) return 31;
     return Math.floor(numValue);
   };
+
+  const handleCancel = () => {
+    if (isSubmitting) return; // Prevent closing during submission
+    onOpenChange(false);
+  };
   
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={isSubmitting ? () => {} : onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{editBill ? 'Edit Bill' : 'Add New Bill'}</DialogTitle>
@@ -101,7 +142,7 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Bill Name</Label>
+              <Label htmlFor="name">Bill Name*</Label>
               <Input 
                 id="name" 
                 value={formValues.name} 
@@ -112,11 +153,11 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount ($)</Label>
+              <Label htmlFor="amount">Amount ($)*</Label>
               <Input 
                 id="amount" 
                 type="number" 
-                min="0"
+                min="0.01"
                 step="0.01" 
                 value={formValues.amount} 
                 onChange={(e) => handleChange('amount', parseFloat(e.target.value) || 0)} 
@@ -126,7 +167,7 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="due_date">Due Date (Day of Month)</Label>
+                <Label htmlFor="due_date">Due Date (Day of Month)*</Label>
                 <Input 
                   id="due_date" 
                   type="number" 
@@ -139,7 +180,7 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">Category*</Label>
                 <Select 
                   value={formValues.category} 
                   onValueChange={(value) => handleChange('category', value)}
@@ -160,7 +201,7 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="frequency">Frequency</Label>
+                <Label htmlFor="frequency">Frequency*</Label>
                 <Select 
                   value={formValues.frequency} 
                   onValueChange={(value: BillFrequency) => handleChange('frequency', value)}
@@ -179,7 +220,7 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">Status*</Label>
                 <Select 
                   value={formValues.status} 
                   onValueChange={(value: BillStatus) => handleChange('status', value)}
@@ -199,10 +240,11 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="next_due_date">Next Due Date</Label>
+              <Label htmlFor="next_due_date">Next Due Date*</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
+                    id="next_due_date"
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
@@ -253,12 +295,20 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => onOpenChange(false)}
+              onClick={handleCancel}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : (editBill ? 'Update' : 'Add')}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {editBill ? 'Updating...' : 'Adding...'}
+                </>
+              ) : (
+                editBill ? 'Update' : 'Add'
+              )}
             </Button>
           </DialogFooter>
         </form>

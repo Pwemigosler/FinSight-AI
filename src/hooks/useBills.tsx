@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Bill, BillFrequency, BillStatus } from '@/types/bill';
 import { useAuth } from '@/contexts/auth';
@@ -11,15 +11,20 @@ const useBills = () => {
   const { user } = useAuth();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const [realtimeConnected, setRealtimeConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const fetchBills = async () => {
     if (!user) {
+      setBills([]);
       setIsLoading(false);
       return;
     }
     
     try {
       setIsLoading(true);
+      console.log('Fetching bills for user:', user.id);
+      
       const { data, error } = await supabase
         .from('bills')
         .select('*')
@@ -37,7 +42,7 @@ const useBills = () => {
       })) || [];
       
       setBills(typedData);
-      console.log('Bills fetched:', typedData.length);
+      console.log('Bills fetched successfully:', typedData.length);
     } catch (error) {
       console.error('Error fetching bills:', error);
       toast.error('Failed to load bills');
@@ -47,9 +52,14 @@ const useBills = () => {
   };
   
   const addBill = async (bill: Omit<Bill, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return null;
+    if (!user) {
+      toast.error('You must be signed in to add bills');
+      return null;
+    }
     
     try {
+      console.log('Adding bill:', bill);
+      
       const { data, error } = await supabase
         .from('bills')
         .insert([{ ...bill, user_id: user.id }])
@@ -71,15 +81,17 @@ const useBills = () => {
       
       console.log('Bill added:', newBill);
       return newBill;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding bill:', error);
-      toast.error('Failed to add bill');
+      toast.error(`Failed to add bill: ${error.message || 'Unknown error'}`);
       return null;
     }
   };
   
   const updateBill = async (id: string, updates: Partial<Bill>) => {
     try {
+      console.log('Updating bill:', id, updates);
+      
       const { data, error } = await supabase
         .from('bills')
         .update(updates)
@@ -104,15 +116,17 @@ const useBills = () => {
       toast.success('Bill updated successfully');
       console.log('Bill updated:', updatedBill);
       return updatedBill;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating bill:', error);
-      toast.error('Failed to update bill');
+      toast.error(`Failed to update bill: ${error.message || 'Unknown error'}`);
       return null;
     }
   };
   
   const deleteBill = async (id: string) => {
     try {
+      console.log('Deleting bill:', id);
+      
       const { error } = await supabase
         .from('bills')
         .delete()
@@ -125,15 +139,16 @@ const useBills = () => {
       toast.success('Bill deleted successfully');
       console.log('Bill deleted:', id);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting bill:', error);
-      toast.error('Failed to delete bill');
+      toast.error(`Failed to delete bill: ${error.message || 'Unknown error'}`);
       return false;
     }
   };
   
   // Mark a bill as paid
   const markAsPaid = async (id: string) => {
+    console.log('Marking bill as paid:', id);
     return updateBill(id, { status: 'paid' });
   };
   
@@ -150,7 +165,7 @@ const useBills = () => {
   }, 0);
   
   // Check for and update overdue bills
-  const checkOverdueBills = () => {
+  const checkOverdueBills = useCallback(() => {
     const today = new Date();
     const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD
     
@@ -159,16 +174,20 @@ const useBills = () => {
         updateBill(bill.id, { status: 'overdue' });
       }
     });
-  };
+  }, [bills]);
   
-  // Subscribe to real-time updates from Supabase
-  const subscribeToUpdates = () => {
-    if (!user) return null;
+  // Subscribe to real-time updates from Supabase with improved error handling
+  const subscribeToUpdates = useCallback(() => {
+    if (!user) {
+      console.log('Cannot subscribe to updates: No user logged in');
+      return null;
+    }
     
     console.log('Setting up real-time subscription for bills');
     
     // Clean up any existing subscription first
     if (channelRef.current) {
+      console.log('Cleaning up existing channel subscription');
       supabase.removeChannel(channelRef.current);
     }
     
@@ -228,22 +247,59 @@ const useBills = () => {
       )
       .subscribe((status) => {
         console.log('Realtime subscription status:', status);
-        setRealtimeConnected(status === 'SUBSCRIBED');
+        
         if (status === 'SUBSCRIBED') {
+          setRealtimeConnected(true);
+          setConnectionError(null);
           toast.success('Real-time updates enabled');
-        } else if (status === 'CHANNEL_ERROR') {
+          
+          // Clear any pending reconnect timeout
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+            reconnectTimeoutRef.current = null;
+          }
+        } 
+        else if (status === 'CHANNEL_ERROR') {
+          setRealtimeConnected(false);
+          setConnectionError('Connection error occurred');
           toast.error('Real-time connection error');
+          
           // Attempt to reconnect after a delay
-          setTimeout(subscribeToUpdates, 5000);
+          if (!reconnectTimeoutRef.current) {
+            console.log('Scheduling reconnection attempt in 5 seconds');
+            reconnectTimeoutRef.current = setTimeout(() => {
+              console.log('Attempting to reconnect...');
+              subscribeToUpdates();
+              reconnectTimeoutRef.current = null;
+            }, 5000);
+          }
+        } 
+        else if (status === 'TIMED_OUT') {
+          setRealtimeConnected(false);
+          setConnectionError('Connection timed out');
+          toast.error('Real-time connection timed out');
+          
+          // Attempt to reconnect after a delay
+          if (!reconnectTimeoutRef.current) {
+            console.log('Scheduling reconnection attempt in 5 seconds');
+            reconnectTimeoutRef.current = setTimeout(() => {
+              console.log('Attempting to reconnect...');
+              subscribeToUpdates();
+              reconnectTimeoutRef.current = null;
+            }, 5000);
+          }
         }
       });
       
     channelRef.current = channel;
     return channel;
-  };
+  }, [user]);
   
+  // Handle initial data loading and subscribe to updates
   useEffect(() => {
+    console.log('useBills hook initialized or user changed');
     fetchBills();
+    
     // Set up real-time subscription
     const channel = subscribeToUpdates();
     
@@ -253,12 +309,18 @@ const useBills = () => {
         console.log('Cleaning up real-time subscription');
         supabase.removeChannel(channel);
       }
+      
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
     };
-  }, [user]);
+  }, [user, subscribeToUpdates]);
   
+  // Periodically check for overdue bills
   useEffect(() => {
     checkOverdueBills();
-  }, [bills]);
+  }, [bills, checkOverdueBills]);
   
   return {
     bills,
@@ -269,7 +331,8 @@ const useBills = () => {
     deleteBill,
     markAsPaid,
     refreshBills: fetchBills,
-    realtimeConnected
+    realtimeConnected,
+    connectionError
   };
 };
 

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth';
-import { Calendar, Plus, Filter, CreditCard } from 'lucide-react';
+import { Calendar, Plus, Filter, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BillList from './bills/BillList';
 import BillForm from './bills/BillForm';
@@ -11,12 +11,36 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import BillBanner from './bills/BillBanner';
 import useBills from '@/hooks/useBills';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const BillsView: React.FC = () => {
   const [view, setView] = useState<'list' | 'calendar'>('list');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { user } = useAuth();
-  const { bills, isLoading, billsTotal, realtimeConnected } = useBills();
+  const { 
+    bills, 
+    isLoading, 
+    billsTotal, 
+    realtimeConnected, 
+    connectionError,
+    refreshBills 
+  } = useBills();
+
+  // Attempt to refresh bills periodically if there's a connection error
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (connectionError) {
+      interval = setInterval(() => {
+        console.log('Connection error detected, refreshing bills...');
+        refreshBills();
+      }, 30000); // Refresh every 30 seconds if there's a connection error
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [connectionError, refreshBills]);
 
   const handleOpenForm = () => {
     if (!user) {
@@ -64,6 +88,24 @@ const BillsView: React.FC = () => {
       </div>
 
       <BillBanner />
+      
+      {connectionError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Connection Error</AlertTitle>
+          <AlertDescription>
+            We're having trouble maintaining a live connection. Your changes may not update in real-time.
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={refreshBills} 
+              className="ml-2"
+            >
+              Refresh Now
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card className="bg-blue-50">

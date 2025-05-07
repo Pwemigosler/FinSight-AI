@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 type DeleteBillDialogProps = {
   isOpen: boolean;
@@ -29,22 +30,40 @@ const DeleteBillDialog = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleConfirm = async () => {
-    if (!billId) return;
+    if (!billId) {
+      toast.error("No bill selected for deletion");
+      return;
+    }
     
     setIsDeleting(true);
     try {
-      await onConfirm();
-      // Don't close the dialog here, let the parent component handle it
-      // The real-time update should take care of updating the UI
+      console.log('Confirming deletion for bill:', billId);
+      const success = await onConfirm();
+      
+      if (success) {
+        console.log('Delete operation successful');
+        onOpenChange(false); // Close the dialog on success
+      } else {
+        console.error('Delete operation failed');
+        toast.error('Failed to delete bill. Please try again.');
+      }
     } catch (error) {
       console.error('Error during deletion:', error);
+      toast.error('An unexpected error occurred during deletion');
     } finally {
       setIsDeleting(false);
     }
   };
 
+  const handleClose = () => {
+    // Only allow closing if we're not in the middle of a delete operation
+    if (!isDeleting) {
+      onOpenChange(false);
+    }
+  };
+
   return (
-    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+    <AlertDialog open={isOpen} onOpenChange={isDeleting ? () => {} : onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
@@ -53,7 +72,7 @@ const DeleteBillDialog = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel onClick={handleClose} disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction 
             onClick={handleConfirm} 
             className="bg-red-600 hover:bg-red-700"
