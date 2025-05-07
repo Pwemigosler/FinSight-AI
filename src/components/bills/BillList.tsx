@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Bill } from '@/types/bill';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -32,6 +31,7 @@ const BillList: React.FC<BillListProps> = ({
   const { markAsPaid, deleteBill } = useBills();
   
   const handleEdit = (bill: Bill) => {
+    console.log('Opening edit form for bill:', bill.id);
     setEditBill({
       id: bill.id,
       values: {
@@ -42,6 +42,7 @@ const BillList: React.FC<BillListProps> = ({
   };
   
   const handleDelete = (billId: string) => {
+    console.log('Opening delete dialog for bill:', billId);
     setSelectedBillId(billId);
     setDeleteDialogOpen(true);
   };
@@ -54,6 +55,12 @@ const BillList: React.FC<BillListProps> = ({
         console.log('Delete operation successful');
         setDeleteDialogOpen(false);
         setSelectedBillId(null);
+        
+        // If the real-time connection isn't working, manually refresh
+        if (!realtimeConnected && onRefresh) {
+          console.log('No real-time connection, manually refreshing bills');
+          setTimeout(onRefresh, 300);
+        }
       }
       return success;
     }
@@ -63,6 +70,12 @@ const BillList: React.FC<BillListProps> = ({
   const handleMarkAsPaid = async (billId: string) => {
     console.log('Marking bill as paid:', billId);
     await markAsPaid(billId);
+    
+    // If the real-time connection isn't working, manually refresh
+    if (!realtimeConnected && onRefresh) {
+      console.log('No real-time connection, manually refreshing bills after marking as paid');
+      setTimeout(onRefresh, 300);
+    }
   };
   
   const filteredBills = bills.filter(bill => 
@@ -223,7 +236,16 @@ const BillList: React.FC<BillListProps> = ({
       {editBill && (
         <BillForm
           isOpen={!!editBill}
-          onOpenChange={(open) => !open && setEditBill(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditBill(null);
+              // If the real-time connection isn't working, manually refresh
+              if (!realtimeConnected && onRefresh) {
+                console.log('No real-time connection, manually refreshing bills after edit form closed');
+                setTimeout(onRefresh, 300);
+              }
+            }
+          }}
           editBill={editBill}
         />
       )}

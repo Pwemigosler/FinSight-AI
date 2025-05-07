@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +16,7 @@ import {
 type DeleteTransactionDialogProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<boolean>;
 };
 
 const DeleteTransactionDialog = ({ 
@@ -24,14 +25,29 @@ const DeleteTransactionDialog = ({
   onConfirm 
 }: DeleteTransactionDialogProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const handleDelete = async () => {
     setIsDeleting(true);
+    setError(null);
+    
     try {
-      onConfirm();
-      onOpenChange(false);
+      console.log('Confirming transaction deletion');
+      const success = await onConfirm();
+      
+      if (success) {
+        console.log('Transaction delete operation successful');
+        toast.success('Transaction deleted successfully');
+        onOpenChange(false); // Close dialog on success
+      } else {
+        console.error('Transaction delete operation failed');
+        setError('Failed to delete transaction');
+        toast.error('Failed to delete transaction');
+      }
     } catch (error) {
       console.error("Error deleting transaction:", error);
+      setError('An unexpected error occurred');
+      toast.error('An unexpected error occurred during deletion');
     } finally {
       setIsDeleting(false);
     }
@@ -46,6 +62,13 @@ const DeleteTransactionDialog = ({
             Are you sure you want to delete this transaction? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        
+        {error && (
+          <div className="mb-4 p-3 text-sm border border-red-300 bg-red-50 text-red-800 rounded-md">
+            {error}
+          </div>
+        )}
+        
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction 

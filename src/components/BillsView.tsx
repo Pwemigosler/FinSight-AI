@@ -70,6 +70,14 @@ const BillsView: React.FC = () => {
     }
   }, [refreshBills, isRefreshing]);
 
+  // Ensure we update the UI if the connection status changes
+  useEffect(() => {
+    if (realtimeConnected) {
+      console.log('Real-time connection established, refreshing bills');
+      refreshBills();
+    }
+  }, [realtimeConnected, refreshBills]);
+
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
