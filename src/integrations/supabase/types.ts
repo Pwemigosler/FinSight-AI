@@ -9,6 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bills: {
+        Row: {
+          amount: number
+          auto_pay: boolean
+          category: string
+          created_at: string
+          due_date: number
+          frequency: string
+          id: string
+          name: string
+          next_due_date: string
+          notes: string | null
+          payment_method_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          auto_pay?: boolean
+          category: string
+          created_at?: string
+          due_date: number
+          frequency: string
+          id?: string
+          name: string
+          next_due_date: string
+          notes?: string | null
+          payment_method_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          auto_pay?: boolean
+          category?: string
+          created_at?: string
+          due_date?: number
+          frequency?: string
+          id?: string
+          name?: string
+          next_due_date?: string
+          notes?: string | null
+          payment_method_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       budget_categories: {
         Row: {
           allocated: number

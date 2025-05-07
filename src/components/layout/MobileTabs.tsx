@@ -7,6 +7,7 @@ import GoalTracker from "@/components/GoalTracker";
 import BudgetsView from "@/components/BudgetsView";
 import ReportsView from "@/components/ReportsView";
 import SettingsView from "@/components/SettingsView";
+import BillsView from "@/components/BillsView";
 
 interface MobileTabsProps {
   activeView: string;
@@ -17,9 +18,10 @@ interface MobileTabsProps {
 const MobileTabs = ({ activeView, onViewChange, onNavigate }: MobileTabsProps) => {
   return (
     <Tabs value={activeView} onValueChange={onViewChange} className="w-full">
-      <TabsList className="w-full grid grid-cols-3 mb-4">
+      <TabsList className="w-full grid grid-cols-4 mb-4">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="transactions">Transactions</TabsTrigger>
+        <TabsTrigger value="bills">Bills</TabsTrigger>
         <TabsTrigger value="goals">Goals</TabsTrigger>
       </TabsList>
       <TabsContent value="dashboard">
@@ -28,6 +30,11 @@ const MobileTabs = ({ activeView, onViewChange, onNavigate }: MobileTabsProps) =
       <TabsContent value="transactions">
         <div className="p-4">
           <TransactionsView />
+        </div>
+      </TabsContent>
+      <TabsContent value="bills">
+        <div className="p-4">
+          <BillsView />
         </div>
       </TabsContent>
       <TabsContent value="goals">

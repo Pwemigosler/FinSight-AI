@@ -6,6 +6,7 @@ import GoalTracker from "@/components/GoalTracker";
 import BudgetsView from "@/components/BudgetsView";
 import ReportsView from "@/components/ReportsView";
 import SettingsView from "@/components/SettingsView";
+import BillsView from "@/components/BillsView";
 
 interface DesktopViewProps {
   activeView: string;
@@ -17,6 +18,7 @@ const DesktopView = ({ activeView, onNavigate }: DesktopViewProps) => {
     <div className="hidden md:block">
       {activeView === "dashboard" && <Dashboard onNavigate={onNavigate} />}
       {activeView === "transactions" && <TransactionsView />}
+      {activeView === "bills" && <BillsView />}
       {activeView === "goals" && <GoalTracker />}
       {activeView === "budgets" && <BudgetsView />}
       {activeView === "reports" && <ReportsView />}

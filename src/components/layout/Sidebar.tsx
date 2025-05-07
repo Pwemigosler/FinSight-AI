@@ -7,7 +7,7 @@ import {
   ListChecks, 
   Target, 
   CreditCard, 
-  Settings
+  Receipt
 } from "lucide-react";
 
 interface SidebarProps {
@@ -34,6 +34,14 @@ const Sidebar = ({ activeView, handleNavigation }: SidebarProps) => {
         >
           <CreditCard className="h-5 w-5" />
           Transactions
+        </Button>
+        <Button 
+          variant={activeView === "bills" ? "default" : "ghost"} 
+          className={`w-full justify-start gap-3 ${activeView === "bills" ? "bg-ptcustom-blue text-white" : "text-gray-500"}`}
+          onClick={() => handleNavigation("bills")}
+        >
+          <Receipt className="h-5 w-5" />
+          Bills
         </Button>
         <Button 
           variant={activeView === "budgets" ? "default" : "ghost"} 
