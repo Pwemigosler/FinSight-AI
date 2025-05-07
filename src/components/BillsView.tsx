@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { Calendar, Plus, Filter, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,12 @@ const BillsView: React.FC = () => {
   const [view, setView] = useState<'list' | 'calendar'>('list');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { user } = useAuth();
-  const { bills, isLoading, billsTotal } = useBills();
+  const { bills, isLoading, billsTotal, refreshBills } = useBills();
+
+  // Refresh bills when component mounts and when view changes
+  useEffect(() => {
+    refreshBills();
+  }, [view]);
 
   const handleOpenForm = () => {
     if (!user) {
@@ -24,6 +29,11 @@ const BillsView: React.FC = () => {
       return;
     }
     setIsFormOpen(true);
+  };
+
+  const handleViewChange = (newView: 'list' | 'calendar') => {
+    setView(newView);
+    refreshBills(); // Refresh bills when view changes
   };
 
   return (
@@ -38,13 +48,13 @@ const BillsView: React.FC = () => {
             <TabsList>
               <TabsTrigger 
                 value="list" 
-                onClick={() => setView('list')}
+                onClick={() => handleViewChange('list')}
               >
                 List
               </TabsTrigger>
               <TabsTrigger 
                 value="calendar" 
-                onClick={() => setView('calendar')}
+                onClick={() => handleViewChange('calendar')}
               >
                 Calendar
               </TabsTrigger>

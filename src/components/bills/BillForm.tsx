@@ -46,7 +46,7 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
   };
 
   const [formValues, setFormValues] = useState<BillFormValues>(initialValues);
-  const { addBill, updateBill } = useBills();
+  const { addBill, updateBill, refreshBills } = useBills();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleChange = (field: keyof BillFormValues, value: any) => {
@@ -73,6 +73,9 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
           next_due_date: formValues.next_due_date.toISOString().split('T')[0]
         });
       }
+      
+      // Refresh the bills list after successful submission
+      await refreshBills();
       
       onOpenChange(false);
       setFormValues(initialValues);
