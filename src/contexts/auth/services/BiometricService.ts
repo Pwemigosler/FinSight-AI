@@ -28,7 +28,7 @@ export class BiometricService {
       window.crypto.getRandomValues(challenge);
 
       // Create credential options
-      const createCredentialOptions = {
+      const createCredentialOptions: PublicKeyCredentialCreationOptions = {
         challenge,
         rp: { 
           name: "FinSight AI",
@@ -49,7 +49,7 @@ export class BiometricService {
           requireResidentKey: false
         },
         timeout: 60000,
-        attestation: "none"
+        attestation: "none" as AttestationConveyancePreference // Type cast to the correct enum type
       };
 
       // Create a credential
@@ -100,15 +100,15 @@ export class BiometricService {
       window.crypto.getRandomValues(challenge);
 
       // Create the credential request options
-      const getCredentialOptions = {
+      const getCredentialOptions: PublicKeyCredentialRequestOptions = {
         challenge, 
         rpId: window.location.hostname,
         allowCredentials: [{
           id: Uint8Array.from(atob(credentialId), c => c.charCodeAt(0)),
           type: 'public-key',
-          transports: ['internal']
+          transports: ['internal'] as AuthenticatorTransport[] // Type cast to the correct array type
         }],
-        userVerification: 'required',
+        userVerification: 'required' as UserVerificationRequirement, // Type cast to the correct enum type
         timeout: 60000
       };
 

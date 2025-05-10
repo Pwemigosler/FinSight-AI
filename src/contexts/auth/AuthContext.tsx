@@ -1,9 +1,11 @@
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { User } from "../../types/user";
 import { AuthContextType, BankCard } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { UserService } from "./UserService";
 import { BankCardService } from "./BankCardService";
+import { AuthService } from "./services/AuthService"; // Add the missing import
 import { toast } from "sonner";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
