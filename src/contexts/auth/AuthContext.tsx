@@ -22,6 +22,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [initialized, setInitialized] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
+  const [isBiometricsSupported, setIsBiometricsSupported] = useState(false);
+  const [isBiometricsRegistered, setIsBiometricsRegistered] = useState(false);
   
   // Initialize services
   const userService = new UserService();
@@ -96,6 +98,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     initializeAuth();
   }, []);
+
+  // Check if biometrics are supported
+  useEffect(() => {
+    setIsBiometricsSupported(window.PublicKeyCredential !== undefined);
+  }, []);
+
+  // Check biometric registration status when user changes
+  useEffect(() => {
+    if (user && isBiometricsSupported) {
+      const authService = new AuthService();
+      setIsBiometricsRegistered(authService.canUseBiometrics(user));
+    } else {
+      setIsBiometricsRegistered(false);
+    }
+  }, [user, isBiometricsSupported]);
 
   // User profile management
   const updateUserProfile = async (updates: Partial<User>): Promise<void> => {
@@ -224,6 +241,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLinkedCards(updatedCards);
   };
 
+  // Biometric authentication methods
+  const registerBiometrics = async (): Promise<boolean> => {
+    if (!user) {
+      console.error("[AuthContext] Cannot register biometrics: No user logged in");
+      toast.error("Must be logged in to register biometrics");
+      return false;
+    }
+
+    const authService = new AuthService();
+    const result = await authService.registerBiometrics(user);
+    
+    if (result) {
+      setIsBiometricsRegistered(true);
+      toast.success("Biometric authentication registered successfully");
+    }
+    
+    return result;
+  };
+
+  const loginWithBiometrics = async (email: string): Promise<boolean> => {
+    const authService = new AuthService();
+    const loggedInUser = await authService.loginWithBiometrics(email);
+    
+    if (loggedInUser) {
+      setUser(loggedInUser);
+      toast.success("Biometric login successful");
+      return true;
+    }
+    
+    return false;
+  };
+
+  const removeBiometrics = (): boolean => {
+    if (!user) {
+      console.error("[AuthContext] Cannot remove biometrics: No user logged in");
+      toast.error("Must be logged in to remove biometrics");
+      return false;
+    }
+    
+    const authService = new AuthService();
+    const result = authService.removeBiometrics(user);
+    
+    if (result) {
+      setIsBiometricsRegistered(false);
+      toast.success("Biometric authentication removed");
+    }
+    
+    return result;
+  };
+
   // Authentication
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -335,7 +402,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setDefaultCard,
     completeAccountSetup,
     needsAccountSetup,
-    loading
+    loading,
+    // Add new biometric methods
+    registerBiometrics,
+    loginWithBiometrics,
+    removeBiometrics,
+    isBiometricsSupported,
+    isBiometricsRegistered
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -3,6 +3,7 @@ import { User } from "../../../types/user";
 import { toast } from "sonner";
 import { DefaultsService } from "./DefaultsService";
 import { UserStorageService } from "./UserStorageService";
+import { BiometricService } from "./BiometricService";
 
 /**
  * Service responsible for authentication operations
@@ -10,10 +11,12 @@ import { UserStorageService } from "./UserStorageService";
 export class AuthService {
   private defaultsService: DefaultsService;
   private storageService: UserStorageService;
+  private biometricService: BiometricService;
   
   constructor() {
     this.defaultsService = new DefaultsService();
     this.storageService = new UserStorageService();
+    this.biometricService = new BiometricService();
   }
 
   /**
@@ -123,5 +126,112 @@ export class AuthService {
   logout(): void {
     this.storageService.clearUserData();
     toast("You have been logged out");
+  }
+
+  /**
+   * Handles biometric registration for a user
+   */
+  async registerBiometrics(user: User): Promise<boolean> {
+    if (!user || !user.id || !user.email) {
+      toast("User information is incomplete");
+      return false;
+    }
+
+    if (!this.biometricService.isSupported()) {
+      toast("Biometric authentication is not supported on this device");
+      return false;
+    }
+
+    try {
+      const result = await this.biometricService.registerCredential(
+        user.id,
+        user.email
+      );
+
+      if (result) {
+        toast("Biometric authentication set up successfully");
+        return true;
+      } else {
+        toast("Failed to set up biometric authentication");
+        return false;
+      }
+    } catch (error) {
+      console.error("[AuthService] Biometric registration failed:", error);
+      toast("Biometric setup failed. Please try again.");
+      return false;
+    }
+  }
+
+  /**
+   * Handles login with biometrics
+   */
+  async loginWithBiometrics(email: string): Promise<User | null> {
+    try {
+      // First check if we have a user with this email
+      const savedUserStr = localStorage.getItem("finsight_user");
+      
+      if (!savedUserStr) {
+        toast("No user found");
+        return null;
+      }
+      
+      const savedUser = JSON.parse(savedUserStr);
+      if (savedUser.email !== email) {
+        toast("User not found");
+        return null;
+      }
+
+      // Now verify the biometric authentication
+      const verified = await this.biometricService.verifyCredential(savedUser.id);
+      
+      if (verified) {
+        // Update login timestamp
+        localStorage.setItem("finsight_login_timestamp", Date.now().toString());
+        toast("Biometric authentication successful");
+        return savedUser;
+      } else {
+        toast("Biometric authentication failed");
+        return null;
+      }
+    } catch (error) {
+      console.error("[AuthService] Biometric login failed:", error);
+      toast("Biometric login failed. Please try again or use password.");
+      return null;
+    }
+  }
+
+  /**
+   * Removes biometric credentials for a user
+   */
+  removeBiometrics(user: User): boolean {
+    if (!user || !user.id) {
+      toast("User information is incomplete");
+      return false;
+    }
+
+    try {
+      this.biometricService.removeCredential(user.id);
+      toast("Biometric authentication removed");
+      return true;
+    } catch (error) {
+      console.error("[AuthService] Failed to remove biometrics:", error);
+      toast("Failed to remove biometric authentication");
+      return false;
+    }
+  }
+
+  /**
+   * Checks if biometrics are available and registered for the user
+   */
+  canUseBiometrics(user?: User | null): boolean {
+    if (!this.biometricService.isSupported()) {
+      return false;
+    }
+    
+    if (!user || !user.id) {
+      return false;
+    }
+    
+    return this.biometricService.hasRegisteredCredential(user.id);
   }
 }

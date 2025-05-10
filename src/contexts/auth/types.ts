@@ -23,4 +23,11 @@ export interface AuthContextType {
   completeAccountSetup: () => Promise<void>;
   needsAccountSetup: boolean;
   loading: boolean;
+  
+  // Biometric authentication methods
+  registerBiometrics: () => Promise<boolean>;
+  loginWithBiometrics: (email: string) => Promise<boolean>;
+  removeBiometrics: () => boolean;
+  isBiometricsSupported: boolean;
+  isBiometricsRegistered: boolean;
 }

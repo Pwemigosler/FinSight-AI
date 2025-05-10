@@ -1,15 +1,27 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/auth";
+import { AlertCircle, Fingerprint } from "lucide-react";
 
 export const SecuritySettings = () => {
   const [security, setSecurity] = useState({
     twoFactor: false,
     passwordUpdated: false
   });
+  
+  const { 
+    user, 
+    isBiometricsSupported, 
+    isBiometricsRegistered,
+    registerBiometrics,
+    removeBiometrics
+  } = useAuth();
+  
+  const [isBiometricLoading, setBiometricLoading] = useState(false);
 
   const handlePasswordChange = () => {
     setSecurity(prev => ({ ...prev, passwordUpdated: true }));
@@ -29,6 +41,37 @@ export const SecuritySettings = () => {
       toast("Two-Factor Authentication Disabled", {
         description: "2FA has been turned off for your account."
       });
+    }
+  };
+
+  const handleBiometricsToggle = async () => {
+    setBiometricLoading(true);
+    
+    try {
+      let success;
+      
+      if (isBiometricsRegistered) {
+        success = removeBiometrics();
+      } else {
+        success = await registerBiometrics();
+      }
+      
+      if (success) {
+        toast(isBiometricsRegistered 
+          ? "Biometric authentication removed" 
+          : "Biometric authentication enabled", {
+          description: isBiometricsRegistered
+            ? "You can re-enable biometric login at any time."
+            : "You can now log in using your fingerprint or face."
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling biometrics:", error);
+      toast("Biometric operation failed", {
+        description: "Please try again later."
+      });
+    } finally {
+      setBiometricLoading(false);
     }
   };
 
@@ -54,6 +97,50 @@ export const SecuritySettings = () => {
               <Button variant="outline" onClick={handlePasswordChange}>Change Password</Button>
             </div>
           </div>
+          
+          {isBiometricsSupported && (
+            <div className="space-y-3">
+              <Label>Biometric Authentication</Label>
+              <Card className="border-dashed">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="font-medium">Use biometrics for faster login</p>
+                      <p className="text-sm text-muted-foreground">
+                        Sign in using your fingerprint, face recognition, or security key.
+                      </p>
+                    </div>
+                    <Button 
+                      variant={isBiometricsRegistered ? "outline" : "secondary"}
+                      onClick={handleBiometricsToggle}
+                      disabled={isBiometricLoading}
+                    >
+                      {isBiometricLoading ? (
+                        <span className="flex items-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                          Processing...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <Fingerprint className="h-4 w-4" />
+                          {isBiometricsRegistered ? "Disable Biometrics" : "Enable Biometrics"}
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {!isBiometricsSupported && (
+            <div className="p-3 text-sm bg-amber-50 border border-amber-200 rounded flex items-center gap-2 text-amber-700">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <span>
+                Biometric authentication is not supported on this device or browser.
+              </span>
+            </div>
+          )}
           
           <div className="space-y-3">
             <Label>Two-Factor Authentication</Label>

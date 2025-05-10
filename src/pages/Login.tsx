@@ -1,11 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, LogIn, UserPlus, AlertCircle, Info } from "lucide-react";
+import { Lock, LogIn, UserPlus, AlertCircle, Info, Fingerprint } from "lucide-react";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -16,8 +16,35 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const { login, signup, loading: authLoading } = useAuth();
+  const [isBiometricsAvailable, setIsBiometricsAvailable] = useState(false);
+  
+  const { 
+    login, 
+    signup, 
+    loading: authLoading, 
+    loginWithBiometrics 
+  } = useAuth();
+  
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Check if WebAuthn is supported by the browser
+    if (window.PublicKeyCredential !== undefined) {
+      // Check if we have a stored email and biometrics are registered
+      const savedUserStr = localStorage.getItem("finsight_user");
+      if (savedUserStr) {
+        try {
+          const savedUser = JSON.parse(savedUserStr);
+          if (savedUser?.email) {
+            setEmail(savedUser.email);
+            setIsBiometricsAvailable(true);
+          }
+        } catch (e) {
+          console.error("Error parsing stored user:", e);
+        }
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +94,30 @@ const Login = () => {
       toast(isLogin ? "Login failed" : "Signup failed", {
         description: errorText
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    if (!email) {
+      toast("Please enter your email address");
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const normalizedEmail = email.toLowerCase();
+      const success = await loginWithBiometrics(normalizedEmail);
+      
+      if (success) {
+        navigate("/");
+      } else {
+        setErrorMessage("Biometric authentication failed. Please try again or use password.");
+      }
+    } catch (error) {
+      console.error("[Login] Biometric authentication error:", error);
+      setErrorMessage("Biometric authentication failed. Please use your password instead.");
     } finally {
       setIsLoading(false);
     }
@@ -205,6 +256,21 @@ const Login = () => {
                 </span>
               )}
             </Button>
+            
+            {isLogin && isBiometricsAvailable && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full mt-2"
+                onClick={handleBiometricLogin}
+                disabled={isLoading || authLoading}
+              >
+                <span className="flex items-center gap-2">
+                  <Fingerprint className="h-4 w-4" />
+                  Login with Biometrics
+                </span>
+              </Button>
+            )}
           </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
