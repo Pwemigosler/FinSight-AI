@@ -17,6 +17,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isBiometricsAvailable, setIsBiometricsAvailable] = useState(false);
+  const [isBiometricLoading, setBiometricLoading] = useState(false);
   
   const { 
     login, 
@@ -105,7 +106,7 @@ const Login = () => {
       return;
     }
     
-    setIsLoading(true);
+    setBiometricLoading(true);
     try {
       const normalizedEmail = email.toLowerCase();
       const success = await loginWithBiometrics(normalizedEmail);
@@ -119,7 +120,7 @@ const Login = () => {
       console.error("[Login] Biometric authentication error:", error);
       setErrorMessage("Biometric authentication failed. Please use your password instead.");
     } finally {
-      setIsLoading(false);
+      setBiometricLoading(false);
     }
   };
 
@@ -258,18 +259,30 @@ const Login = () => {
             </Button>
             
             {isLogin && isBiometricsAvailable && (
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full mt-2"
-                onClick={handleBiometricLogin}
-                disabled={isLoading || authLoading}
-              >
-                <span className="flex items-center gap-2">
-                  <Fingerprint className="h-4 w-4" />
-                  Login with Biometrics
-                </span>
-              </Button>
+              <div className="mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-finsight-purple text-finsight-purple hover:bg-finsight-purple/10 transition-colors"
+                  onClick={handleBiometricLogin}
+                  disabled={isBiometricLoading}
+                >
+                  {isBiometricLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-finsight-purple border-t-transparent"></div>
+                      Verifying...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Fingerprint className="h-5 w-5" />
+                      Login with Biometrics
+                    </span>
+                  )}
+                </Button>
+                <p className="mt-1 text-xs text-center text-gray-500">
+                  Use your fingerprint, face recognition or security key for faster login
+                </p>
+              </div>
             )}
           </form>
         </CardContent>
@@ -277,7 +290,7 @@ const Login = () => {
           <Button
             type="button"
             variant="ghost"
-            className="w-full"
+            className="w-full text-finsight-purple hover:bg-finsight-purple/10"
             onClick={() => {
               setIsLogin(!isLogin);
               setName("");

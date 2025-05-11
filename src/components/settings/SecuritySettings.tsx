@@ -1,11 +1,11 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
-import { AlertCircle, Fingerprint } from "lucide-react";
+import { AlertCircle, Fingerprint, ShieldCheck } from "lucide-react";
 
 export const SecuritySettings = () => {
   const [security, setSecurity] = useState({
@@ -94,7 +94,9 @@ export const SecuritySettings = () => {
                 readOnly
                 className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex-1"
               />
-              <Button variant="outline" onClick={handlePasswordChange}>Change Password</Button>
+              <Button variant="outline" onClick={handlePasswordChange} className="border-finsight-purple text-finsight-purple hover:bg-finsight-purple/10">
+                Change Password
+              </Button>
             </div>
           </div>
           
@@ -107,13 +109,17 @@ export const SecuritySettings = () => {
                     <div className="space-y-1">
                       <p className="font-medium">Use biometrics for faster login</p>
                       <p className="text-sm text-muted-foreground">
-                        Sign in using your fingerprint, face recognition, or security key.
+                        Sign in using your fingerprint, face recognition, or security key for quicker and more secure access.
                       </p>
                     </div>
                     <Button 
-                      variant={isBiometricsRegistered ? "outline" : "secondary"}
+                      variant={isBiometricsRegistered ? "outline" : "default"}
                       onClick={handleBiometricsToggle}
                       disabled={isBiometricLoading}
+                      className={isBiometricsRegistered ? 
+                        "border-finsight-purple text-finsight-purple hover:bg-finsight-purple/10" : 
+                        "bg-finsight-purple hover:bg-finsight-purple-dark"
+                      }
                     >
                       {isBiometricLoading ? (
                         <span className="flex items-center gap-2">
@@ -154,10 +160,17 @@ export const SecuritySettings = () => {
                     </p>
                   </div>
                   <Button 
-                    variant={security.twoFactor ? "outline" : "secondary"} 
+                    variant={security.twoFactor ? "outline" : "default"}
                     onClick={handle2FAToggle}
+                    className={security.twoFactor ? 
+                      "border-finsight-purple text-finsight-purple hover:bg-finsight-purple/10" : 
+                      "bg-finsight-purple hover:bg-finsight-purple-dark"
+                    }
                   >
-                    {security.twoFactor ? "Disable 2FA" : "Enable 2FA"}
+                    <span className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      {security.twoFactor ? "Disable 2FA" : "Enable 2FA"}
+                    </span>
                   </Button>
                 </div>
               </CardContent>
