@@ -1,20 +1,22 @@
 
 import { User } from "../../types/user";
 
-export interface BankCard {
+export type BankCard = {
   id: string;
-  last4: string;
-  bank: string;
-  type: string;
+  cardNumber: string;
+  cardName: string;
+  expiryDate: string;
+  cvv: string;
   isDefault: boolean;
-}
+  cardType?: string; // visa, mastercard, etc.
+};
 
-export interface AuthContextType {
+export type AuthContextType = {
   user: User | null;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (name: string, email: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  isAuthenticated: boolean;
+  logout: () => Promise<void>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
   linkedCards: BankCard[];
   addBankCard: (card: Omit<BankCard, "id">) => void;
@@ -23,11 +25,10 @@ export interface AuthContextType {
   completeAccountSetup: () => Promise<void>;
   needsAccountSetup: boolean;
   loading: boolean;
-  
-  // Biometric authentication methods
-  registerBiometrics: () => Promise<boolean>;
+  // Updated biometric methods with proper return types
+  registerBiometrics: () => Promise<{success: boolean; error?: string} | boolean>;
   loginWithBiometrics: (email: string) => Promise<boolean>;
   removeBiometrics: () => boolean;
   isBiometricsSupported: boolean;
   isBiometricsRegistered: boolean;
-}
+};

@@ -243,11 +243,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Biometric authentication methods
-  const registerBiometrics = async (): Promise<boolean> => {
+  const registerBiometrics = async (): Promise<{success: boolean; error?: string} | boolean> => {
     if (!user) {
       console.error("[AuthContext] Cannot register biometrics: No user logged in");
       toast.error("Must be logged in to register biometrics");
-      return false;
+      return { success: false, error: "Not logged in" };
     }
 
     const authService = new AuthService();
@@ -272,7 +272,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast.success("Biometric authentication registered successfully");
     }
     
-    return success;
+    return result; // Return the original result to preserve all information
   };
 
   const loginWithBiometrics = async (email: string): Promise<boolean> => {

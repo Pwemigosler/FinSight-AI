@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -61,6 +60,7 @@ export const SecuritySettings = () => {
           setBiometricError("Failed to remove biometric authentication");
         }
       } else {
+        // Fix: Check if registerBiometrics returns null before accessing it
         const result = await registerBiometrics();
         
         // Handle different return types from registerBiometrics
