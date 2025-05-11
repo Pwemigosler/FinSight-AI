@@ -52,8 +52,8 @@ export const SecuritySettings = () => {
     setBiometricLoading(true);
     
     try {
-      let success;
-      let errorMessage;
+      let success = false;
+      let errorMessage: string | undefined;
       
       if (isBiometricsRegistered) {
         success = removeBiometrics();
@@ -62,13 +62,18 @@ export const SecuritySettings = () => {
         }
       } else {
         const result = await registerBiometrics();
-        if (typeof result === 'object' && result !== null && 'error' in result) {
-          // Handle case where registerBiometrics returns {success: boolean, error: string}
-          success = result.success;
-          errorMessage = result.error;
+        
+        // Handle different return types from registerBiometrics
+        if (result) {
+          if (typeof result === 'object' && result !== null) {
+            success = result.success;
+            errorMessage = result.error;
+          } else {
+            success = !!result;
+          }
         } else {
-          // Handle case where registerBiometrics returns boolean
-          success = result;
+          success = false;
+          errorMessage = "Failed to set up biometric authentication";
         }
         
         if (!success) {
@@ -166,6 +171,13 @@ export const SecuritySettings = () => {
                         <p className="mt-2 text-sm text-muted-foreground">
                           <strong>Note:</strong> Biometric authentication requires a secure context (HTTPS or localhost).
                           The feature may not work on non-secure origins or in iframes.
+                        </p>
+                      )}
+                      
+                      {biometricError.includes("origin of the document") && (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          <strong>Note:</strong> This error often occurs when the app is running in an iframe or a shared environment.
+                          Try opening the app in a new tab or window for biometric features.
                         </p>
                       )}
                     </div>

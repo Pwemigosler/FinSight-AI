@@ -18,6 +18,18 @@ export class BiometricService {
   }
 
   /**
+   * Check if running in an iframe, which can cause WebAuthn issues
+   */
+  isInIframe(): boolean {
+    try {
+      return window !== window.top;
+    } catch (e) {
+      // If we can't access window.top, we're probably in a cross-origin iframe
+      return true;
+    }
+  }
+
+  /**
    * Register a new biometric credential for the user
    * @param userId The user's unique identifier
    * @param username The user's display name or email
@@ -35,6 +47,13 @@ export class BiometricService {
       return { 
         success: false, 
         error: "Biometric authentication requires a secure context (HTTPS or localhost)"
+      };
+    }
+
+    if (this.isInIframe()) {
+      return {
+        success: false,
+        error: "Biometric authentication may not work in iframes. Please try in a new window."
       };
     }
 
@@ -68,33 +87,48 @@ export class BiometricService {
         attestation: "none" as AttestationConveyancePreference // Type cast to the correct enum type
       };
 
-      // Create a credential
-      const credential = await navigator.credentials.create({ 
-        publicKey: createCredentialOptions
-      }) as PublicKeyCredential;
+      try {
+        // Create a credential
+        const credential = await navigator.credentials.create({ 
+          publicKey: createCredentialOptions
+        }) as PublicKeyCredential;
 
-      if (!credential) {
-        return {
-          success: false,
-          error: "No credential returned"
-        };
+        if (!credential) {
+          return {
+            success: false,
+            error: "No credential returned"
+          };
+        }
+
+        // Store credential in localStorage for this demo
+        // In a real app, this would be sent to the server
+        const credentialId = btoa(
+          String.fromCharCode(...new Uint8Array(credential.rawId))
+        );
+
+        localStorage.setItem(`finsight_biometric_${userId}`, credentialId);
+        
+        return { success: true };
+      } catch (error: any) {
+        console.error("[BiometricService] Error creating credential:", error);
+        
+        // Handle specific origin errors that occur in iframes or cross-origin contexts
+        if (error.name === "NotAllowedError" && 
+            (error.message.includes("origin") || error.message.includes("ancestors"))) {
+          return {
+            success: false,
+            error: "Security restriction: Biometric authentication cannot run in this environment (try opening in a new tab)"
+          };
+        }
+        
+        throw error; // Re-throw for the outer catch block
       }
-
-      // Store credential in localStorage for this demo
-      // In a real app, this would be sent to the server
-      const credentialId = btoa(
-        String.fromCharCode(...new Uint8Array(credential.rawId))
-      );
-
-      localStorage.setItem(`finsight_biometric_${userId}`, credentialId);
-      
-      return { success: true };
     } catch (error: any) {
       console.error("[BiometricService] Error registering credential:", error);
       
       // Provide more specific error messages for common errors
       if (error.name === "NotAllowedError") {
-        if (error.message.includes("origin")) {
+        if (error.message.includes("origin") || error.message.includes("ancestors")) {
           return {
             success: false,
             error: "Security restriction: Biometric authentication is not allowed in this context"
@@ -109,6 +143,11 @@ export class BiometricService {
         return {
           success: false,
           error: "Your device does not have the required authenticators"
+        };
+      } else if (error.name === "SecurityError") {
+        return {
+          success: false,
+          error: "Security error: The operation is not allowed in this context"
         };
       }
       
@@ -136,6 +175,13 @@ export class BiometricService {
       return {
         success: false,
         error: "Biometric authentication requires a secure context (HTTPS or localhost)"
+      };
+    }
+
+    if (this.isInIframe()) {
+      return {
+        success: false,
+        error: "Biometric authentication may not work in iframes. Please try in a new window."
       };
     }
     
@@ -176,10 +222,17 @@ export class BiometricService {
       console.error("[BiometricService] Error verifying credential:", error);
       
       if (error.name === "NotAllowedError") {
-        return {
-          success: false,
-          error: "Permission denied: The user did not consent to the verification"
-        };
+        if (error.message.includes("origin") || error.message.includes("ancestors")) {
+          return {
+            success: false,
+            error: "Security restriction: Biometric authentication is not allowed in this context"
+          };
+        } else {
+          return {
+            success: false,
+            error: "Permission denied: The user did not consent to the verification"
+          };
+        }
       }
       
       return {
