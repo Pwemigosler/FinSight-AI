@@ -31,7 +31,7 @@ const formSchema = z.object({
     .min(16, "Card number must be at least 16 digits")
     .max(19, "Card number cannot exceed 19 digits")
     .regex(/^\d+$/, "Card number must contain only digits"),
-  bank: z.string().min(1, "Bank name is required"),
+  cardName: z.string().min(1, "Card name is required"),
   cardType: z.string().min(1, "Card type is required"),
   expiryDate: z
     .string()
@@ -59,7 +59,7 @@ const LinkBankCardDialog: React.FC<LinkBankCardDialogProps> = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       cardNumber: "",
-      bank: "",
+      cardName: "",
       cardType: "Debit",
       expiryDate: "",
       cvv: "",
@@ -73,14 +73,13 @@ const LinkBankCardDialog: React.FC<LinkBankCardDialogProps> = ({
   };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Extract last 4 digits for display
-    const last4 = values.cardNumber.slice(-4);
-    
-    // Add the card to context
+    // Add the card to context with the updated property names
     addBankCard({
-      last4,
-      bank: values.bank,
-      type: values.cardType,
+      cardNumber: values.cardNumber,
+      cardName: values.cardName,
+      cardType: values.cardType,
+      expiryDate: values.expiryDate,
+      cvv: values.cvv,
       isDefault: values.isDefault,
     });
     
@@ -127,10 +126,10 @@ const LinkBankCardDialog: React.FC<LinkBankCardDialogProps> = ({
 
             <FormField
               control={form.control}
-              name="bank"
+              name="cardName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bank Name</FormLabel>
+                  <FormLabel>Card Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Chase, Bank of America, etc." {...field} />
                   </FormControl>

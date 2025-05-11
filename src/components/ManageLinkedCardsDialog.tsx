@@ -30,6 +30,11 @@ const ManageLinkedCardsDialog: React.FC<ManageLinkedCardsDialogProps> = ({
     if (onOpenChange) onOpenChange(newOpen);
   };
 
+  // Helper function to get last 4 digits from card number
+  const getLast4Digits = (cardNumber: string) => {
+    return cardNumber.slice(-4);
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -67,10 +72,10 @@ const ManageLinkedCardsDialog: React.FC<ManageLinkedCardsDialogProps> = ({
                         </div>
                         <div>
                           <p className="font-medium">
-                            {card.bank} •••• {card.last4}
+                            {card.cardName} •••• {getLast4Digits(card.cardNumber)}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {card.type} Card {card.isDefault && 
+                            {card.cardType || 'Card'} {card.isDefault && 
                               <span className="inline-flex items-center ml-2 text-green-600">
                                 <Check className="h-3 w-3 mr-1" /> Default
                               </span>
