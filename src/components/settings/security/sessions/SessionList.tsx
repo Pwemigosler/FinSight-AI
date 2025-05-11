@@ -4,10 +4,10 @@ import { SessionItem } from "./SessionItem";
 
 export type Session = {
   id: string;
-  isActive: boolean;
-  device: string;
+  deviceName: string;
   browser: string;
   lastActive: string;
+  isCurrentSession: boolean;
 };
 
 type SessionListProps = {
@@ -42,8 +42,8 @@ export const SessionList = ({ sessions, loading, onTerminateSession }: SessionLi
         <SessionItem
           key={session.id}
           id={session.id}
-          isActive={session.isActive}
-          device={session.device}
+          isActive={session.isCurrentSession}
+          device={session.deviceName}
           browser={session.browser}
           lastActive={session.lastActive}
           onTerminate={onTerminateSession}

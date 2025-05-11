@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 
+// Update the Session type to match what SessionList expects
 export type Session = {
   id: string;
   deviceName: string;
@@ -41,9 +42,12 @@ export const useSessionManagement = () => {
       const sessionData: Session[] = data.map((row: any) => {
         // Safely access userAgent property with type checking
         const deviceInfo = row.device_info || {};
-        const userAgent = typeof deviceInfo === 'object' && deviceInfo !== null && 'userAgent' in deviceInfo 
-          ? String(deviceInfo.userAgent || '') 
+        const userAgentVal = typeof deviceInfo === 'object' && deviceInfo !== null 
+          ? deviceInfo.userAgent 
           : 'Unknown';
+        
+        // Parse as string if available
+        const userAgent = typeof userAgentVal === 'string' ? userAgentVal : 'Unknown';
         
         const browser = getBrowserFromUserAgent(userAgent);
         const deviceName = getDeviceFromUserAgent(userAgent);
@@ -108,7 +112,7 @@ export const useSessionManagement = () => {
     setSessions(mockSessions);
   };
 
-  const terminateSession = async (sessionId: string) => {
+  const terminateSession = async (sessionId: string): Promise<boolean> => {
     // In a real app, we would terminate the session in Supabase
     // and remove the biometric credentials
     
@@ -123,16 +127,18 @@ export const useSessionManagement = () => {
         console.error("Error terminating session:", error);
         // Fall back to just updating the UI
         setSessions(prev => prev.filter(session => session.id !== sessionId));
-        return;
+        return false;
       }
       
-      // If successful or the session wasn't found, update the UI
+      // If successful, update the UI
       setSessions(prev => prev.filter(session => session.id !== sessionId));
+      return true;
       
     } catch (err) {
       console.error("Error in session termination:", err);
       // Even on error, update the UI for better UX
       setSessions(prev => prev.filter(session => session.id !== sessionId));
+      return false;
     }
   };
 
