@@ -61,8 +61,9 @@ export class AuthService {
 
   /**
    * Checks if biometrics are available and registered for the user
+   * Now properly defined as async
    */
-  canUseBiometrics(user?: User | null): boolean {
+  async canUseBiometrics(user?: User | null): Promise<boolean> {
     return this.biometricAuthService.canUseBiometrics(user);
   }
 }

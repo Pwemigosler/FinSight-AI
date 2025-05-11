@@ -14,7 +14,7 @@ type UseAuthenticationResult = {
   logout: () => Promise<void>;
   loginWithBiometrics: (email: string) => Promise<boolean>;
   registerBiometrics: () => Promise<{success: boolean; error?: string} | boolean>;
-  removeBiometrics: () => Promise<boolean>; // Updated to return Promise<boolean>
+  removeBiometrics: () => Promise<boolean>;
 };
 
 export const useAuthentication = ({ 
@@ -124,7 +124,12 @@ export const useAuthentication = ({
   };
 
   const registerBiometrics = async (): Promise<{success: boolean; error?: string} | boolean> => {
-    const user = await authService.login("demo@example.com", "password123");
+    // Get the current user from the supabase session instead of using a hardcoded value
+    const { data } = await supabase.auth.getUser();
+    const user = data?.user ? {
+      id: data.user.id,
+      email: data.user.email || ''
+    } : null;
     
     if (!user) {
       console.error("[AuthContext] Cannot register biometrics: No user logged in");
@@ -156,10 +161,12 @@ export const useAuthentication = ({
   };
 
   const removeBiometrics = async (): Promise<boolean> => {
-    const user = {
-      id: "user-123",
-      email: "demo@example.com"
-    };
+    // Get the current user from the supabase session instead of using a hardcoded value
+    const { data } = await supabase.auth.getUser();
+    const user = data?.user ? {
+      id: data.user.id,
+      email: data.user.email || ''
+    } : null;
     
     if (!user) {
       console.error("[AuthContext] Cannot remove biometrics: No user logged in");

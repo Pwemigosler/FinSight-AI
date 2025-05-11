@@ -123,8 +123,10 @@ export class BiometricAuthService {
 
   /**
    * Checks if biometrics are available and registered for the user
+   * Now correctly implemented as async to check for actual credentials
    */
-  canUseBiometrics(user?: User | null): boolean {
+  async canUseBiometrics(user?: User | null): Promise<boolean> {
+    // Basic availability checks
     if (!this.biometricService.isSupported()) {
       return false;
     }
@@ -137,8 +139,12 @@ export class BiometricAuthService {
       return false;
     }
     
-    // We need to handle this differently since hasRegisteredCredential is async
-    // For now, we'll just check if the method exists
-    return true;
+    // Now actually check if user has registered credentials
+    try {
+      return await this.biometricService.hasRegisteredCredential(user.id);
+    } catch (error) {
+      console.error("[BiometricAuthService] Error checking biometric availability:", error);
+      return false;
+    }
   }
 }

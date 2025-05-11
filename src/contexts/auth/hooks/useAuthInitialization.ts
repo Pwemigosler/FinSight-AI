@@ -29,6 +29,7 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
   // Initialize services
   const userService = new UserService();
   const bankCardService = new BankCardService();
+  const authService = new AuthService();
 
   // Initialize auth state with Supabase session
   useEffect(() => {
@@ -107,12 +108,17 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
 
   // Check biometric registration status when user changes
   useEffect(() => {
-    if (user && isBiometricsSupported) {
-      const authService = new AuthService();
-      setIsBiometricsRegistered(authService.canUseBiometrics(user));
-    } else {
-      setIsBiometricsRegistered(false);
-    }
+    const checkBiometricStatus = async () => {
+      if (user && isBiometricsSupported) {
+        // Now correctly calling the async method and awaiting result
+        const canUseBiometrics = await authService.canUseBiometrics(user);
+        setIsBiometricsRegistered(canUseBiometrics);
+      } else {
+        setIsBiometricsRegistered(false);
+      }
+    };
+
+    checkBiometricStatus();
   }, [user, isBiometricsSupported]);
 
   return {

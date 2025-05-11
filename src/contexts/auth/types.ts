@@ -28,7 +28,7 @@ export type AuthContextType = {
   // Updated biometric methods with proper return types
   registerBiometrics: () => Promise<{success: boolean; error?: string} | boolean>;
   loginWithBiometrics: (email: string) => Promise<boolean>;
-  removeBiometrics: () => Promise<boolean>; // Changed from boolean to Promise<boolean>
+  removeBiometrics: () => Promise<boolean>;
   isBiometricsSupported: boolean;
   isBiometricsRegistered: boolean;
 };

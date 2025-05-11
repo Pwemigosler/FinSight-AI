@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +8,7 @@ import { useAuth } from "@/contexts/auth";
 
 export const BiometricSection = () => {
   const { 
+    user,
     isBiometricsSupported, 
     isBiometricsRegistered,
     registerBiometrics,
@@ -17,6 +17,12 @@ export const BiometricSection = () => {
   
   const [isBiometricLoading, setBiometricLoading] = useState(false);
   const [biometricError, setBiometricError] = useState<string | null>(null);
+  const [localBiometricsRegistered, setLocalBiometricsRegistered] = useState<boolean>(isBiometricsRegistered);
+
+  // Keep local state in sync with context
+  useEffect(() => {
+    setLocalBiometricsRegistered(isBiometricsRegistered);
+  }, [isBiometricsRegistered]);
 
   const handleBiometricsToggle = async () => {
     // Clear any previous errors
@@ -27,14 +33,14 @@ export const BiometricSection = () => {
       let success = false;
       let errorMessage: string | undefined;
       
-      if (isBiometricsRegistered) {
-        // Update to handle promise from removeBiometrics
+      if (localBiometricsRegistered) {
         success = await removeBiometrics();
-        if (!success) {
+        if (success) {
+          setLocalBiometricsRegistered(false);
+        } else {
           setBiometricError("Failed to remove biometric authentication");
         }
       } else {
-        // Fix: Check if registerBiometrics returns null before accessing it
         const result = await registerBiometrics();
         
         // Handle different return types from registerBiometrics
@@ -50,13 +56,12 @@ export const BiometricSection = () => {
           errorMessage = "Failed to set up biometric authentication";
         }
         
-        if (!success) {
+        if (success) {
+          setLocalBiometricsRegistered(true);
+          setBiometricError(null);
+        } else {
           setBiometricError(errorMessage || "Failed to set up biometric authentication");
         }
-      }
-      
-      if (success) {
-        setBiometricError(null);
       }
     } catch (error: any) {
       console.error("Error toggling biometrics:", error);
@@ -103,7 +108,7 @@ export const BiometricSection = () => {
               ) : (
                 <span className="flex items-center gap-2">
                   <Fingerprint className="h-4 w-4" />
-                  {isBiometricsRegistered ? "Disable Biometrics" : "Enable Biometrics"}
+                  {localBiometricsRegistered ? "Disable Biometrics" : "Enable Biometrics"}
                 </span>
               )}
             </Button>
@@ -128,6 +133,13 @@ export const BiometricSection = () => {
                 <p className="mt-2 text-sm text-muted-foreground">
                   <strong>Note:</strong> This error often occurs when the app is running in an iframe or a shared environment.
                   Try opening the app in a new tab or window for biometric features.
+                </p>
+              )}
+
+              {biometricError.includes("Not logged in") && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  <strong>Note:</strong> You need to be logged in to use biometric authentication.
+                  Please log in and try again.
                 </p>
               )}
             </div>
