@@ -14,7 +14,7 @@ type UseAuthenticationResult = {
   logout: () => Promise<void>;
   loginWithBiometrics: (email: string) => Promise<boolean>;
   registerBiometrics: () => Promise<{success: boolean; error?: string} | boolean>;
-  removeBiometrics: () => Promise<boolean>;
+  removeBiometrics: () => Promise<boolean>; // Updated to return Promise<boolean>
 };
 
 export const useAuthentication = ({ 

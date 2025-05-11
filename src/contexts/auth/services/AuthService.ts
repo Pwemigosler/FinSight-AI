@@ -55,7 +55,7 @@ export class AuthService {
   /**
    * Removes biometric credentials for a user
    */
-  removeBiometrics(user: User): boolean {
+  async removeBiometrics(user: User): Promise<boolean> {
     return this.biometricAuthService.removeBiometrics(user);
   }
 
