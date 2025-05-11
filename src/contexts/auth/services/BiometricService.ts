@@ -10,11 +10,12 @@ export class BiometricService {
   private storageService: BiometricStorageService;
   private provider: Awaited<ReturnType<typeof BiometricProviderFactory.getProvider>> = null;
   private providerInitialized = false;
+  private providerInitialization: Promise<void> | null = null;
   
   constructor() {
     this.storageService = new BiometricStorageService();
     // Initialize provider asynchronously
-    this.initializeProvider();
+    this.providerInitialization = this.initializeProvider();
   }
   
   /**
@@ -33,6 +34,10 @@ export class BiometricService {
    * Ensure the provider is initialized before using it
    */
   private async ensureProvider(): Promise<boolean> {
+    if (this.providerInitialization) {
+      await this.providerInitialization;
+    }
+    
     if (!this.providerInitialized) {
       await this.initializeProvider();
     }

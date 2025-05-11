@@ -46,7 +46,8 @@ export interface BiometricProvider {
   hasRegisteredCredential(userId: string): Promise<boolean>;
 }
 
-// Import for the provider - using dynamic import with type
+// We'll use type import for the WebAuthnProvider instead of require()
+// This is just for TypeScript type checking, not runtime import
 import type { WebAuthnProvider } from './WebAuthnProvider';
 
 /**
@@ -60,9 +61,14 @@ export class BiometricProviderFactory {
     // For now, we only have the WebAuthn provider
     // In the future, this could check for Capacitor on mobile or Electron on desktop
     if (typeof window !== 'undefined' && window.PublicKeyCredential !== undefined) {
-      // Dynamic import using ES modules syntax
-      const WebAuthnProviderModule = await import('./WebAuthnProvider');
-      return new WebAuthnProviderModule.WebAuthnProvider();
+      try {
+        // Use dynamic import with ES modules syntax
+        const WebAuthnProviderModule = await import('./WebAuthnProvider');
+        return new WebAuthnProviderModule.WebAuthnProvider();
+      } catch (error) {
+        console.error("[BiometricProviderFactory] Error loading WebAuthnProvider:", error);
+        return null;
+      }
     }
     
     return null;
