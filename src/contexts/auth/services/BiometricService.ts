@@ -1,8 +1,16 @@
 
+import { BiometricStorageService } from "./BiometricStorageService";
+
 /**
  * Service for handling WebAuthn (biometric authentication) operations
  */
 export class BiometricService {
+  private storageService: BiometricStorageService;
+  
+  constructor() {
+    this.storageService = new BiometricStorageService();
+  }
+  
   /**
    * Check if WebAuthn is supported in the current browser
    */
@@ -100,13 +108,28 @@ export class BiometricService {
           };
         }
 
-        // Store credential in localStorage for this demo
-        // In a real app, this would be sent to the server
+        // Store credential in Supabase (encrypted)
         const credentialId = btoa(
           String.fromCharCode(...new Uint8Array(credential.rawId))
         );
-
-        localStorage.setItem(`finsight_biometric_${userId}`, credentialId);
+        
+        // For this demo, we'll simply store the credential ID
+        // In a real implementation, you would store more data like the public key
+        const success = await this.storageService.storeCredential(
+          userId,
+          credentialId,
+          JSON.stringify({
+            id: credentialId,
+            created: new Date().toISOString()
+          })
+        );
+        
+        if (!success) {
+          return {
+            success: false,
+            error: "Failed to store credential securely"
+          };
+        }
         
         return { success: true };
       } catch (error: any) {
@@ -186,12 +209,13 @@ export class BiometricService {
     }
     
     try {
-      // Check if we have a stored credential ID
-      const credentialId = localStorage.getItem(`finsight_biometric_${userId}`);
-      if (!credentialId) {
+      // Get stored credential IDs for this user
+      const credentialIds = await this.storageService.getCredentials(userId);
+      
+      if (!credentialIds || credentialIds.length === 0) {
         return {
           success: false,
-          error: "No saved credential found for this user"
+          error: "No saved credentials found for this user"
         };
       }
 
@@ -199,25 +223,40 @@ export class BiometricService {
       const challenge = new Uint8Array(32);
       window.crypto.getRandomValues(challenge);
 
+      // Create allowCredentials array from stored credentials
+      const allowCredentials = credentialIds.map(credentialId => ({
+        id: Uint8Array.from(atob(credentialId), c => c.charCodeAt(0)),
+        type: 'public-key' as PublicKeyCredentialType,
+        transports: ['internal'] as AuthenticatorTransport[]
+      }));
+
       // Create the credential request options
       const getCredentialOptions: PublicKeyCredentialRequestOptions = {
         challenge, 
         rpId: window.location.hostname,
-        allowCredentials: [{
-          id: Uint8Array.from(atob(credentialId), c => c.charCodeAt(0)),
-          type: 'public-key',
-          transports: ['internal'] as AuthenticatorTransport[] // Type cast to the correct array type
-        }],
-        userVerification: 'required' as UserVerificationRequirement, // Type cast to the correct enum type
+        allowCredentials,
+        userVerification: 'required' as UserVerificationRequirement,
         timeout: 60000
       };
 
       // Request the credential
       const credential = await navigator.credentials.get({
         publicKey: getCredentialOptions
-      });
+      }) as PublicKeyCredential;
+      
+      if (!credential) {
+        return { success: false, error: "Authentication failed" };
+      }
+      
+      // Extract the credential ID from the authenticated credential
+      const authenticatedCredentialId = btoa(
+        String.fromCharCode(...new Uint8Array(credential.rawId))
+      );
+      
+      // Update the last_used_at timestamp
+      await this.storageService.updateLastUsed(userId, authenticatedCredentialId);
 
-      return { success: credential != null };
+      return { success: true };
     } catch (error: any) {
       console.error("[BiometricService] Error verifying credential:", error);
       
@@ -246,8 +285,25 @@ export class BiometricService {
    * Remove stored biometric credential for a user
    * @param userId The user's unique identifier
    */
-  removeCredential(userId: string): void {
-    localStorage.removeItem(`finsight_biometric_${userId}`);
+  removeCredential(userId: string): boolean {
+    try {
+      // The async/await pattern doesn't work well with sync return values
+      // We'll start the removal process but return immediately
+      this.storageService.removeCredential(userId)
+        .then(success => {
+          if (!success) {
+            console.error("[BiometricService] Failed to remove credentials from Supabase");
+          }
+        })
+        .catch(error => {
+          console.error("[BiometricService] Error removing credentials:", error);
+        });
+      
+      return true;
+    } catch (error) {
+      console.error("[BiometricService] Error initiating credential removal:", error);
+      return false;
+    }
   }
 
   /**
@@ -255,7 +311,13 @@ export class BiometricService {
    * @param userId The user's unique identifier
    * @returns True if biometric credential exists
    */
-  hasRegisteredCredential(userId: string): boolean {
-    return !!localStorage.getItem(`finsight_biometric_${userId}`);
+  async hasRegisteredCredential(userId: string): Promise<boolean> {
+    try {
+      const credentials = await this.storageService.getCredentials(userId);
+      return credentials.length > 0;
+    } catch (error) {
+      console.error("[BiometricService] Error checking for registered credentials:", error);
+      return false;
+    }
   }
 }
