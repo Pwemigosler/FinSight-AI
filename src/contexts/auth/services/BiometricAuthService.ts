@@ -29,7 +29,8 @@ export class BiometricAuthService {
 
     try {
       // Check if we're in a secure context
-      if (!this.biometricService.isSecureContext()) {
+      const isSecureContext = await this.biometricService.isSecureContext();
+      if (!isSecureContext) {
         return {
           success: false,
           error: "Biometric authentication requires a secure context (HTTPS or localhost)"
@@ -75,7 +76,8 @@ export class BiometricAuthService {
       }
 
       // Check if we're in a secure context
-      if (!this.biometricService.isSecureContext()) {
+      const isSecureContext = await this.biometricService.isSecureContext();
+      if (!isSecureContext) {
         toast("Biometric authentication requires a secure context (HTTPS or localhost)");
         return null;
       }
@@ -123,7 +125,6 @@ export class BiometricAuthService {
 
   /**
    * Checks if biometrics are available and registered for the user
-   * Now correctly implemented as async to check for actual credentials
    */
   async canUseBiometrics(user?: User | null): Promise<boolean> {
     // Basic availability checks
@@ -131,7 +132,8 @@ export class BiometricAuthService {
       return false;
     }
     
-    if (!this.biometricService.isSecureContext()) {
+    const isSecureContext = await this.biometricService.isSecureContext();
+    if (!isSecureContext) {
       return false;
     }
     

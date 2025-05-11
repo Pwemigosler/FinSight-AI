@@ -46,6 +46,9 @@ export interface BiometricProvider {
   hasRegisteredCredential(userId: string): Promise<boolean>;
 }
 
+// Import for the provider - using dynamic import with type
+import type { WebAuthnProvider } from './WebAuthnProvider';
+
 /**
  * Factory for creating the appropriate biometric provider based on platform
  */
@@ -53,13 +56,13 @@ export class BiometricProviderFactory {
   /**
    * Get the appropriate biometric provider for the current platform
    */
-  static getProvider(): BiometricProvider | null {
+  static async getProvider(): Promise<BiometricProvider | null> {
     // For now, we only have the WebAuthn provider
     // In the future, this could check for Capacitor on mobile or Electron on desktop
     if (typeof window !== 'undefined' && window.PublicKeyCredential !== undefined) {
-      // Dynamic import to avoid bundling issues
-      const { WebAuthnProvider } = require('./WebAuthnProvider');
-      return new WebAuthnProvider();
+      // Dynamic import using ES modules syntax
+      const WebAuthnProviderModule = await import('./WebAuthnProvider');
+      return new WebAuthnProviderModule.WebAuthnProvider();
     }
     
     return null;

@@ -8,25 +8,52 @@ import { BiometricProviderFactory, BiometricProviderResult } from "./biometrics/
  */
 export class BiometricService {
   private storageService: BiometricStorageService;
-  private provider;
+  private provider: Awaited<ReturnType<typeof BiometricProviderFactory.getProvider>> = null;
+  private providerInitialized = false;
   
   constructor() {
     this.storageService = new BiometricStorageService();
-    this.provider = BiometricProviderFactory.getProvider();
+    // Initialize provider asynchronously
+    this.initializeProvider();
+  }
+  
+  /**
+   * Initialize the appropriate biometric provider
+   */
+  private async initializeProvider(): Promise<void> {
+    try {
+      this.provider = await BiometricProviderFactory.getProvider();
+      this.providerInitialized = true;
+    } catch (error) {
+      console.error("[BiometricService] Error initializing provider:", error);
+    }
+  }
+  
+  /**
+   * Ensure the provider is initialized before using it
+   */
+  private async ensureProvider(): Promise<boolean> {
+    if (!this.providerInitialized) {
+      await this.initializeProvider();
+    }
+    return !!this.provider;
   }
   
   /**
    * Check if biometrics are supported in the current environment
    */
   isSupported(): boolean {
-    return !!this.provider && this.provider.isSupported();
+    return BiometricProviderFactory.isSupported();
   }
 
   /**
    * Check if the current context is secure (https or localhost)
    */
-  isSecureContext(): boolean {
-    return !!this.provider && this.provider.isSecureContext();
+  async isSecureContext(): Promise<boolean> {
+    if (!(await this.ensureProvider())) {
+      return false;
+    }
+    return this.provider.isSecureContext();
   }
 
   /**
@@ -36,7 +63,7 @@ export class BiometricService {
     userId: string, 
     username: string
   ): Promise<BiometricProviderResult> {
-    if (!this.provider) {
+    if (!(await this.ensureProvider())) {
       return { 
         success: false, 
         error: "Biometric authentication is not supported on this device" 
@@ -51,7 +78,7 @@ export class BiometricService {
    * Verify a biometric login attempt
    */
   async verifyCredential(userId: string): Promise<BiometricProviderResult> {
-    if (!this.provider) {
+    if (!(await this.ensureProvider())) {
       return { 
         success: false, 
         error: "Biometric authentication is not supported on this device" 
@@ -66,7 +93,7 @@ export class BiometricService {
    * Remove stored biometric credential for a user
    */
   async removeCredential(userId: string): Promise<boolean> {
-    if (!this.provider) {
+    if (!(await this.ensureProvider())) {
       return false;
     }
     
@@ -78,7 +105,7 @@ export class BiometricService {
    * Check if user has registered biometrics
    */
   async hasRegisteredCredential(userId: string): Promise<boolean> {
-    if (!this.provider) {
+    if (!(await this.ensureProvider())) {
       return false;
     }
     
