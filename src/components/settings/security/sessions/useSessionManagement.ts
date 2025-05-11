@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,27 +45,32 @@ export const useSessionManagement = () => {
         const sessionData: Session[] = data.map(record => {
           // Parse device info
           const deviceInfo = record.device_info || {};
-          const userAgent = deviceInfo.userAgent || 'Unknown Device';
+          
+          // Extract user agent safely from the device_info object
+          let userAgentStr = '';
+          if (typeof deviceInfo === 'object' && deviceInfo !== null && 'userAgent' in deviceInfo) {
+            userAgentStr = String(deviceInfo.userAgent || '');
+          }
           
           // Extract browser and device from user agent
           let browser = 'Unknown Browser';
           let device = 'Unknown Device';
           
-          if (userAgent) {
+          if (userAgentStr) {
             // Simple browser detection
-            if (userAgent.includes('Chrome')) browser = 'Chrome';
-            else if (userAgent.includes('Firefox')) browser = 'Firefox';
-            else if (userAgent.includes('Safari')) browser = 'Safari';
-            else if (userAgent.includes('Edge')) browser = 'Edge';
-            else if (userAgent.includes('Opera')) browser = 'Opera';
+            if (userAgentStr.includes('Chrome')) browser = 'Chrome';
+            else if (userAgentStr.includes('Firefox')) browser = 'Firefox';
+            else if (userAgentStr.includes('Safari')) browser = 'Safari';
+            else if (userAgentStr.includes('Edge')) browser = 'Edge';
+            else if (userAgentStr.includes('Opera')) browser = 'Opera';
             
             // Simple device detection
-            if (userAgent.includes('iPhone')) device = 'iPhone';
-            else if (userAgent.includes('iPad')) device = 'iPad';
-            else if (userAgent.includes('Android')) device = 'Android';
-            else if (userAgent.includes('Windows')) device = 'Windows';
-            else if (userAgent.includes('Mac')) device = 'Mac';
-            else if (userAgent.includes('Linux')) device = 'Linux';
+            if (userAgentStr.includes('iPhone')) device = 'iPhone';
+            else if (userAgentStr.includes('iPad')) device = 'iPad';
+            else if (userAgentStr.includes('Android')) device = 'Android';
+            else if (userAgentStr.includes('Windows')) device = 'Windows';
+            else if (userAgentStr.includes('Mac')) device = 'Mac';
+            else if (userAgentStr.includes('Linux')) device = 'Linux';
           }
           
           // Calculate if session is "active" (used in last 30 min)

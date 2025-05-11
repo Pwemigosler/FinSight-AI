@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -28,7 +27,7 @@ export const BiometricSection = () => {
       let errorMessage: string | undefined;
       
       if (isBiometricsRegistered) {
-        success = removeBiometrics();
+        success = await removeBiometrics();
         if (!success) {
           setBiometricError("Failed to remove biometric authentication");
         }

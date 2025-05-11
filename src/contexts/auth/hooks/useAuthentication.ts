@@ -14,7 +14,7 @@ type UseAuthenticationResult = {
   logout: () => Promise<void>;
   loginWithBiometrics: (email: string) => Promise<boolean>;
   registerBiometrics: () => Promise<{success: boolean; error?: string} | boolean>;
-  removeBiometrics: () => boolean;
+  removeBiometrics: () => Promise<boolean>;
 };
 
 export const useAuthentication = ({ 
@@ -155,7 +155,7 @@ export const useAuthentication = ({
     return result; // Return the original result to preserve all information
   };
 
-  const removeBiometrics = (): boolean => {
+  const removeBiometrics = async (): Promise<boolean> => {
     const user = {
       id: "user-123",
       email: "demo@example.com"
@@ -167,7 +167,7 @@ export const useAuthentication = ({
       return false;
     }
     
-    const result = authService.removeBiometrics(user);
+    const result = await authService.removeBiometrics(user);
     
     if (result) {
       toast.success("Biometric authentication removed");

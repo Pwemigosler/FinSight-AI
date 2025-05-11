@@ -34,7 +34,7 @@ export const SessionSection = () => {
       </div>
       
       {!user && (
-        <Alert variant="warning">
+        <Alert variant="destructive">
           <ShieldAlert className="h-4 w-4" />
           <AlertTitle>Authentication required</AlertTitle>
           <AlertDescription>
