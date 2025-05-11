@@ -131,34 +131,42 @@ export class AuthService {
   /**
    * Handles biometric registration for a user
    */
-  async registerBiometrics(user: User): Promise<boolean> {
+  async registerBiometrics(user: User): Promise<boolean | {success: boolean; error?: string}> {
     if (!user || !user.id || !user.email) {
       toast("User information is incomplete");
-      return false;
+      return { success: false, error: "User information is incomplete" };
     }
 
     if (!this.biometricService.isSupported()) {
       toast("Biometric authentication is not supported on this device");
-      return false;
+      return { success: false, error: "Biometric authentication is not supported on this device" };
     }
 
     try {
+      // Check if we're in a secure context
+      if (!this.biometricService.isSecureContext()) {
+        return {
+          success: false,
+          error: "Biometric authentication requires a secure context (HTTPS or localhost)"
+        };
+      }
+      
       const result = await this.biometricService.registerCredential(
         user.id,
         user.email
       );
 
-      if (result) {
-        toast("Biometric authentication set up successfully");
+      if (result.success) {
         return true;
       } else {
-        toast("Failed to set up biometric authentication");
-        return false;
+        return result;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("[AuthService] Biometric registration failed:", error);
-      toast("Biometric setup failed. Please try again.");
-      return false;
+      return { 
+        success: false, 
+        error: error.message || "Biometric setup failed. Please try again." 
+      };
     }
   }
 
@@ -181,19 +189,27 @@ export class AuthService {
         return null;
       }
 
+      // Check if we're in a secure context
+      if (!this.biometricService.isSecureContext()) {
+        toast("Biometric authentication requires a secure context (HTTPS or localhost)");
+        return null;
+      }
+
       // Now verify the biometric authentication
-      const verified = await this.biometricService.verifyCredential(savedUser.id);
+      const result = await this.biometricService.verifyCredential(savedUser.id);
       
-      if (verified) {
+      if (result.success) {
         // Update login timestamp
         localStorage.setItem("finsight_login_timestamp", Date.now().toString());
         toast("Biometric authentication successful");
         return savedUser;
       } else {
-        toast("Biometric authentication failed");
+        toast("Biometric authentication failed", { 
+          description: result.error || "Please try again or use password."
+        });
         return null;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("[AuthService] Biometric login failed:", error);
       toast("Biometric login failed. Please try again or use password.");
       return null;
@@ -213,7 +229,7 @@ export class AuthService {
       this.biometricService.removeCredential(user.id);
       toast("Biometric authentication removed");
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("[AuthService] Failed to remove biometrics:", error);
       toast("Failed to remove biometric authentication");
       return false;
@@ -225,6 +241,10 @@ export class AuthService {
    */
   canUseBiometrics(user?: User | null): boolean {
     if (!this.biometricService.isSupported()) {
+      return false;
+    }
+    
+    if (!this.biometricService.isSecureContext()) {
       return false;
     }
     

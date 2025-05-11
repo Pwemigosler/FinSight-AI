@@ -21,6 +21,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         biometric:
           "bg-primary/10 text-primary border border-primary hover:bg-primary/20",
+        // Add a new blue variant that matches the image reference
+        blue: "bg-[#4393D0] text-white hover:bg-[#3A7EB8] shadow-sm",
       },
       size: {
         default: "h-10 px-4 py-2",

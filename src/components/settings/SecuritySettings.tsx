@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
-import { AlertCircle, Fingerprint, ShieldCheck } from "lucide-react";
+import { AlertCircle, Fingerprint, ShieldCheck, AlertTriangle } from "lucide-react";
 
 export const SecuritySettings = () => {
   const [security, setSecurity] = useState({
@@ -22,6 +23,7 @@ export const SecuritySettings = () => {
   } = useAuth();
   
   const [isBiometricLoading, setBiometricLoading] = useState(false);
+  const [biometricError, setBiometricError] = useState<string | null>(null);
 
   const handlePasswordChange = () => {
     setSecurity(prev => ({ ...prev, passwordUpdated: true }));
@@ -45,18 +47,37 @@ export const SecuritySettings = () => {
   };
 
   const handleBiometricsToggle = async () => {
+    // Clear any previous errors
+    setBiometricError(null);
     setBiometricLoading(true);
     
     try {
       let success;
+      let errorMessage;
       
       if (isBiometricsRegistered) {
         success = removeBiometrics();
+        if (!success) {
+          setBiometricError("Failed to remove biometric authentication");
+        }
       } else {
-        success = await registerBiometrics();
+        const result = await registerBiometrics();
+        if (typeof result === 'object' && result !== null && 'error' in result) {
+          // Handle case where registerBiometrics returns {success: boolean, error: string}
+          success = result.success;
+          errorMessage = result.error;
+        } else {
+          // Handle case where registerBiometrics returns boolean
+          success = result;
+        }
+        
+        if (!success) {
+          setBiometricError(errorMessage || "Failed to set up biometric authentication");
+        }
       }
       
       if (success) {
+        setBiometricError(null);
         toast(isBiometricsRegistered 
           ? "Biometric authentication removed" 
           : "Biometric authentication enabled", {
@@ -65,8 +86,9 @@ export const SecuritySettings = () => {
             : "You can now log in using your fingerprint or face."
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error toggling biometrics:", error);
+      setBiometricError(error.message || "Failed to set up biometric authentication");
       toast("Biometric operation failed", {
         description: "Please try again later."
       });
@@ -113,13 +135,10 @@ export const SecuritySettings = () => {
                       </p>
                     </div>
                     <Button 
-                      variant={isBiometricsRegistered ? "outline" : "default"}
+                      variant="blue"
                       onClick={handleBiometricsToggle}
                       disabled={isBiometricLoading}
-                      className={isBiometricsRegistered ? 
-                        "border-finsight-purple text-finsight-purple hover:bg-finsight-purple/10" : 
-                        "bg-finsight-purple hover:bg-finsight-purple-dark"
-                      }
+                      className={isBiometricLoading ? "opacity-70" : ""}
                     >
                       {isBiometricLoading ? (
                         <span className="flex items-center gap-2">
@@ -134,6 +153,23 @@ export const SecuritySettings = () => {
                       )}
                     </Button>
                   </div>
+                  
+                  {biometricError && (
+                    <div className="mt-4">
+                      <Alert variant="destructive" className="text-sm bg-red-50 border-red-200">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{biometricError}</AlertDescription>
+                      </Alert>
+                      
+                      {biometricError.includes("secure context") && (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          <strong>Note:</strong> Biometric authentication requires a secure context (HTTPS or localhost).
+                          The feature may not work on non-secure origins or in iframes.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -160,12 +196,8 @@ export const SecuritySettings = () => {
                     </p>
                   </div>
                   <Button 
-                    variant={security.twoFactor ? "outline" : "default"}
+                    variant="blue"
                     onClick={handle2FAToggle}
-                    className={security.twoFactor ? 
-                      "border-finsight-purple text-finsight-purple hover:bg-finsight-purple/10" : 
-                      "bg-finsight-purple hover:bg-finsight-purple-dark"
-                    }
                   >
                     <span className="flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4" />

@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { User } from "../../types/user";
 import { AuthContextType, BankCard } from "./types";
@@ -254,12 +253,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const authService = new AuthService();
     const result = await authService.registerBiometrics(user);
     
-    if (result) {
+    // Handle both return types from AuthService
+    let success = false;
+    if (typeof result === 'object' && result !== null && 'success' in result) {
+      success = result.success;
+      if (!success && result.error) {
+        toast.error(result.error);
+      }
+    } else {
+      success = !!result;
+      if (!success) {
+        toast.error("Failed to register biometrics");
+      }
+    }
+    
+    if (success) {
       setIsBiometricsRegistered(true);
       toast.success("Biometric authentication registered successfully");
     }
     
-    return result;
+    return success;
   };
 
   const loginWithBiometrics = async (email: string): Promise<boolean> => {

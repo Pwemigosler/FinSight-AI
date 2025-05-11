@@ -11,15 +11,31 @@ export class BiometricService {
   }
 
   /**
+   * Check if the current context is secure (https or localhost)
+   */
+  isSecureContext(): boolean {
+    return window.isSecureContext;
+  }
+
+  /**
    * Register a new biometric credential for the user
    * @param userId The user's unique identifier
    * @param username The user's display name or email
    * @returns A Promise that resolves when registration succeeds
    */
-  async registerCredential(userId: string, username: string): Promise<boolean> {
+  async registerCredential(userId: string, username: string): Promise<{success: boolean; error?: string}> {
     if (!this.isSupported()) {
-      console.error("[BiometricService] WebAuthn is not supported in this browser");
-      return false;
+      return { 
+        success: false, 
+        error: "WebAuthn is not supported in this browser"
+      };
+    }
+    
+    if (!this.isSecureContext()) {
+      return { 
+        success: false, 
+        error: "Biometric authentication requires a secure context (HTTPS or localhost)"
+      };
     }
 
     try {
@@ -58,7 +74,10 @@ export class BiometricService {
       }) as PublicKeyCredential;
 
       if (!credential) {
-        throw new Error("No credential returned");
+        return {
+          success: false,
+          error: "No credential returned"
+        };
       }
 
       // Store credential in localStorage for this demo
@@ -69,10 +88,34 @@ export class BiometricService {
 
       localStorage.setItem(`finsight_biometric_${userId}`, credentialId);
       
-      return true;
-    } catch (error) {
+      return { success: true };
+    } catch (error: any) {
       console.error("[BiometricService] Error registering credential:", error);
-      return false;
+      
+      // Provide more specific error messages for common errors
+      if (error.name === "NotAllowedError") {
+        if (error.message.includes("origin")) {
+          return {
+            success: false,
+            error: "Security restriction: Biometric authentication is not allowed in this context"
+          };
+        } else {
+          return {
+            success: false,
+            error: "Permission denied: The user did not consent to the operation"
+          };
+        }
+      } else if (error.name === "NotSupportedError") {
+        return {
+          success: false,
+          error: "Your device does not have the required authenticators"
+        };
+      }
+      
+      return {
+        success: false,
+        error: error.message || "Unknown error occurred"
+      };
     }
   }
 
@@ -81,18 +124,29 @@ export class BiometricService {
    * @param userId The user's unique identifier
    * @returns A Promise that resolves to true if authentication succeeds
    */
-  async verifyCredential(userId: string): Promise<boolean> {
+  async verifyCredential(userId: string): Promise<{success: boolean; error?: string}> {
     if (!this.isSupported()) {
-      console.error("[BiometricService] WebAuthn is not supported in this browser");
-      return false;
+      return {
+        success: false,
+        error: "WebAuthn is not supported in this browser"
+      };
+    }
+    
+    if (!this.isSecureContext()) {
+      return {
+        success: false,
+        error: "Biometric authentication requires a secure context (HTTPS or localhost)"
+      };
     }
     
     try {
       // Check if we have a stored credential ID
       const credentialId = localStorage.getItem(`finsight_biometric_${userId}`);
       if (!credentialId) {
-        console.error("[BiometricService] No saved credential found for this user");
-        return false;
+        return {
+          success: false,
+          error: "No saved credential found for this user"
+        };
       }
 
       // Generate a random challenge
@@ -117,10 +171,21 @@ export class BiometricService {
         publicKey: getCredentialOptions
       });
 
-      return credential != null;
-    } catch (error) {
+      return { success: credential != null };
+    } catch (error: any) {
       console.error("[BiometricService] Error verifying credential:", error);
-      return false;
+      
+      if (error.name === "NotAllowedError") {
+        return {
+          success: false,
+          error: "Permission denied: The user did not consent to the verification"
+        };
+      }
+      
+      return {
+        success: false,
+        error: error.message || "Unknown error occurred during verification"
+      };
     }
   }
 
