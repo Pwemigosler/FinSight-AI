@@ -46,8 +46,7 @@ export interface BiometricProvider {
   hasRegisteredCredential(userId: string): Promise<boolean>;
 }
 
-// We'll use type import for the WebAuthnProvider instead of require()
-// This is just for TypeScript type checking, not runtime import
+// We'll use type import for the WebAuthnProvider instead of TypeScript type checking, not runtime import
 import type { WebAuthnProvider } from './WebAuthnProvider';
 
 /**
