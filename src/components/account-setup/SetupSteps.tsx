@@ -1,8 +1,15 @@
 
-import { AlertCircle, CheckCircle2, User, Robot, Settings, Bell, Fingerprint } from "lucide-react";
+import { AlertCircle, CheckCircle2, User, Bot, Settings, Bell, Fingerprint } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const setupSteps = [
+export type SetupStep = {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+export const setupSteps: SetupStep[] = [
   {
     id: "personal",
     title: "Personal Details",
@@ -13,7 +20,7 @@ export const setupSteps = [
     id: "assistant",
     title: "Choose Assistant",
     description: "Pick your AI assistant character",
-    icon: Robot,
+    icon: Bot,
   },
   {
     id: "preferences",
