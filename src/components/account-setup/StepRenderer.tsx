@@ -4,6 +4,7 @@ import PersonalDetailsStep from "./PersonalDetailsStep";
 import AssistantStep from "./AssistantStep";
 import PreferencesStep from "./PreferencesStep";
 import NotificationsStep from "./NotificationsStep";
+import BiometricsSetupStep from "./BiometricsSetupStep";
 
 interface StepRendererProps {
   currentStepId: string;
@@ -79,6 +80,10 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           language={formData.language}
           onInputChange={onInputChange}
         />
+      );
+    case "biometrics":
+      return (
+        <BiometricsSetupStep />
       );
     case "notification":
       return (
