@@ -6,7 +6,6 @@ import { useAuthInitialization } from "./hooks/useAuthInitialization";
 import { useProfileManagement } from "./hooks/useProfileManagement";
 import { useCardManagement } from "./hooks/useCardManagement";
 import { useAuthentication } from "./hooks/useAuthentication";
-import { AuthService } from "./services/AuthService";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -48,9 +47,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLastUpdateTime
   });
   
-  const { addBankCard, removeBankCard, setDefaultCard } = useCardManagement({
-    setLinkedCards: setLinkedCardsData
+  const { addBankCard, removeBankCard, setDefaultCard, refreshCards, isLoading: cardsLoading } = useCardManagement({
+    setLinkedCards: setLinkedCardsData,
+    userId: userData?.id || null
   });
+  
+  // When userId changes, refresh cards to ensure they're properly encrypted
+  React.useEffect(() => {
+    if (userData?.id) {
+      refreshCards().catch(console.error);
+    }
+  }, [userData?.id, refreshCards]);
   
   const { 
     login, 
@@ -84,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setDefaultCard,
     completeAccountSetup,
     needsAccountSetup,
-    loading,
+    loading: loading || cardsLoading,
     // Biometric methods
     registerBiometrics,
     loginWithBiometrics,

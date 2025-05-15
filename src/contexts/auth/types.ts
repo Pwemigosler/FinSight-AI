@@ -19,9 +19,9 @@ export type AuthContextType = {
   logout: () => Promise<void>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
   linkedCards: BankCard[];
-  addBankCard: (card: Omit<BankCard, "id">) => void;
-  removeBankCard: (cardId: string) => void;
-  setDefaultCard: (cardId: string) => void;
+  addBankCard: (card: Omit<BankCard, "id">) => Promise<void>;
+  removeBankCard: (cardId: string) => Promise<void>;
+  setDefaultCard: (cardId: string) => Promise<void>;
   completeAccountSetup: () => Promise<void>;
   needsAccountSetup: boolean;
   loading: boolean;

@@ -11,7 +11,14 @@ interface CardItemProps {
 }
 
 export const CardItem: React.FC<CardItemProps> = ({ card, onSetDefault, onRemove }) => {
-  // Helper function to get last 4 digits from card number
+  // Helper function to mask card number except for last 4 digits
+  const getMaskedCardNumber = (cardNumber: string) => {
+    if (!cardNumber || cardNumber.length < 4) return "••••";
+    const lastFourDigits = cardNumber.slice(-4);
+    return `•••• •••• •••• ${lastFourDigits}`;
+  };
+  
+  // Get last 4 digits from card number
   const getLast4Digits = (cardNumber: string) => {
     return cardNumber.slice(-4);
   };
