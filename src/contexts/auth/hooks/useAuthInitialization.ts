@@ -63,19 +63,16 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
     const initializeAuth = async () => {
       setLoading(true);
       try {
-        // Get the current session
         console.log("[AuthInit] Checking for existing session");
-        const { data: { session } } = await supabase.auth.getSession();
         
-        // Set up auth state listener
-        console.log("[AuthInit] Setting up auth state listener");
+        // Set up auth state listener FIRST
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (_event, newSession) => {
-            console.log("[AuthInit] Auth state changed, event:", _event);
+          async (event, newSession) => {
+            console.log("[AuthInit] Auth state changed, event:", event);
             
             if (newSession?.user) {
               console.log("[AuthInit] New session detected, updating user data");
-              // Don't call updateUserData directly in the callback to avoid deadlocks
+              // Avoid deadlock by using setTimeout
               setTimeout(() => updateUserData(newSession.user!.id), 0);
             } else {
               console.log("[AuthInit] No session in auth state change");
@@ -83,6 +80,9 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
             }
           }
         );
+        
+        // THEN check for existing session
+        const { data: { session } } = await supabase.auth.getSession();
 
         // Load initial user data if session exists
         if (session?.user) {
@@ -114,6 +114,10 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
         setLoading(false);
         setInitialized(true);
       }
+      
+      return () => {
+        // This will clean up subscription when component unmounts
+      };
     };
 
     initializeAuth();

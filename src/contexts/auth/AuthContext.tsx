@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [linkedCardsData, setLinkedCardsData] = useState<BankCard[]>(linkedCards);
   
   // Update state when initialization completes
-  React.useEffect(() => {
+  useEffect(() => {
     if (initialized) {
       setUserData(user);
       setLinkedCardsData(linkedCards);
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
   
   // When userId changes, refresh cards to ensure they're properly encrypted
-  React.useEffect(() => {
+  useEffect(() => {
     if (userData?.id) {
       refreshCards().catch(console.error);
     }
@@ -75,7 +75,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Only render children once we've checked localStorage and Supabase
   if (!initialized) {
-    return null; // Or a loading spinner
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-finsight-purple border-t-transparent"></div>
+          <p className="text-sm text-gray-500">Initializing authentication...</p>
+        </div>
+      </div>
+    );
   }
 
   const value = {

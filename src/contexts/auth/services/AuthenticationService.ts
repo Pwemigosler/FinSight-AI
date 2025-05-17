@@ -180,6 +180,7 @@ export class AuthenticationService {
     } catch (error) {
       console.error("[AuthService] Logout failed:", error);
       toast("Logout failed. Please try again.");
+      throw error; // Re-throw to allow callers to handle the error
     }
   }
 }
