@@ -23,7 +23,7 @@ const Login = () => {
   const { 
     login, 
     signup, 
-    loading: authLoading, 
+    isLoading: authLoading, 
     loginWithBiometrics,
     isAuthenticated 
   } = useAuth();
@@ -59,6 +59,13 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent submitting while already loading
+    if (isLoading || authLoading) {
+      console.log("[Login] Form submission prevented - already loading");
+      return;
+    }
+    
     setIsLoading(true);
     setErrorMessage("");
     
@@ -107,7 +114,7 @@ const Login = () => {
         description: errorText
       });
     } finally {
-      // Always reset loading state when login completes (success or failure)
+      // Always reset our local loading state when finished
       setIsLoading(false);
     }
   };
@@ -115,6 +122,12 @@ const Login = () => {
   const handleBiometricLogin = async () => {
     if (!email) {
       toast("Please enter your email address");
+      return;
+    }
+    
+    // Prevent multiple biometric login attempts
+    if (isBiometricLoading || authLoading) {
+      console.log("[Login] Biometric login prevented - already loading");
       return;
     }
     
@@ -138,6 +151,10 @@ const Login = () => {
       setBiometricLoading(false);
     }
   };
+
+  // The button should be disabled if either our local loading state or the auth hook's loading state is true
+  const isButtonDisabled = isLoading || authLoading;
+  const isBiometricButtonDisabled = isBiometricLoading || authLoading;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -203,6 +220,7 @@ const Login = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isButtonDisabled}
               />
             </div>
             
@@ -215,6 +233,7 @@ const Login = () => {
                   <button
                     type="button"
                     className="text-sm text-finsight-purple hover:underline"
+                    disabled={isButtonDisabled}
                   >
                     Forgot password?
                   </button>
@@ -227,6 +246,7 @@ const Login = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isButtonDisabled}
               />
             </div>
 
@@ -242,6 +262,7 @@ const Login = () => {
                   required={!isLogin}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isButtonDisabled}
                 />
               </div>
             )}
@@ -249,9 +270,9 @@ const Login = () => {
             <Button
               type="submit"
               className="w-full bg-finsight-purple hover:bg-finsight-purple-dark"
-              disabled={isLoading || authLoading}
+              disabled={isButtonDisabled}
             >
-              {isLoading ? (
+              {isButtonDisabled ? (
                 <span className="flex items-center gap-2">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                   {isLogin ? "Logging in..." : "Signing up..."}
@@ -280,9 +301,9 @@ const Login = () => {
                   variant="outline"
                   className="w-full border-finsight-purple text-finsight-purple hover:bg-finsight-purple/10 transition-colors"
                   onClick={handleBiometricLogin}
-                  disabled={isBiometricLoading}
+                  disabled={isBiometricButtonDisabled}
                 >
-                  {isBiometricLoading ? (
+                  {isBiometricButtonDisabled ? (
                     <span className="flex items-center justify-center gap-2">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-finsight-purple border-t-transparent"></div>
                       Verifying...
@@ -315,6 +336,7 @@ const Login = () => {
               setErrorMessage("");
               setIsLoading(false); // Reset loading state when toggling between login/signup
             }}
+            disabled={isButtonDisabled || isBiometricButtonDisabled}
           >
             {isLogin ? "Need an account? Sign up" : "Already have an account? Login"}
           </Button>

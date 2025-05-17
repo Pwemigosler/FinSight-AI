@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user, 
     linkedCards, 
     initialized, 
-    loading, 
+    loading: initLoading, 
     isBiometricsSupported, 
     isBiometricsRegistered,
   } = useAuthInitialization();
@@ -74,10 +74,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
     loginWithBiometrics,
     registerBiometrics,
-    removeBiometrics
+    removeBiometrics,
+    isLoading: authActionLoading
   } = useAuthentication({
     setUser: setUserData
   });
+
+  // Combine all loading states
+  const loading = initLoading || cardsLoading || authActionLoading;
 
   // Check if user needs to complete account setup
   const needsAccountSetup = userData !== null && userData.hasCompletedSetup !== true;
@@ -126,7 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setDefaultCard,
     completeAccountSetup,
     needsAccountSetup,
-    loading: loading || cardsLoading,
+    loading,
     // Biometric methods
     registerBiometrics,
     loginWithBiometrics,
