@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, LogIn, UserPlus, AlertCircle, Info, Fingerprint } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,10 +24,19 @@ const Login = () => {
     login, 
     signup, 
     loading: authLoading, 
-    loginWithBiometrics 
+    loginWithBiometrics,
+    isAuthenticated 
   } = useAuth();
   
   const navigate = useNavigate();
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("[Login] User already authenticated, redirecting to home");
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
   
   useEffect(() => {
     // Check if WebAuthn is supported by the browser
@@ -60,8 +70,7 @@ const Login = () => {
       if (isLogin) {
         success = await login(normalizedEmail, password);
         if (!success) {
-          // The toast is handled in the auth context now
-          setErrorMessage("Login failed. Please check the details below and try again.");
+          setErrorMessage("Login failed. Please check your credentials and try again.");
         }
       } else {
         // Verify passwords match for signup
@@ -76,7 +85,6 @@ const Login = () => {
         
         success = await signup(name, normalizedEmail, password);
         if (!success) {
-          // The toast is handled in the auth context
           setErrorMessage("Signup failed. This email might already be in use or there was a server error.");
         } else {
           toast("Account created successfully!", {
@@ -86,6 +94,7 @@ const Login = () => {
       }
       
       if (success) {
+        console.log("[Login] Authentication successful, redirecting to home");
         navigate("/");
       }
     } catch (error) {
@@ -112,6 +121,7 @@ const Login = () => {
       const success = await loginWithBiometrics(normalizedEmail);
       
       if (success) {
+        console.log("[Login] Biometric authentication successful, redirecting to home");
         navigate("/");
       } else {
         setErrorMessage("Biometric authentication failed. Please try again or use password.");

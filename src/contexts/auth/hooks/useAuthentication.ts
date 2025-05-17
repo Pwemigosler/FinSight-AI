@@ -24,41 +24,15 @@ export const useAuthentication = ({
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error("[AuthContext] Login error:", error.message);
-        
-        // Provide specific messages for common errors
-        if (error.message.includes("Email not confirmed")) {
-          toast("Email not verified", {
-            description: "Please check your email for a verification link or contact support if you didn't receive it.",
-          });
-          return false;
-        } 
-        else if (error.message.includes("Invalid login")) {
-          toast("Invalid credentials", {
-            description: "Please check your email and password.",
-          });
-          return false;
-        } 
-        // Handle other errors
-        else {
-          toast("Login error", {
-            description: error.message || "An unexpected error occurred during login."
-          });
-          return false;
-        }
+      // Use the authService to handle login which now properly manages both Supabase and localStorage
+      const user = await authService.login(email, password);
+      
+      if (user) {
+        setUser(user);
+        return true;
       }
-
-      // Successfully logged in
-      toast("Login successful", {
-        description: "Welcome back!"
-      });
-      return true;
+      
+      return false;
     } catch (e) {
       console.error("[AuthContext] Unexpected login error:", e);
       toast("Login failed", {
@@ -70,32 +44,15 @@ export const useAuthentication = ({
 
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name: name,
-          }
-        }
-      });
-
-      if (error) {
-        console.error("[AuthContext] Signup error:", error.message);
-        toast("Signup error", {
-          description: error.message || "An unexpected error occurred during signup."
-        });
-        return false;
+      // Use the authService to handle signup
+      const user = await authService.signup(name, email, password);
+      
+      if (user) {
+        setUser(user);
+        return true;
       }
-
-      if (data?.user && !data.session) {
-        // This means email confirmation is required
-        toast("Verification required", {
-          description: "A verification link has been sent to your email address.",
-        });
-      }
-
-      return true;
+      
+      return false;
     } catch (e) {
       console.error("[AuthContext] Unexpected signup error:", e);
       toast("Signup failed", {
@@ -106,9 +63,14 @@ export const useAuthentication = ({
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    authService.logout(); // Clear local storage
-    setUser(null);
+    try {
+      // Use the authService to handle logout which now properly cleans up both Supabase and localStorage
+      await authService.logout();
+      setUser(null);
+    } catch (error) {
+      console.error("[AuthContext] Logout error:", error);
+      toast.error("Logout failed. Please try again.");
+    }
   };
 
   const loginWithBiometrics = async (email: string): Promise<boolean> => {

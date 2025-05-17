@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { DefaultsService } from "./DefaultsService";
 import { UserStorageService } from "./UserStorageService";
 import { BiometricService } from "./BiometricService";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Service responsible for user authentication operations
@@ -21,6 +22,7 @@ export class AuthenticationService {
 
   /**
    * Handles user login
+   * Now synchronizes properly between Supabase and local storage
    */
   async login(email: string, password: string): Promise<User | null> {
     try {
@@ -29,33 +31,53 @@ export class AuthenticationService {
         return null;
       }
       
-      // Check if this email already exists in localStorage
-      const savedUserStr = localStorage.getItem("finsight_user");
-      let mockUser: User;
+      // First check Supabase authentication
+      const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      if (savedUserStr) {
-        const savedUser = JSON.parse(savedUserStr);
-        
-        // If the email matches, use the existing user data instead of creating a new one
-        if (savedUser && savedUser.email === email) {
-          console.log("[AuthService] Found existing user with matching email, preserving all user data");
-          mockUser = savedUser; // Use the complete saved user data
-        } else {
-          // Different email, create new mock user with default setup=false
-          mockUser = this.createNewUser(email);
-        }
-      } else {
-        // No saved user, create a new user
-        mockUser = this.createNewUser(email);
+      if (supabaseError) {
+        console.error("[AuthService] Supabase login failed:", supabaseError);
+        toast(supabaseError.message || "Login failed");
+        return null;
       }
       
-      console.log("[AuthService] Logging in user with hasCompletedSetup:", mockUser.hasCompletedSetup,
-                 "Avatar exists:", !!mockUser.avatar,
-                 "Avatar length:", mockUser.avatar?.length || 0);
+      if (!supabaseData.user) {
+        console.error("[AuthService] No user returned from Supabase");
+        toast("Login failed. Please try again.");
+        return null;
+      }
       
+      // Check if we have existing user data in localStorage that matches this email
+      const savedUser = this.storageService.getStoredUser();
+      let mockUser: User;
+      
+      if (savedUser && savedUser.email === email) {
+        console.log("[AuthService] Found existing user with matching email, preserving user data");
+        // Use existing user data but update the ID to match Supabase
+        mockUser = {
+          ...savedUser,
+          id: supabaseData.user.id
+        };
+      } else {
+        // Create a new user with data from Supabase
+        mockUser = {
+          id: supabaseData.user.id,
+          name: supabaseData.user.user_metadata.name || email.split('@')[0] || "User",
+          email: email,
+          avatar: "",
+          avatarSettings: this.defaultsService.getDefaultAvatarSettings(),
+          hasCompletedSetup: false
+        };
+      }
+      
+      console.log("[AuthService] User successfully authenticated");
+      
+      // Save the synchronized user data
       this.storageService.saveUser(mockUser);
       
-      // Also store a login timestamp to potentially expire the session after some time
+      // Also store a login timestamp
       localStorage.setItem("finsight_login_timestamp", Date.now().toString());
       
       toast("Successfully logged in");
@@ -96,9 +118,32 @@ export class AuthenticationService {
         return null;
       }
       
+      // Create user in Supabase
+      const { data: supabaseData, error: supabaseError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name
+          }
+        }
+      });
+      
+      if (supabaseError) {
+        console.error("[AuthService] Supabase signup failed:", supabaseError);
+        toast(supabaseError.message || "Signup failed");
+        return null;
+      }
+      
+      if (!supabaseData.user) {
+        console.error("[AuthService] No user returned from Supabase signup");
+        toast("Signup failed. Please try again.");
+        return null;
+      }
+      
       // Create a new user with the provided information
       const mockUser = {
-        id: `user-${Date.now()}`,
+        id: supabaseData.user.id,
         name,
         email,
         avatar: "",
@@ -121,10 +166,20 @@ export class AuthenticationService {
   }
 
   /**
-   * Logs out the user
+   * Logs out the user from both Supabase and local storage
    */
-  logout(): void {
-    this.storageService.clearUserData();
-    toast("You have been logged out");
+  async logout(): Promise<void> {
+    try {
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
+      // Clear local storage data
+      this.storageService.clearUserData();
+      
+      toast("You have been logged out");
+    } catch (error) {
+      console.error("[AuthService] Logout failed:", error);
+      toast("Logout failed. Please try again.");
+    }
   }
 }
