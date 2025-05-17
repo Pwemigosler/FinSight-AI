@@ -10,7 +10,7 @@ import { User } from "@/types/user";
  * @returns Avatar action methods
  */
 export const useAvatarActions = (
-  updateUserProfile: (data: any) => Promise<User | null>
+  updateUserProfile: (data: Partial<User>) => Promise<User | null>
 ) => {
   const handleDeleteAvatar = async (
     setPreviewImage: (img: string | null) => void,

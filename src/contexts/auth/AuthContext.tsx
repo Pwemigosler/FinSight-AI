@@ -51,7 +51,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { updateUserProfile, completeAccountSetup } = useProfileManagement({
     user: userData,
     lastUpdateTime,
-    setLastUpdateTime
+    setLastUpdateTime,
+    setUserData // Pass the setter function to the hook
   });
   
   const { addBankCard, removeBankCard, setDefaultCard, refreshCards, isLoading: cardsLoading } = useCardManagement({

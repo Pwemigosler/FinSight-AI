@@ -25,11 +25,8 @@ export const useProfileAvatar = () => {
   
   // Use avatar actions hook with properly typed function
   const { handleDeleteAvatar, handleUpload } = useAvatarActions(
-    // Ensure we're using the correctly typed function
-    async (data) => {
-      const result = await updateUserProfile(data);
-      return result;
-    }
+    // Updated to use the correct return type
+    updateUserProfile
   );
   
   // Use avatar sync hook to keep avatar state in sync with user data

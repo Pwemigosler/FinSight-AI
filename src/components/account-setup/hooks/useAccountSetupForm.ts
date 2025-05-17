@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { User } from "@/types/user";
+import { AccountSetupData } from "@/contexts/auth/types";
 
 export const useAccountSetupForm = () => {
   const { user, updateUserProfile, completeAccountSetup } = useAuth();
@@ -104,7 +104,10 @@ export const useAccountSetupForm = () => {
       
       // Mark setup as complete with separate call to ensure the most recent data is used
       // Pass empty object as required argument
-      await completeAccountSetup({ billingAddress: "", phoneNumber: "" });
+      await completeAccountSetup({
+        billingAddress: formData.address || "",
+        phoneNumber: formData.phone || ""
+      });
       
       // Explicitly dispatch avatar update event to force UI refresh
       // This ensures the header and other components update immediately
