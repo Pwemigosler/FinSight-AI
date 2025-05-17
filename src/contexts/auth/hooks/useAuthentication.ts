@@ -70,24 +70,41 @@ export const useAuthentication = ({
     } catch (error) {
       console.error("[AuthContext] Logout error:", error);
       toast.error("Logout failed. Please try again.");
+      
+      // Even if logout fails from Supabase, we should still clear local state
+      // This ensures users can still log out if Supabase connection is broken
+      setUser(null);
     }
   };
 
   const loginWithBiometrics = async (email: string): Promise<boolean> => {
-    const loggedInUser = await authService.loginWithBiometrics(email);
-    
-    if (loggedInUser) {
-      setUser(loggedInUser);
-      toast.success("Biometric login successful");
-      return true;
+    try {
+      const loggedInUser = await authService.loginWithBiometrics(email);
+      
+      if (loggedInUser) {
+        setUser(loggedInUser);
+        toast.success("Biometric login successful");
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("[AuthContext] Biometric login error:", error);
+      toast.error("Biometric login failed. Please try again with password.");
+      return false;
     }
-    
-    return false;
   };
 
   const registerBiometrics = async (): Promise<{success: boolean; error?: string} | boolean> => {
     // Get the current user from the supabase session instead of using a hardcoded value
-    const { data } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error("[AuthContext] Error getting current user:", error);
+      toast.error("Authentication error. Please log in again.");
+      return { success: false, error: "Authentication error" };
+    }
+    
     const user = data?.user ? {
       id: data.user.id,
       email: data.user.email || ''
@@ -99,32 +116,45 @@ export const useAuthentication = ({
       return { success: false, error: "Not logged in" };
     }
 
-    const result = await authService.registerBiometrics(user);
-    
-    // Handle both return types from AuthService
-    let success = false;
-    if (typeof result === 'object' && result !== null && 'success' in result) {
-      success = result.success;
-      if (!success && result.error) {
-        toast.error(result.error);
+    try {
+      const result = await authService.registerBiometrics(user);
+      
+      // Handle both return types from AuthService
+      let success = false;
+      if (typeof result === 'object' && result !== null && 'success' in result) {
+        success = result.success;
+        if (!success && result.error) {
+          toast.error(result.error);
+        }
+      } else {
+        success = !!result;
+        if (!success) {
+          toast.error("Failed to register biometrics");
+        }
       }
-    } else {
-      success = !!result;
-      if (!success) {
-        toast.error("Failed to register biometrics");
+      
+      if (success) {
+        toast.success("Biometric authentication registered successfully");
       }
+      
+      return result; // Return the original result to preserve all information
+    } catch (error) {
+      console.error("[AuthContext] Error registering biometrics:", error);
+      toast.error("Failed to register biometrics");
+      return { success: false, error: "Unexpected error" };
     }
-    
-    if (success) {
-      toast.success("Biometric authentication registered successfully");
-    }
-    
-    return result; // Return the original result to preserve all information
   };
 
   const removeBiometrics = async (): Promise<boolean> => {
     // Get the current user from the supabase session instead of using a hardcoded value
-    const { data } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error("[AuthContext] Error getting current user:", error);
+      toast.error("Authentication error. Please log in again.");
+      return false;
+    }
+    
     const user = data?.user ? {
       id: data.user.id,
       email: data.user.email || ''
@@ -136,13 +166,19 @@ export const useAuthentication = ({
       return false;
     }
     
-    const result = await authService.removeBiometrics(user);
-    
-    if (result) {
-      toast.success("Biometric authentication removed");
+    try {
+      const result = await authService.removeBiometrics(user);
+      
+      if (result) {
+        toast.success("Biometric authentication removed");
+      }
+      
+      return result;
+    } catch (error) {
+      console.error("[AuthContext] Error removing biometrics:", error);
+      toast.error("Failed to remove biometrics");
+      return false;
     }
-    
-    return result;
   };
 
   return {

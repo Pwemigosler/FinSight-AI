@@ -68,6 +68,7 @@ const Login = () => {
       
       let success;
       if (isLogin) {
+        console.log("[Login] Attempting to login with email:", normalizedEmail);
         success = await login(normalizedEmail, password);
         if (!success) {
           setErrorMessage("Login failed. Please check your credentials and try again.");
@@ -83,6 +84,7 @@ const Login = () => {
           return;
         }
         
+        console.log("[Login] Attempting to signup with email:", normalizedEmail);
         success = await signup(name, normalizedEmail, password);
         if (!success) {
           setErrorMessage("Signup failed. This email might already be in use or there was a server error.");
@@ -105,6 +107,7 @@ const Login = () => {
         description: errorText
       });
     } finally {
+      // Always reset loading state when login completes (success or failure)
       setIsLoading(false);
     }
   };
@@ -118,6 +121,7 @@ const Login = () => {
     setBiometricLoading(true);
     try {
       const normalizedEmail = email.toLowerCase();
+      console.log("[Login] Attempting biometric login with email:", normalizedEmail);
       const success = await loginWithBiometrics(normalizedEmail);
       
       if (success) {
@@ -130,6 +134,7 @@ const Login = () => {
       console.error("[Login] Biometric authentication error:", error);
       setErrorMessage("Biometric authentication failed. Please use your password instead.");
     } finally {
+      // Always reset biometric loading state when login completes (success or failure)
       setBiometricLoading(false);
     }
   };
@@ -246,7 +251,7 @@ const Login = () => {
               className="w-full bg-finsight-purple hover:bg-finsight-purple-dark"
               disabled={isLoading || authLoading}
             >
-              {isLoading || authLoading ? (
+              {isLoading ? (
                 <span className="flex items-center gap-2">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                   {isLogin ? "Logging in..." : "Signing up..."}
@@ -308,6 +313,7 @@ const Login = () => {
               setPassword("");
               setConfirmPassword("");
               setErrorMessage("");
+              setIsLoading(false); // Reset loading state when toggling between login/signup
             }}
           >
             {isLogin ? "Need an account? Sign up" : "Already have an account? Login"}

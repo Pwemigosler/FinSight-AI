@@ -31,6 +31,8 @@ export class AuthenticationService {
         return null;
       }
       
+      console.log("[AuthService] Attempting login with Supabase");
+      
       // First check Supabase authentication
       const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithPassword({
         email,
@@ -49,6 +51,8 @@ export class AuthenticationService {
         return null;
       }
       
+      console.log("[AuthService] Supabase login successful, checking local storage");
+      
       // Check if we have existing user data in localStorage that matches this email
       const savedUser = this.storageService.getStoredUser();
       let mockUser: User;
@@ -61,6 +65,7 @@ export class AuthenticationService {
           id: supabaseData.user.id
         };
       } else {
+        console.log("[AuthService] Creating new user object from Supabase data");
         // Create a new user with data from Supabase
         mockUser = {
           id: supabaseData.user.id,
@@ -83,24 +88,10 @@ export class AuthenticationService {
       toast("Successfully logged in");
       return mockUser;
     } catch (error) {
-      console.error("[AuthService] Login failed:", error);
+      console.error("[AuthService] Login failed with error:", error);
       toast("Login failed. Please try again.");
       return null;
     }
-  }
-
-  /**
-   * Creates a new user with default values
-   */
-  private createNewUser(email: string): User {
-    return {
-      id: "user-123",
-      name: email.split('@')[0] || "User",
-      email: email,
-      avatar: "",
-      avatarSettings: this.defaultsService.getDefaultAvatarSettings(),
-      hasCompletedSetup: false
-    };
   }
 
   /**
@@ -117,6 +108,8 @@ export class AuthenticationService {
         toast("Password must be at least 6 characters long");
         return null;
       }
+      
+      console.log("[AuthService] Attempting signup with Supabase");
       
       // Create user in Supabase
       const { data: supabaseData, error: supabaseError } = await supabase.auth.signUp({
@@ -141,6 +134,8 @@ export class AuthenticationService {
         return null;
       }
       
+      console.log("[AuthService] Supabase signup successful, creating user");
+      
       // Create a new user with the provided information
       const mockUser = {
         id: supabaseData.user.id,
@@ -159,7 +154,7 @@ export class AuthenticationService {
       toast("Successfully signed up!");
       return mockUser;
     } catch (error) {
-      console.error("[AuthService] Signup failed:", error);
+      console.error("[AuthService] Signup failed with error:", error);
       toast("Signup failed. Please try again.");
       return null;
     }
@@ -170,6 +165,8 @@ export class AuthenticationService {
    */
   async logout(): Promise<void> {
     try {
+      console.log("[AuthService] Logging out user");
+      
       // Clear local storage data first, so even if Supabase logout fails
       // the user is still logged out locally
       this.storageService.clearUserData();
@@ -183,9 +180,10 @@ export class AuthenticationService {
         throw error;
       }
       
+      console.log("[AuthService] Logout successful");
       toast("You have been logged out");
     } catch (error) {
-      console.error("[AuthService] Logout failed:", error);
+      console.error("[AuthService] Logout failed with error:", error);
       // We don't show an error toast here since we've already cleared local storage
       // and functionally logged out the user
       throw error; // Re-throw to allow callers to handle the error
