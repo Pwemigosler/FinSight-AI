@@ -82,6 +82,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Combine all loading states
   const loading = initLoading || cardsLoading || authActionLoading;
+  // Add isLoading as an alias to loading to match what's being used in Login.tsx
+  const isLoading = loading;
 
   // Check if user needs to complete account setup
   const needsAccountSetup = userData !== null && userData.hasCompletedSetup !== true;
@@ -117,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
   }
 
-  const value = {
+  const value: AuthContextType = {
     user: userData,
     login,
     signup,
@@ -131,6 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     completeAccountSetup,
     needsAccountSetup,
     loading,
+    isLoading, // Add isLoading as an alias to loading
     // Biometric methods
     registerBiometrics,
     loginWithBiometrics,

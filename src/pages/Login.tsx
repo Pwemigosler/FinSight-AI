@@ -15,7 +15,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFormLoading, setIsFormLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isBiometricsAvailable, setIsBiometricsAvailable] = useState(false);
   const [isBiometricLoading, setBiometricLoading] = useState(false);
@@ -23,7 +23,7 @@ const Login = () => {
   const { 
     login, 
     signup, 
-    isLoading: authLoading, 
+    loading: authLoading, 
     loginWithBiometrics,
     isAuthenticated 
   } = useAuth();
@@ -61,12 +61,12 @@ const Login = () => {
     e.preventDefault();
     
     // Prevent submitting while already loading
-    if (isLoading || authLoading) {
+    if (isFormLoading || authLoading) {
       console.log("[Login] Form submission prevented - already loading");
       return;
     }
     
-    setIsLoading(true);
+    setIsFormLoading(true);
     setErrorMessage("");
     
     try {
@@ -87,7 +87,7 @@ const Login = () => {
           toast("Passwords don't match", {
             description: "Please make sure your passwords match."
           });
-          setIsLoading(false);
+          setIsFormLoading(false);
           return;
         }
         
@@ -115,7 +115,7 @@ const Login = () => {
       });
     } finally {
       // Always reset our local loading state when finished
-      setIsLoading(false);
+      setIsFormLoading(false);
     }
   };
 
@@ -153,7 +153,7 @@ const Login = () => {
   };
 
   // The button should be disabled if either our local loading state or the auth hook's loading state is true
-  const isButtonDisabled = isLoading || authLoading;
+  const isButtonDisabled = isFormLoading || authLoading;
   const isBiometricButtonDisabled = isBiometricLoading || authLoading;
 
   return (
@@ -205,6 +205,7 @@ const Login = () => {
                   required={!isLogin}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  disabled={isButtonDisabled}
                 />
               </div>
             )}
@@ -334,7 +335,7 @@ const Login = () => {
               setPassword("");
               setConfirmPassword("");
               setErrorMessage("");
-              setIsLoading(false); // Reset loading state when toggling between login/signup
+              setIsFormLoading(false); // Reset loading state when toggling between login/signup
             }}
             disabled={isButtonDisabled || isBiometricButtonDisabled}
           >

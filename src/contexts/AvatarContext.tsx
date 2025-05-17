@@ -36,8 +36,15 @@ export const AvatarProvider: React.FC<AvatarProviderProps> = ({
   const [speechSynth, setSpeechSynth] = useState<SpeechSynthesis | null>(null);
   const [speechEnabled, setSpeechEnabled] = useState<boolean>(true);
   
-  // Get auth context safely with error handling
-  const auth = useAuth();
+  // Try to get auth context, but provide fallbacks if not available yet
+  let auth;
+  try {
+    auth = useAuth();
+  } catch (error) {
+    console.error("Error accessing AuthContext:", error);
+    auth = null;
+  }
+  
   const user = auth?.user || null;
   const updateUserProfile = auth?.updateUserProfile || (async () => {
     console.warn('updateUserProfile not available');
