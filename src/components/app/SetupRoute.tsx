@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from "@/contexts/auth";
 
 interface SetupRouteProps {
@@ -9,6 +9,7 @@ interface SetupRouteProps {
 
 const SetupRoute: React.FC<SetupRouteProps> = ({ children }) => {
   const { isAuthenticated, needsAccountSetup, loading } = useAuth();
+  const location = useLocation();
   
   // Show loading state
   if (loading) {
@@ -25,7 +26,7 @@ const SetupRoute: React.FC<SetupRouteProps> = ({ children }) => {
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     console.log("[SetupRoute] User not authenticated, redirecting to login");
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
   
   // If setup is already completed, redirect to home

@@ -60,14 +60,27 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
 
   // Initialize auth state with Supabase session
   useEffect(() => {
+    let authSubscription: { unsubscribe: () => void } | null = null;
+    let timeoutId: number | null = null;
+    
     const initializeAuth = async () => {
       setLoading(true);
+      
+      // Circuit breaker - after 5 seconds, mark as initialized to prevent infinite loading
+      timeoutId = window.setTimeout(() => {
+        if (!initialized) {
+          console.warn("[AuthInit] Circuit breaker activated - initialization taking too long");
+          setLoading(false);
+          setInitialized(true);
+        }
+      }, 5000);
+      
       try {
         console.log("[AuthInit] Checking for existing session");
         
         // Set up auth state listener FIRST
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, newSession) => {
+          (event, newSession) => {
             console.log("[AuthInit] Auth state changed, event:", event);
             
             if (newSession?.user) {
@@ -80,6 +93,9 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
             }
           }
         );
+        
+        // Store subscription so we can clean it up later
+        authSubscription = subscription;
         
         // THEN check for existing session
         const { data: { session } } = await supabase.auth.getSession();
@@ -102,25 +118,34 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
         }
         
         // Load linked cards
-        const cards = bankCardService.getCards();
-        setLinkedCards(cards);
-        
-        setInitialized(true);
+        try {
+          const cards = bankCardService.getCards();
+          setLinkedCards(cards);
+        } catch (cardError) {
+          console.error("[AuthInit] Error loading card data:", cardError);
+          // Don't block initialization due to card loading failures
+          setLinkedCards([]);
+        }
       } catch (error) {
         console.error("[AuthInit] Error initializing auth:", error);
         localStorage.removeItem("finsight_user");
         localStorage.removeItem("finsight_linked_cards");
       } finally {
+        // Clear timeout if we're done before the circuit breaker kicks in
+        if (timeoutId) window.clearTimeout(timeoutId);
+        
         setLoading(false);
         setInitialized(true);
       }
-      
-      return () => {
-        // This will clean up subscription when component unmounts
-      };
     };
 
     initializeAuth();
+    
+    // Cleanup function
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      if (authSubscription) authSubscription.unsubscribe();
+    };
   }, [userService, bankCardService, updateUserData]);
 
   // Check if biometrics are supported
@@ -132,8 +157,13 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
   useEffect(() => {
     const checkBiometricStatus = async () => {
       if (user && isBiometricsSupported) {
-        const canUseBiometrics = await authService.canUseBiometrics(user);
-        setIsBiometricsRegistered(canUseBiometrics);
+        try {
+          const canUseBiometrics = await authService.canUseBiometrics(user);
+          setIsBiometricsRegistered(canUseBiometrics);
+        } catch (error) {
+          console.error("[AuthInit] Error checking biometrics:", error);
+          setIsBiometricsRegistered(false);
+        }
       } else {
         setIsBiometricsRegistered(false);
       }

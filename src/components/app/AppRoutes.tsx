@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 
@@ -18,9 +18,21 @@ import SetupRoute from "./SetupRoute";
 
 const AppRoutes = () => {
   const { loading } = useAuth();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
-  // Show loading state during initial auth check
-  if (loading) {
+  // Set a timeout to prevent infinite loading states
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (isInitialLoad) {
+        setIsInitialLoad(false);
+      }
+    }, 3000); // Wait for 3 seconds before forcing loading state to end
+    
+    return () => clearTimeout(timeoutId);
+  }, [isInitialLoad]);
+  
+  // Show loading state during initial auth check, but not if loading takes too long
+  if (loading && isInitialLoad) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-2">

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from "@/contexts/auth";
 
 interface ProtectedRouteProps {
@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, needsAccountSetup, loading } = useAuth();
+  const location = useLocation();
   
   // Show loading state
   if (loading) {
@@ -25,7 +26,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     console.log("[ProtectedRoute] User not authenticated, redirecting to login");
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
   
   // Redirect users who need to complete account setup

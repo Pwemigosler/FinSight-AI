@@ -170,16 +170,24 @@ export class AuthenticationService {
    */
   async logout(): Promise<void> {
     try {
-      // Sign out from Supabase
-      await supabase.auth.signOut();
-      
-      // Clear local storage data
+      // Clear local storage data first, so even if Supabase logout fails
+      // the user is still logged out locally
       this.storageService.clearUserData();
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("[AuthService] Supabase signout error:", error);
+        // Even if Supabase logout fails, we've already cleared local storage
+        throw error;
+      }
       
       toast("You have been logged out");
     } catch (error) {
       console.error("[AuthService] Logout failed:", error);
-      toast("Logout failed. Please try again.");
+      // We don't show an error toast here since we've already cleared local storage
+      // and functionally logged out the user
       throw error; // Re-throw to allow callers to handle the error
     }
   }
