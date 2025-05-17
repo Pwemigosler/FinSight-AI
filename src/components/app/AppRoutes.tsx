@@ -23,7 +23,10 @@ const AppRoutes = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-finsight-purple border-t-transparent"></div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-finsight-purple border-t-transparent"></div>
+          <p className="text-sm text-gray-500">Loading authentication state...</p>
+        </div>
       </div>
     );
   }
