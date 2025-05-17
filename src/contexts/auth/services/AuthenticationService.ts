@@ -73,7 +73,8 @@ export class AuthenticationService {
           email: email,
           avatar: "",
           avatarSettings: this.defaultsService.getDefaultAvatarSettings(),
-          hasCompletedSetup: false
+          hasCompletedSetup: false,
+          preferences: { speechEnabled: true }
         };
       }
       
@@ -143,7 +144,8 @@ export class AuthenticationService {
         email,
         avatar: "",
         avatarSettings: this.defaultsService.getDefaultAvatarSettings(),
-        hasCompletedSetup: false
+        hasCompletedSetup: false,
+        preferences: { speechEnabled: true }
       };
       
       this.storageService.saveUser(mockUser);
@@ -187,6 +189,48 @@ export class AuthenticationService {
       // We don't show an error toast here since we've already cleared local storage
       // and functionally logged out the user
       throw error; // Re-throw to allow callers to handle the error
+    }
+  }
+
+  /**
+   * Handles login with biometric authentication
+   */
+  async loginWithBiometrics(email: string): Promise<User | null> {
+    try {
+      // Implementing a basic stub for now
+      console.log("[AuthService] Biometric login attempted");
+      return null;
+    } catch (error) {
+      console.error("[AuthService] Biometric login error:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Registers biometric authentication for a user
+   */
+  async registerBiometrics(user: { id: string; email: string }): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Implementing a basic stub for now
+      console.log("[AuthService] Biometric registration attempted");
+      return { success: false, error: "Not implemented yet" };
+    } catch (error) {
+      console.error("[AuthService] Biometric registration error:", error);
+      return { success: false, error: "Unknown error" };
+    }
+  }
+
+  /**
+   * Removes biometric authentication for a user
+   */
+  async removeBiometrics(user: { id: string; email: string }): Promise<boolean> {
+    try {
+      // Implementing a basic stub for now
+      console.log("[AuthService] Biometric removal attempted");
+      return false;
+    } catch (error) {
+      console.error("[AuthService] Biometric removal error:", error);
+      return false;
     }
   }
 }

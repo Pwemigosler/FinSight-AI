@@ -79,7 +79,7 @@ export const useAuthentication = ({
 
   const loginWithBiometrics = async (email: string): Promise<boolean> => {
     try {
-      const loggedInUser = await authService.loginWithBiometrics(email);
+      const loggedInUser = await authService.loginWithBiometrics?.(email);
       
       if (loggedInUser) {
         setUser(loggedInUser);
@@ -96,28 +96,28 @@ export const useAuthentication = ({
   };
 
   const registerBiometrics = async (): Promise<{success: boolean; error?: string} | boolean> => {
-    // Get the current user from the supabase session instead of using a hardcoded value
-    const { data, error } = await supabase.auth.getUser();
-    
-    if (error) {
-      console.error("[AuthContext] Error getting current user:", error);
-      toast.error("Authentication error. Please log in again.");
-      return { success: false, error: "Authentication error" };
-    }
-    
-    const user = data?.user ? {
-      id: data.user.id,
-      email: data.user.email || ''
-    } : null;
-    
-    if (!user) {
-      console.error("[AuthContext] Cannot register biometrics: No user logged in");
-      toast.error("Must be logged in to register biometrics");
-      return { success: false, error: "Not logged in" };
-    }
-
     try {
-      const result = await authService.registerBiometrics(user);
+      // Get the current user from the supabase session instead of using a hardcoded value
+      const { data, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        console.error("[AuthContext] Error getting current user:", error);
+        toast.error("Authentication error. Please log in again.");
+        return { success: false, error: "Authentication error" };
+      }
+      
+      const user = data?.user ? {
+        id: data.user.id,
+        email: data.user.email || ''
+      } : null;
+      
+      if (!user) {
+        console.error("[AuthContext] Cannot register biometrics: No user logged in");
+        toast.error("Must be logged in to register biometrics");
+        return { success: false, error: "Not logged in" };
+      }
+
+      const result = await authService.registerBiometrics?.(user);
       
       // Handle both return types from AuthService
       let success = false;
@@ -137,7 +137,7 @@ export const useAuthentication = ({
         toast.success("Biometric authentication registered successfully");
       }
       
-      return result; // Return the original result to preserve all information
+      return result || { success: false }; // Return the original result to preserve all information
     } catch (error) {
       console.error("[AuthContext] Error registering biometrics:", error);
       toast.error("Failed to register biometrics");
@@ -146,34 +146,34 @@ export const useAuthentication = ({
   };
 
   const removeBiometrics = async (): Promise<boolean> => {
-    // Get the current user from the supabase session instead of using a hardcoded value
-    const { data, error } = await supabase.auth.getUser();
-    
-    if (error) {
-      console.error("[AuthContext] Error getting current user:", error);
-      toast.error("Authentication error. Please log in again.");
-      return false;
-    }
-    
-    const user = data?.user ? {
-      id: data.user.id,
-      email: data.user.email || ''
-    } : null;
-    
-    if (!user) {
-      console.error("[AuthContext] Cannot remove biometrics: No user logged in");
-      toast.error("Must be logged in to remove biometrics");
-      return false;
-    }
-    
     try {
-      const result = await authService.removeBiometrics(user);
+      // Get the current user from the supabase session instead of using a hardcoded value
+      const { data, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        console.error("[AuthContext] Error getting current user:", error);
+        toast.error("Authentication error. Please log in again.");
+        return false;
+      }
+      
+      const user = data?.user ? {
+        id: data.user.id,
+        email: data.user.email || ''
+      } : null;
+      
+      if (!user) {
+        console.error("[AuthContext] Cannot remove biometrics: No user logged in");
+        toast.error("Must be logged in to remove biometrics");
+        return false;
+      }
+      
+      const result = await authService.removeBiometrics?.(user);
       
       if (result) {
         toast.success("Biometric authentication removed");
       }
       
-      return result;
+      return !!result;
     } catch (error) {
       console.error("[AuthContext] Error removing biometrics:", error);
       toast.error("Failed to remove biometrics");

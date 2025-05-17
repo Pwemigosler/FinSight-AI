@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AvatarState } from '@/components/avatars/types/avatar-types';
 import { analyze } from '@/utils/sentimentAnalysis';
@@ -34,7 +35,14 @@ export const AvatarProvider: React.FC<AvatarProviderProps> = ({
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [speechSynth, setSpeechSynth] = useState<SpeechSynthesis | null>(null);
   const [speechEnabled, setSpeechEnabled] = useState<boolean>(true);
-  const { user, updateUserProfile } = useAuth();
+  
+  // Get auth context safely with error handling
+  const auth = useAuth();
+  const user = auth?.user || null;
+  const updateUserProfile = auth?.updateUserProfile || (async () => {
+    console.warn('updateUserProfile not available');
+    return null;
+  });
 
   // Initialize speech synthesis
   useEffect(() => {
@@ -61,12 +69,16 @@ export const AvatarProvider: React.FC<AvatarProviderProps> = ({
 
     // Update user preferences in database
     if (user) {
-      await updateUserProfile({
-        preferences: {
-          ...user.preferences,
-          speechEnabled: newSpeechEnabled
-        }
-      });
+      try {
+        await updateUserProfile({
+          preferences: {
+            ...user.preferences,
+            speechEnabled: newSpeechEnabled
+          }
+        });
+      } catch (error) {
+        console.error('Failed to update speech preference:', error);
+      }
     }
   };
 

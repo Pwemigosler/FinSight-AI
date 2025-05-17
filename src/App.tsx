@@ -17,23 +17,23 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <AvatarProvider>
+    <BrowserRouter>
+      <AuthProvider>
         <ThemeProvider attribute="class" defaultTheme="light">
           <TooltipProvider>
-            <AppInitializer>
-              <UserOnboarding>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
+            <AvatarProvider>
+              <AppInitializer>
+                <UserOnboarding>
+                  <Toaster />
+                  <Sonner />
                   <AppRoutes />
-                </BrowserRouter>
-              </UserOnboarding>
-            </AppInitializer>
+                </UserOnboarding>
+              </AppInitializer>
+            </AvatarProvider>
           </TooltipProvider>
         </ThemeProvider>
-      </AvatarProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
