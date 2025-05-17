@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowUpRight, LineChart } from 'lucide-react';
+import { ArrowUpRight, LineChart, FileText } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import {
   CartesianGrid,
@@ -11,6 +11,8 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
+import { useAuth } from '@/contexts/auth';
+import { Button } from '@/components/ui/button';
 
 // Custom tooltip component
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -30,7 +32,28 @@ interface SpendingTrendsProps {
   onViewDetails?: () => void;
 }
 
+const EmptyChart = ({ onViewDetails }: { onViewDetails?: () => void }) => (
+  <div className="h-[300px] flex flex-col items-center justify-center">
+    <FileText className="h-12 w-12 text-gray-300 mb-2" />
+    <p className="text-gray-500 mb-4">No spending data available yet</p>
+    <p className="text-sm text-gray-400 mb-6 text-center max-w-xs">
+      Add transactions or scan receipts to see your spending trends here
+    </p>
+    <Button 
+      variant="outline" 
+      size="sm"
+      className="text-finsight-purple border-finsight-purple"
+      onClick={onViewDetails}
+    >
+      Add Transaction
+    </Button>
+  </div>
+);
+
 const SpendingTrends = ({ data, onViewDetails }: SpendingTrendsProps) => {
+  const { user } = useAuth();
+  const hasData = data.length > 0;
+  
   return (
     <Card className="lg:col-span-2 animate-fade-in animate-delay-100">
       <div className="p-6">
@@ -44,24 +67,29 @@ const SpendingTrends = ({ data, onViewDetails }: SpendingTrendsProps) => {
             <ArrowUpRight className="h-4 w-4" />
           </div>
         </div>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <RechartsLineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
-              <Tooltip content={<CustomTooltip />} />
-              <Line
-                type="monotone"
-                dataKey="amount"
-                stroke="#9b87f5"
-                strokeWidth={2}
-                dot={{ fill: '#9b87f5', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, fill: '#6E59A5' }}
-              />
-            </RechartsLineChart>
-          </ResponsiveContainer>
-        </div>
+        
+        {hasData ? (
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsLineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
+                <Tooltip content={<CustomTooltip />} />
+                <Line
+                  type="monotone"
+                  dataKey="amount"
+                  stroke="#9b87f5"
+                  strokeWidth={2}
+                  dot={{ fill: '#9b87f5', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, fill: '#6E59A5' }}
+                />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <EmptyChart onViewDetails={onViewDetails} />
+        )}
       </div>
     </Card>
   );

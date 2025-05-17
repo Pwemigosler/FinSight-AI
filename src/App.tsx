@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,8 @@ import { AuthProvider, useAuth } from "./contexts/auth";
 import { AvatarProvider } from "./contexts/AvatarContext";
 import { initializeCharacterAvatars } from "./utils/supabaseStorage";
 import { uploadCharacterImages } from "./utils/uploadCharacters";
+import OnboardingModal from "./components/onboarding/OnboardingModal";
+import FeedbackButton from "./components/FeedbackButton";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,42 @@ const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }, [imagesInitialized]);
   
   return <>{children}</>;
+};
+
+// New user onboarding component
+const UserOnboarding: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { user, isAuthenticated, needsAccountSetup, loading } = useAuth();
+  
+  useEffect(() => {
+    if (isAuthenticated && !needsAccountSetup && !loading) {
+      // Check if this is the user's first time after account setup
+      const hasCompletedOnboarding = localStorage.getItem('finsight_onboarding_completed') === 'true';
+      if (!hasCompletedOnboarding) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [isAuthenticated, needsAccountSetup, loading]);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+  };
+
+  return (
+    <>
+      {children}
+      {isAuthenticated && (
+        <>
+          <FeedbackButton />
+          <OnboardingModal
+            open={showOnboarding}
+            onOpenChange={setShowOnboarding}
+            onComplete={handleOnboardingComplete}
+          />
+        </>
+      )}
+    </>
+  );
 };
 
 // Protected route component
@@ -173,7 +210,7 @@ const AppRoutes = () => {
       />
       <Route 
         path="/login" 
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} 
+        element={<Login />} 
       />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
@@ -188,11 +225,13 @@ const App = () => (
         <ThemeProvider attribute="class" defaultTheme="light">
           <TooltipProvider>
             <AppInitializer>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
+              <UserOnboarding>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </UserOnboarding>
             </AppInitializer>
           </TooltipProvider>
         </ThemeProvider>

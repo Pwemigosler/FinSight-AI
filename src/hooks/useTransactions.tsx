@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ShoppingCart, CreditCard, Home, Coffee, Film, Dumbbell } from 'lucide-react';
 import { toast } from 'sonner';
@@ -67,7 +66,7 @@ const getCategoryIcon = (category: string) => {
   }
 };
 
-// Sample transactions data for fallback when user is not logged in
+// Sample transactions data for fallback when user is not logged in or preview mode
 const demoTransactions = [
   {
     id: 't1',
@@ -85,7 +84,7 @@ const demoTransactions = [
     category: 'Housing',
     date: '2023-08-15',
     amount: -1800,
-    icon: <ShoppingCart className="h-4 w-4" />,
+    icon: <Home className="h-4 w-4" />,
     iconBg: 'bg-blue-100',
     iconColor: 'text-blue-600',
   },
@@ -95,7 +94,7 @@ const demoTransactions = [
     category: 'Income',
     date: '2023-08-10',
     amount: 3450,
-    icon: <ShoppingCart className="h-4 w-4" />,
+    icon: <CreditCard className="h-4 w-4" />,
     iconBg: 'bg-green-100',
     iconColor: 'text-green-600',
   }
@@ -116,7 +115,7 @@ export const useTransactions = () => {
   
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  // Fetch transactions from local storage or use demo data
+  // Fetch transactions from supabase or use demo data for non-authenticated users
   const fetchTransactions = useCallback(async () => {
     if (!user) {
       console.log('No user logged in, using demo transactions');
@@ -127,23 +126,12 @@ export const useTransactions = () => {
     
     setIsLoading(true);
     try {
-      // For now, we'll continue using the mock data
-      // In a real application, you would fetch from Supabase here
       console.log('Fetching transactions for user:', user.id);
       
-      // Using mock data for now 
-      // In a production app, replace with actual Supabase query
-      const mockTransactions = demoTransactions.map(t => ({
-        ...t,
-        user_id: user.id
-      }));
-      
-      // Add some processing delay to simulate fetch
-      setTimeout(() => {
-        setTransactions(mockTransactions);
-        setIsLoading(false);
-      }, 500);
-      
+      // For authenticated users, return an empty array or fetch real data from database
+      // In a production app, this would fetch from Supabase
+      setTransactions([]); // Start with empty transactions for new users
+      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching transactions:', error);
       toast.error('Failed to load transactions');
