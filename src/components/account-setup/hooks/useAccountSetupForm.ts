@@ -103,7 +103,8 @@ export const useAccountSetupForm = () => {
       setCharacterId(formData.assistantCharacter);
       
       // Mark setup as complete with separate call to ensure the most recent data is used
-      await completeAccountSetup();
+      // Pass empty object as required argument
+      await completeAccountSetup({ billingAddress: "", phoneNumber: "" });
       
       // Explicitly dispatch avatar update event to force UI refresh
       // This ensures the header and other components update immediately

@@ -31,7 +31,7 @@ export const CardItem: React.FC<CardItemProps> = ({ card, onSetDefault, onRemove
         </div>
         <div>
           <p className="font-medium">
-            {card.cardName} •••• {getLast4Digits(card.cardNumber)}
+            {card.cardName || 'Card'} •••• {getLast4Digits(card.cardNumber)}
           </p>
           <p className="text-sm text-gray-500">
             {card.cardType || 'Card'} {card.isDefault && 

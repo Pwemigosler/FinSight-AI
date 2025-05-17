@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { User } from "../../types/user";
-import { AuthContextType, BankCard } from "./types";
+import { AuthContextType, BankCard, AccountSetupData } from "./types";
 import { useAuthInitialization } from "./hooks/useAuthInitialization";
 import { useProfileManagement } from "./hooks/useProfileManagement";
 import { useCardManagement } from "./hooks/useCardManagement";

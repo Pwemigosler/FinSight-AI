@@ -1,3 +1,4 @@
+
 import { User } from "../../types/user";
 
 export type BankCard = {
@@ -8,6 +9,8 @@ export type BankCard = {
   cvv: string;
   cardholderName: string;
   isDefault: boolean;
+  cardName?: string; // Add this property
+  cardType?: string; // Add this property
 };
 
 export type AccountSetupData = {
@@ -23,7 +26,7 @@ export type AuthContextType = {
   isAuthenticated: boolean;
   updateUserProfile: (updatedProfile: Partial<User>) => Promise<User | null>;
   linkedCards: BankCard[];
-  addBankCard: (cardDetails: Omit<BankCard, "id">) => Promise<BankCard | null>;
+  addBankCard: (cardDetails: Omit<BankCard, "id" | "userId">) => Promise<BankCard | null>;
   removeBankCard: (cardId: string) => Promise<boolean>;
   setDefaultCard: (cardId: string) => Promise<boolean>;
   completeAccountSetup: (profileData: AccountSetupData) => Promise<boolean>;

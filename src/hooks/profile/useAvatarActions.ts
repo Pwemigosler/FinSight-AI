@@ -1,6 +1,7 @@
 
 import { toast } from "sonner";
 import { ImagePosition } from "@/components/profile/types/avatar-types";
+import { User } from "@/types/user";
 
 /**
  * Hook to manage avatar actions (upload, delete)
@@ -9,7 +10,7 @@ import { ImagePosition } from "@/components/profile/types/avatar-types";
  * @returns Avatar action methods
  */
 export const useAvatarActions = (
-  updateUserProfile: (data: any) => Promise<void>
+  updateUserProfile: (data: any) => Promise<User | null>
 ) => {
   const handleDeleteAvatar = async (
     setPreviewImage: (img: string | null) => void,

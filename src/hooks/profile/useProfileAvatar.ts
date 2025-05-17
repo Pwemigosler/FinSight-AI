@@ -23,8 +23,14 @@ export const useProfileAvatar = () => {
   // Use dialog state hook
   const dialogHook = useAvatarDialog();
   
-  // Use avatar actions hook
-  const { handleDeleteAvatar, handleUpload } = useAvatarActions(updateUserProfile);
+  // Use avatar actions hook with properly typed function
+  const { handleDeleteAvatar, handleUpload } = useAvatarActions(
+    // Ensure we're using the correctly typed function
+    async (data) => {
+      const result = await updateUserProfile(data);
+      return result;
+    }
+  );
   
   // Use avatar sync hook to keep avatar state in sync with user data
   useAvatarSync(

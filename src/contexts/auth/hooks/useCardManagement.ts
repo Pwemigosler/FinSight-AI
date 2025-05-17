@@ -9,9 +9,9 @@ type UseCardManagementProps = {
 };
 
 type UseCardManagementResult = {
-  addBankCard: (card: Omit<BankCard, "id">) => Promise<void>;
-  removeBankCard: (cardId: string) => Promise<void>;
-  setDefaultCard: (cardId: string) => Promise<void>;
+  addBankCard: (card: Omit<BankCard, "id" | "userId">) => Promise<BankCard | null>;
+  removeBankCard: (cardId: string) => Promise<boolean>;
+  setDefaultCard: (cardId: string) => Promise<boolean>;
   refreshCards: () => Promise<void>;
   isLoading: boolean;
 };
@@ -45,40 +45,49 @@ export const useCardManagement = ({
     }
   }, [userId, setLinkedCards, getCardService]);
 
-  const addBankCard = useCallback(async (card: Omit<BankCard, "id">) => {
+  const addBankCard = useCallback(async (card: Omit<BankCard, "id" | "userId">): Promise<BankCard | null> => {
     setIsLoading(true);
     try {
       const bankCardService = getCardService();
-      const updatedCards = await bankCardService.addCard(card);
+      const cardWithUserId = { ...card, userId: userId || '' }; 
+      const updatedCards = await bankCardService.addCard(cardWithUserId);
       setLinkedCards(updatedCards);
+      
+      // Return the newly added card (last in the array)
+      return updatedCards.length > 0 ? updatedCards[updatedCards.length - 1] : null;
     } catch (error) {
       console.error("[useCardManagement] Error adding card:", error);
+      return null;
     } finally {
       setIsLoading(false);
     }
-  }, [setLinkedCards, getCardService]);
+  }, [setLinkedCards, getCardService, userId]);
 
-  const removeBankCard = useCallback(async (cardId: string) => {
+  const removeBankCard = useCallback(async (cardId: string): Promise<boolean> => {
     setIsLoading(true);
     try {
       const bankCardService = getCardService();
       const updatedCards = await bankCardService.removeCard(cardId);
       setLinkedCards(updatedCards);
+      return true;
     } catch (error) {
       console.error("[useCardManagement] Error removing card:", error);
+      return false;
     } finally {
       setIsLoading(false);
     }
   }, [setLinkedCards, getCardService]);
 
-  const setDefaultCard = useCallback(async (cardId: string) => {
+  const setDefaultCard = useCallback(async (cardId: string): Promise<boolean> => {
     setIsLoading(true);
     try {
       const bankCardService = getCardService();
       const updatedCards = await bankCardService.setDefaultCard(cardId);
       setLinkedCards(updatedCards);
+      return true;
     } catch (error) {
       console.error("[useCardManagement] Error setting default card:", error);
+      return false;
     } finally {
       setIsLoading(false);
     }
