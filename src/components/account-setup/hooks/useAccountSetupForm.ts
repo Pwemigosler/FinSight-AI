@@ -1,7 +1,8 @@
+
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
-import { useAvatar } from "@/hooks/profile";
+import { useProfileAvatar } from "@/hooks/profile";
 
 type FormData = {
   fullName: string;
@@ -37,7 +38,7 @@ export const useAccountSetupForm = () => {
   const [formData, setFormData] = useState<FormData>(defaultFormData);
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const avatarHandler = useAvatar();
+  const avatarHandler = useProfileAvatar();
 
   const validateForm = useCallback(() => {
     let newErrors: Errors = {};
@@ -56,24 +57,32 @@ export const useAccountSetupForm = () => {
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const { name, value, type, checked } = e.target;
+      const { name, value, type } = e.target;
+      const checked = type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
+      
       setFormData((prev) => ({
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       }));
+      
       // Clear error for the field being changed
-      setErrors((prevErrors) => {
-        const { [name]: omit, ...rest } = prevErrors;
-        return rest;
-      });
+      if (name in errors) {
+        setErrors((prevErrors) => {
+          const newErrors = { ...prevErrors };
+          delete newErrors[name as keyof Errors];
+          return newErrors;
+        });
+      }
     },
-    []
+    [errors]
   );
 
   const handleNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       handleInputChange(e);
-      avatarHandler.generateAvatarFromName(e.target.value);
+      if (avatarHandler.generateAvatarFromName) {
+        avatarHandler.generateAvatarFromName(e.target.value);
+      }
     },
     [handleInputChange, avatarHandler]
   );

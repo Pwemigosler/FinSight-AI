@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useAvatar } from "@/contexts/AvatarContext";
 import { setupSteps, SetupProgress } from "@/components/account-setup/SetupSteps";
 import { useAvatarHandler } from "@/components/account-setup/hooks/useAvatarHandler";
 import { useAccountSetupForm } from "@/components/account-setup/hooks/useAccountSetupForm";
@@ -18,7 +17,7 @@ const AccountSetup = () => {
   const [isCompleting, setIsCompleting] = useState(false);
   
   // Custom hooks
-  const { formData, loading, handleInputChange, handleCharacterSelect, completeSetup } = useAccountSetupForm();
+  const { formData, isSubmitting, handleInputChange, handleCharacterSelect, handleSubmit } = useAccountSetupForm();
   
   // Setup avatar handler with initial values from user
   const avatarHandler = useAvatarHandler({
@@ -77,7 +76,7 @@ const AccountSetup = () => {
         "Avatar exists:", !!avatarHandler.previewImage,
         "Avatar length:", avatarHandler.previewImage?.length || 0);
         
-      const success = await completeSetup(avatarHandler);
+      const success = await handleSubmit();
       
       if (success) {
         toast.success("Account setup completed successfully!");
@@ -146,7 +145,7 @@ const AccountSetup = () => {
             currentStep={currentStep}
             currentStepIndex={currentStepIndex}
             stepsLength={setupSteps.length}
-            loading={loading || isCompleting}
+            loading={isSubmitting || isCompleting}
             goToPreviousStep={goToPreviousStep}
             handleContinue={handleContinue}
           />
