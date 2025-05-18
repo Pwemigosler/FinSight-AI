@@ -27,7 +27,6 @@ export class AuthenticationService {
       if (supabaseError) {
         console.error("[AuthService] Supabase login failed:", supabaseError);
         toast.error(supabaseError.message || "Login failed.");
-        // Clear potentially bad local storage
         this.storageService.clearUserData();
         return null;
       }
@@ -39,7 +38,6 @@ export class AuthenticationService {
         return null;
       }
 
-      // Create new user object based on Supabase
       const mockUser: User = {
         id: supabaseData.user.id,
         name: supabaseData.user.user_metadata?.name || email.split('@')[0] || "User",
@@ -51,9 +49,7 @@ export class AuthenticationService {
 
       console.log("[AuthService] User successfully authenticated", mockUser);
 
-      // Save user data to local storage
       this.storageService.saveUser(mockUser);
-
       localStorage.setItem("finsight_login_timestamp", Date.now().toString());
 
       toast.success("Successfully logged in");
@@ -76,9 +72,7 @@ export class AuthenticationService {
         email,
         password,
         options: {
-          data: {
-            name
-          }
+          data: { name }
         }
       });
 
@@ -104,7 +98,6 @@ export class AuthenticationService {
       };
 
       this.storageService.saveUser(newUser);
-
       toast.success("Account created successfully!");
       return newUser;
 
@@ -127,5 +120,3 @@ export class AuthenticationService {
       console.error("[AuthService] Logout failed:", error);
       toast("Logout failed. Please try again.");
     }
-  }
-}
