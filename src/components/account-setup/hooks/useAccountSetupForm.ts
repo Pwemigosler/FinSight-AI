@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
-import { useProfileAvatar } from "@/hooks/profile";
+import { useAvatar } from "@/hooks/profile";
 
 type FormData = {
   fullName: string;
@@ -38,7 +38,7 @@ export const useAccountSetupForm = () => {
   const [formData, setFormData] = useState<FormData>(defaultFormData);
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const avatarHandler = useProfileAvatar();
+  const avatarHandler = useAvatar();
 
   const validateForm = useCallback(() => {
     let newErrors: Errors = {};
@@ -80,9 +80,7 @@ export const useAccountSetupForm = () => {
   const handleNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       handleInputChange(e);
-      if (avatarHandler.generateAvatarFromName) {
-        avatarHandler.generateAvatarFromName(e.target.value);
-      }
+      avatarHandler.generateAvatarFromName(e.target.value);
     },
     [handleInputChange, avatarHandler]
   );
