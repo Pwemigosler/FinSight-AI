@@ -2,7 +2,6 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/layout/Sidebar";
-import SidebarFooter from "@/components/layout/SidebarFooter";
 import SidebarOverlay from "@/components/layout/SidebarOverlay";
 import DesktopView from "@/components/layout/DesktopView";
 import MobileTabs from "@/components/layout/MobileTabs";
@@ -36,7 +35,6 @@ const Index = () => {
                      fixed md:relative h-[calc(100vh-64px)] z-20`}
         >
           <Sidebar activeView={activeView} handleNavigation={handleNavigation} />
-          <SidebarFooter activeView={activeView} handleNavigation={handleNavigation} />
         </aside>
         
         <SidebarOverlay isVisible={isSidebarOpen} onClick={toggleSidebar} />

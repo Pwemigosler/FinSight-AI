@@ -32,11 +32,13 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ children }) => {
       {isAuthenticated && (
         <>
           <FeedbackButton />
-          <OnboardingModal
-            open={showOnboarding}
-            onOpenChange={setShowOnboarding}
-            onComplete={handleOnboardingComplete}
-          />
+          {showOnboarding && (
+            <OnboardingModal
+              open={showOnboarding}
+              onOpenChange={setShowOnboarding}
+              onComplete={handleOnboardingComplete}
+            />
+          )}
         </>
       )}
     </>

@@ -14,11 +14,31 @@ interface OnboardingStep {
   path?: string;
 }
 
-export const OnboardingModal = () => {
-  const [open, setOpen] = useState(false);
+interface OnboardingModalProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onComplete?: () => void;
+}
+
+export const OnboardingModal = ({
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
+  onComplete
+}: OnboardingModalProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Determine whether to use controlled or uncontrolled state
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = (value: boolean) => {
+    if (externalOnOpenChange) {
+      externalOnOpenChange(value);
+    } else {
+      setInternalOpen(value);
+    }
+  };
 
   const steps: OnboardingStep[] = [
     {
@@ -51,15 +71,15 @@ export const OnboardingModal = () => {
     // Check if first-time user
     const hasSeenOnboarding = localStorage.getItem("finsight_onboarding_complete");
     
-    if (user && !hasSeenOnboarding) {
+    if (user && !hasSeenOnboarding && externalOpen === undefined) {
       // Show onboarding after a short delay
       const timer = setTimeout(() => {
-        setOpen(true);
+        setInternalOpen(true);
       }, 1000);
       
       return () => clearTimeout(timer);
     }
-  }, [user]);
+  }, [user, externalOpen]);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -83,6 +103,9 @@ export const OnboardingModal = () => {
   const completeOnboarding = () => {
     localStorage.setItem("finsight_onboarding_complete", "true");
     setOpen(false);
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   return (

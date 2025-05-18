@@ -13,7 +13,17 @@ interface MenuItem {
   separator?: boolean;
 }
 
-const Sidebar = ({ className }: { className?: string }) => {
+interface SidebarProps {
+  className?: string;
+  activeView?: string;
+  handleNavigation?: (view: string) => void;
+}
+
+const Sidebar = ({ 
+  className,
+  activeView = "", 
+  handleNavigation = () => {}
+}: SidebarProps) => {
   const location = useLocation();
   const { logout } = useAuth();
 
@@ -110,7 +120,7 @@ const Sidebar = ({ className }: { className?: string }) => {
         </Button>
       </div>
       
-      <SidebarFooter />
+      <SidebarFooter activeView={activeView} handleNavigation={handleNavigation} />
     </div>
   );
 };
