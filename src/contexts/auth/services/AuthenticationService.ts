@@ -121,4 +121,4 @@ export class AuthenticationService {
       toast("Logout failed. Please try again.");
     }
   }
-} // <<< End of class
+}
