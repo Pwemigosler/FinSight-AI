@@ -95,10 +95,27 @@ export const useProfileManagement = ({
       return false;
     }
     
-    // First update the user with the profile data
-    const updatedUser = await userService.updateProfile(user, {
-      ...profileData
-    });
+    // First update the user profile with the profile data
+    // Convert AccountSetupData to Partial<User> for the update
+    const userUpdates: Partial<User> = {};
+    
+    // Only add billing address to user preferences if it exists
+    if (profileData.billingAddress) {
+      userUpdates.preferences = {
+        ...(user.preferences || {}),
+        billingAddress: profileData.billingAddress
+      };
+    }
+    
+    // Only add phone number to user preferences if it exists
+    if (profileData.phoneNumber) {
+      userUpdates.preferences = {
+        ...(userUpdates.preferences || user.preferences || {}),
+        phoneNumber: profileData.phoneNumber
+      };
+    }
+    
+    const updatedUser = await userService.updateProfile(user, userUpdates);
     
     if (!updatedUser) {
       console.error("[AuthContext] Failed to update profile data during setup");

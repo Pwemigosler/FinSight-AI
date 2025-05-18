@@ -9,8 +9,8 @@ export type BankCard = {
   cvv: string;
   cardholderName: string;
   isDefault: boolean;
-  cardName?: string; // Add this property
-  cardType?: string; // Add this property
+  cardName: string; // Made a required property
+  cardType: string; // Made a required property
 };
 
 export type AccountSetupData = {

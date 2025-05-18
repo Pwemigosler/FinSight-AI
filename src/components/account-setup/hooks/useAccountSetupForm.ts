@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { useAvatar } from "@/contexts/AvatarContext";
@@ -15,7 +16,9 @@ export const useAccountSetupForm = () => {
     language: user?.preferences?.language || "en",
     emailNotifications: user?.preferences?.emailNotifications !== false,
     appNotifications: user?.preferences?.appNotifications !== false,
-    assistantCharacter: user?.preferences?.assistantCharacter || characterId || "fin"
+    assistantCharacter: user?.preferences?.assistantCharacter || characterId || "fin",
+    address: "", // Added missing property
+    phone: ""    // Added missing property
   });
 
   // Update local state when user changes
@@ -103,11 +106,13 @@ export const useAccountSetupForm = () => {
       setCharacterId(formData.assistantCharacter);
       
       // Mark setup as complete with separate call to ensure the most recent data is used
-      // Pass empty object as required argument
-      await completeAccountSetup({
-        billingAddress: formData.address || "",
-        phoneNumber: formData.phone || ""
-      });
+      // Pass the account setup data
+      const setupData: AccountSetupData = {
+        billingAddress: formData.address,
+        phoneNumber: formData.phone
+      };
+      
+      await completeAccountSetup(setupData);
       
       // Explicitly dispatch avatar update event to force UI refresh
       // This ensures the header and other components update immediately

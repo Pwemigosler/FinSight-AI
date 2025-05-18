@@ -13,14 +13,14 @@ export const useCardManagement = ({
   userId 
 }: UseCardManagementProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const cardService = new BankCardService();
+  const cardService = new BankCardService(userId || '');
 
   const refreshCards = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) return [];
     
     setIsLoading(true);
     try {
-      const cards = await cardService.getCards(userId);
+      const cards = await cardService.getCards();
       setLinkedCards(cards);
       return cards;
     } catch (error) {
@@ -29,7 +29,7 @@ export const useCardManagement = ({
     } finally {
       setIsLoading(false);
     }
-  }, [userId, setLinkedCards]);
+  }, [userId, setLinkedCards, cardService]);
 
   const addBankCard = async (cardDetails: Omit<BankCard, "id" | "userId">): Promise<BankCard | null> => {
     if (!userId) {
@@ -39,12 +39,14 @@ export const useCardManagement = ({
     
     setIsLoading(true);
     try {
-      const newCard = await cardService.addCard({
+      const updatedCards = await cardService.addCard({
         ...cardDetails,
         userId
       });
       
-      if (newCard) {
+      if (updatedCards && updatedCards.length > 0) {
+        // Find the newly added card (should be the last one)
+        const newCard = updatedCards[updatedCards.length - 1];
         // Refresh the card list to include the new card
         await refreshCards();
         return newCard;
@@ -66,7 +68,9 @@ export const useCardManagement = ({
     
     setIsLoading(true);
     try {
-      const success = await cardService.removeCard(cardId, userId);
+      const updatedCards = await cardService.removeCard(cardId);
+      // If there are cards, we succeeded
+      const success = Array.isArray(updatedCards);
       if (success) {
         // If removal is successful, refresh the card list
         await refreshCards();
@@ -88,7 +92,9 @@ export const useCardManagement = ({
     
     setIsLoading(true);
     try {
-      const success = await cardService.setDefaultCard(cardId, userId);
+      const updatedCards = await cardService.setDefaultCard(cardId);
+      // If there are cards, we succeeded
+      const success = Array.isArray(updatedCards);
       if (success) {
         // If setting default is successful, refresh the card list
         await refreshCards();
