@@ -120,3 +120,5 @@ export class AuthenticationService {
       console.error("[AuthService] Logout failed:", error);
       toast("Logout failed. Please try again.");
     }
+  }
+} // <<< This closes the AuthenticationService class!
