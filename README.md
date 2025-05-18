@@ -1,73 +1,114 @@
-# Welcome to your Lovable project
 
-## Project info
+# FinSight AI
 
-**URL**: https://lovable.dev/projects/633814d9-4524-41ee-82ef-8cb9dc79e5e6
+FinSight AI is a financial management application that helps users track their finances, analyze documents, and get AI-powered insights from their financial data.
 
-## How can I edit this code?
+## Tech Stack
 
-There are several ways of editing your application.
+- Frontend: React + TypeScript
+- UI Components: Shadcn UI (Tailwind CSS)
+- Backend: Supabase (PostgreSQL with pgvector)
+- AI: OpenAI for document analysis and Q&A
 
-**Use Lovable**
+## Quick Start
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/633814d9-4524-41ee-82ef-8cb9dc79e5e6) and start prompting.
+### Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js 18+
+- npm or yarn
+- Supabase account
+- OpenAI API key
 
-**Use your preferred IDE**
+### Installation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/finsight-ai.git
+   cd finsight-ai
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-Follow these steps:
+3. Set up environment variables (create a `.env` file in the root):
+   ```
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+4. Push database schema to Supabase:
+   ```bash
+   supabase db push
+   ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+5. Deploy the edge functions:
+   ```bash
+   supabase functions deploy askDocument
+   supabase functions deploy processDocument
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+6. Set up secrets for the edge functions:
+   ```bash
+   supabase secrets set OPENAI_API_KEY=your_openai_api_key
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+7. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Features
+
+- User authentication and profile management
+- Transaction tracking and categorization
+- Bill payment reminders
+- Budget planning and monitoring
+- Document management with AI-powered analysis
+- Question answering for financial documents
+- Responsive UI for mobile and desktop
+
+## Deployment
+
+### Vercel
+
+1. Connect your GitHub repository to Vercel
+2. Set the build command: `npm run build`
+3. Set the output directory: `dist`
+4. Add environment variables in the Vercel dashboard:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+### Edge Functions
+
+Deploy edge functions to Supabase:
+
+```bash
+supabase functions deploy askDocument
+supabase functions deploy processDocument
 ```
 
-**Edit a file directly in GitHub**
+Set required secrets:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+supabase secrets set OPENAI_API_KEY=your_openai_api_key
+```
 
-**Use GitHub Codespaces**
+## Testing
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Run unit tests:
 
-## What technologies are used for this project?
+```bash
+npm test
+```
 
-This project is built with:
+### Run end-to-end tests:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+npm run cypress
+```
 
-## How can I deploy this project?
+## License
 
-Simply open [Lovable](https://lovable.dev/projects/633814d9-4524-41ee-82ef-8cb9dc79e5e6) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+MIT
