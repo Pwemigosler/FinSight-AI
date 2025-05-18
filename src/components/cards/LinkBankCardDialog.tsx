@@ -37,7 +37,6 @@ const LinkBankCardDialog: React.FC<LinkBankCardDialogProps> = ({
     // Add the card to context
     addBankCard({
       cardNumber: values.cardNumber,
-      cardholderName: values.cardName, // Map to correct property
       cardName: values.cardName,
       cardType: values.cardType,
       expiryDate: values.expiryDate,

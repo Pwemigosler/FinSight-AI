@@ -21,88 +21,49 @@ export class AuthService {
    * Handles user login
    */
   async login(email: string, password: string): Promise<User | null> {
-    try {
-      return await this.authenticationService.login(email, password);
-    } catch (error) {
-      console.error("[AuthService] Login error:", error);
-      toast.error("Login failed. Please try again.");
-      return null;
-    }
+    return this.authenticationService.login(email, password);
   }
 
   /**
    * Handles user signup
    */
   async signup(name: string, email: string, password: string): Promise<User | null> {
-    try {
-      return await this.authenticationService.signup(name, email, password);
-    } catch (error) {
-      console.error("[AuthService] Signup error:", error);
-      toast.error("Signup failed. Please try again.");
-      return null;
-    }
+    return this.authenticationService.signup(name, email, password);
   }
 
   /**
    * Logs out the user
    */
-  async logout(): Promise<void> {
-    try {
-      await this.authenticationService.logout();
-    } catch (error) {
-      console.error("[AuthService] Logout error:", error);
-      toast.error("Logout failed. Please try again.");
-      // Don't re-throw to prevent additional error handling complexities
-    }
+  logout(): void {
+    return this.authenticationService.logout();
   }
 
   /**
    * Handles biometric registration for a user
    */
   async registerBiometrics(user: User): Promise<boolean | {success: boolean; error?: string}> {
-    try {
-      return await this.biometricAuthService.registerBiometrics(user);
-    } catch (error) {
-      console.error("[AuthService] Register biometrics error:", error);
-      return { success: false, error: "Failed to register biometrics" };
-    }
+    return this.biometricAuthService.registerBiometrics(user);
   }
 
   /**
    * Handles login with biometrics
    */
   async loginWithBiometrics(email: string): Promise<User | null> {
-    try {
-      return await this.biometricAuthService.loginWithBiometrics(email);
-    } catch (error) {
-      console.error("[AuthService] Biometric login error:", error);
-      toast.error("Biometric login failed. Please try again.");
-      return null;
-    }
+    return this.biometricAuthService.loginWithBiometrics(email);
   }
 
   /**
    * Removes biometric credentials for a user
    */
   async removeBiometrics(user: User): Promise<boolean> {
-    try {
-      return await this.biometricAuthService.removeBiometrics(user);
-    } catch (error) {
-      console.error("[AuthService] Remove biometrics error:", error);
-      toast.error("Failed to remove biometrics. Please try again.");
-      return false;
-    }
+    return this.biometricAuthService.removeBiometrics(user);
   }
 
   /**
    * Checks if biometrics are available and registered for the user
+   * Now properly defined as async
    */
   async canUseBiometrics(user?: User | null): Promise<boolean> {
-    try {
-      return await this.biometricAuthService.canUseBiometrics(user);
-    } catch (error) {
-      console.error("[AuthService] Check biometrics error:", error);
-      return false;
-    }
+    return this.biometricAuthService.canUseBiometrics(user);
   }
 }

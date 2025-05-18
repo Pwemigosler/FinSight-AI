@@ -4,14 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 
 interface SidebarFooterProps {
-  activeView?: string;
-  handleNavigation?: (view: string) => void;
+  activeView: string;
+  handleNavigation: (view: string) => void;
 }
 
-const SidebarFooter = ({ 
-  activeView = "", 
-  handleNavigation = () => {}
-}: SidebarFooterProps) => {
+const SidebarFooter = ({ activeView, handleNavigation }: SidebarFooterProps) => {
   return (
     <div className="p-4 border-t border-gray-100">
       <div className="space-y-1">

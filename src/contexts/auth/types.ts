@@ -3,38 +3,30 @@ import { User } from "../../types/user";
 
 export type BankCard = {
   id: string;
-  userId: string;
   cardNumber: string;
+  cardName: string;
   expiryDate: string;
   cvv: string;
-  cardholderName: string;
   isDefault: boolean;
-  cardName: string; // Made a required property
-  cardType: string; // Made a required property
-};
-
-export type AccountSetupData = {
-  billingAddress: string;
-  phoneNumber: string;
+  cardType?: string; // visa, mastercard, etc.
 };
 
 export type AuthContextType = {
   user: User | null;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  isAuthenticated: boolean;
-  updateUserProfile: (updatedProfile: Partial<User>) => Promise<User | null>;
+  updateUserProfile: (updates: Partial<User>) => Promise<void>;
   linkedCards: BankCard[];
-  addBankCard: (cardDetails: Omit<BankCard, "id" | "userId">) => Promise<BankCard | null>;
-  removeBankCard: (cardId: string) => Promise<boolean>;
-  setDefaultCard: (cardId: string) => Promise<boolean>;
-  completeAccountSetup: (profileData: AccountSetupData) => Promise<boolean>;
+  addBankCard: (card: Omit<BankCard, "id">) => Promise<void>;
+  removeBankCard: (cardId: string) => Promise<void>;
+  setDefaultCard: (cardId: string) => Promise<void>;
+  completeAccountSetup: () => Promise<void>;
   needsAccountSetup: boolean;
   loading: boolean;
-  isLoading: boolean; // Add this property to match what's being used in Login.tsx
-  // Biometric authentication methods
-  registerBiometrics: () => Promise<{ success: boolean; error?: string } | boolean>;
+  // Updated biometric methods with proper return types
+  registerBiometrics: () => Promise<{success: boolean; error?: string} | boolean>;
   loginWithBiometrics: (email: string) => Promise<boolean>;
   removeBiometrics: () => Promise<boolean>;
   isBiometricsSupported: boolean;

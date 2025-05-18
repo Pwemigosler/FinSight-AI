@@ -2,30 +2,27 @@
 import { useState } from "react";
 import { User } from "../../../types/user";
 import { UserService } from "../UserService";
-import { AccountSetupData } from "../types";
 
 type UseProfileManagementProps = {
   user: User | null;
   lastUpdateTime: number;
   setLastUpdateTime: (time: number) => void;
-  setUserData: (user: User | null) => void;
 };
 
 type UseProfileManagementResult = {
-  updateUserProfile: (updates: Partial<User>) => Promise<User | null>;
-  completeAccountSetup: (profileData: AccountSetupData) => Promise<boolean>;
+  updateUserProfile: (updates: Partial<User>) => Promise<void>;
+  completeAccountSetup: () => Promise<void>;
 };
 
 export const useProfileManagement = ({
   user,
   lastUpdateTime,
-  setLastUpdateTime,
-  setUserData
+  setLastUpdateTime
 }: UseProfileManagementProps): UseProfileManagementResult => {
   const userService = new UserService();
 
   // User profile management
-  const updateUserProfile = async (updates: Partial<User>): Promise<User | null> => {
+  const updateUserProfile = async (updates: Partial<User>): Promise<void> => {
     const updateTimeStamp = Date.now();
     setLastUpdateTime(updateTimeStamp);
     
@@ -36,7 +33,7 @@ export const useProfileManagement = ({
     
     if (!user) {
       console.error("[AuthContext] Cannot update profile: No user logged in");
-      return null;
+      return;
     }
     
     const updatedUser = await userService.updateProfile(user, updates);
@@ -47,9 +44,6 @@ export const useProfileManagement = ({
         "Name:", updatedUser.name,
         "Has avatar:", !!updatedUser.avatar,
         "Avatar length:", updatedUser.avatar?.length || 0);
-      
-      // Update the state with the new user data
-      setUserData(updatedUser);
       
       // Dispatch event for avatar update to notify all components
       if (updates.avatar !== undefined) {
@@ -80,71 +74,36 @@ export const useProfileManagement = ({
     } else {
       console.log("[AuthContext] Skipped stale user update");
     }
-    
-    return updatedUser;
   };
 
-  const completeAccountSetup = async (profileData: AccountSetupData): Promise<boolean> => {
+  const completeAccountSetup = async (): Promise<void> => {
     const updateTimeStamp = Date.now();
     setLastUpdateTime(updateTimeStamp);
     
-    console.log("[AuthContext] Completing account setup with data:", profileData);
+    console.log("[AuthContext] Completing account setup");
     
     if (!user) {
       console.error("[AuthContext] Cannot complete setup: No user logged in");
-      return false;
+      return;
     }
     
-    // First update the user profile with the profile data
-    // Convert AccountSetupData to Partial<User> for the update
-    const userUpdates: Partial<User> = {};
-    
-    // Only add billing address to user preferences if it exists
-    if (profileData.billingAddress) {
-      userUpdates.preferences = {
-        ...(user.preferences || {}),
-        // Now using the updated UserPreferences type that includes billingAddress
-        billingAddress: profileData.billingAddress
-      };
-    }
-    
-    // Only add phone number to user preferences if it exists
-    if (profileData.phoneNumber) {
-      userUpdates.preferences = {
-        ...(userUpdates.preferences || user.preferences || {}),
-        // Now using the updated UserPreferences type that includes phoneNumber
-        phoneNumber: profileData.phoneNumber
-      };
-    }
-    
-    const updatedUser = await userService.updateProfile(user, userUpdates);
-    
-    if (!updatedUser) {
-      console.error("[AuthContext] Failed to update profile data during setup");
-      return false;
-    }
-    
-    // Then mark setup as complete
-    const completedUser = await userService.completeAccountSetup(updatedUser);
+    const updatedUser = await userService.completeAccountSetup(user);
     
     // Only update state if this is the most recent update request
-    if (updateTimeStamp >= lastUpdateTime && completedUser) {
+    if (updateTimeStamp >= lastUpdateTime && updatedUser) {
       console.log("[AuthContext] Setting completed setup user to state:", 
-        "Name:", completedUser.name,
-        "Has avatar:", !!completedUser.avatar,
-        "Avatar length:", completedUser.avatar?.length || 0,
-        "Has completed setup:", completedUser.hasCompletedSetup);
-      
-      // Update the state with the new user data
-      setUserData(completedUser);
+        "Name:", updatedUser.name,
+        "Has avatar:", !!updatedUser.avatar,
+        "Avatar length:", updatedUser.avatar?.length || 0,
+        "Has completed setup:", updatedUser.hasCompletedSetup);
       
       // Always dispatch avatar update event when account setup completes
       // This ensures the header and other components show the avatar immediately
-      if (completedUser.avatar) {
+      if (updatedUser.avatar) {
         console.log("[AuthContext] Dispatching avatar-updated event after setup completion");
         window.dispatchEvent(new CustomEvent('avatar-updated', { 
           detail: { 
-            avatarData: completedUser.avatar, 
+            avatarData: updatedUser.avatar, 
             timestamp: updateTimeStamp,
             source: 'setup-completion'
           }
@@ -155,21 +114,17 @@ export const useProfileManagement = ({
           console.log("[AuthContext] Sending delayed avatar-updated event after setup completion");
           window.dispatchEvent(new CustomEvent('avatar-updated', { 
             detail: { 
-              avatarData: completedUser.avatar, 
+              avatarData: updatedUser.avatar, 
               timestamp: updateTimeStamp + 1,
               source: 'setup-completion-delayed'
             }
           }));
         }, 300);
       }
-      
-      return true;
-    } else if (!completedUser) {
+    } else if (!updatedUser) {
       console.error("[AuthContext] Failed to complete account setup");
-      return false;
     } else {
       console.log("[AuthContext] Skipped stale user update");
-      return false;
     }
   };
 

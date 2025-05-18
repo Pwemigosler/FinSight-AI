@@ -1,12 +1,11 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { User } from "../../../types/user";
 import { BankCard } from "../types";
 import { UserService } from "../UserService";
-import { BankCardService } from "../services/BankCardService";
+import { BankCardService } from "../BankCardService";
 import { AuthService } from "../services/AuthService";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 type UseAuthInitializationResult = {
   user: User | null;
@@ -29,125 +28,78 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
   
   // Initialize services
   const userService = new UserService();
-  const bankCardService = new BankCardService(""); // Fix: Pass empty string as userId
+  const bankCardService = new BankCardService();
   const authService = new AuthService();
-
-  // Function to load and update user data
-  const updateUserData = useCallback(async (userId: string) => {
-    try {
-      console.log("[AuthInit] Loading user data for:", userId);
-      const userData = await userService.getUserProfile(userId);
-      
-      if (userData) {
-        console.log("[AuthInit] User data loaded successfully");
-        setUser(userData);
-        
-        // Trigger avatar update event
-        window.dispatchEvent(new CustomEvent('avatar-updated', { 
-          detail: { 
-            avatarData: userData.avatar, 
-            timestamp: Date.now(),
-            source: 'auth-initialization'
-          }
-        }));
-      } else {
-        console.warn("[AuthInit] Failed to load user data");
-      }
-    } catch (error) {
-      console.error("[AuthInit] Error loading user data:", error);
-    }
-  }, [userService]);
 
   // Initialize auth state with Supabase session
   useEffect(() => {
-    let authSubscription: { unsubscribe: () => void } | null = null;
-    let timeoutId: number | null = null;
-    
     const initializeAuth = async () => {
       setLoading(true);
-      
-      // Circuit breaker - after 5 seconds, mark as initialized to prevent infinite loading
-      timeoutId = window.setTimeout(() => {
-        if (!initialized) {
-          console.warn("[AuthInit] Circuit breaker activated - initialization taking too long");
-          setLoading(false);
-          setInitialized(true);
-        }
-      }, 5000);
-      
       try {
-        console.log("[AuthInit] Checking for existing session");
+        // Get the current session
+        const { data: { session } } = await supabase.auth.getSession();
         
-        // Set up auth state listener FIRST
+        // Set up auth change listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          (event, newSession) => {
-            console.log("[AuthInit] Auth state changed, event:", event);
-            
+          async (_event, newSession) => {
             if (newSession?.user) {
-              console.log("[AuthInit] New session detected, updating user data");
-              // Avoid deadlock by using setTimeout
-              setTimeout(() => updateUserData(newSession.user!.id), 0);
+              // Get profile data from Supabase when auth state changes
+              const userData = await userService.getUserProfile(newSession.user.id);
+              setUser(userData);
+              
+              // Force update avatar state when user is updated
+              if (userData) {
+                console.log("[AuthContext] Updated user from auth state change, triggering avatar refresh");
+                // Use a custom event to notify components about avatar updates
+                window.dispatchEvent(new CustomEvent('avatar-updated', { 
+                  detail: { 
+                    avatarData: userData.avatar, 
+                    timestamp: Date.now(),
+                    source: 'auth-state-change'
+                  }
+                }));
+              }
             } else {
-              console.log("[AuthInit] No session in auth state change");
               setUser(null);
             }
           }
         );
-        
-        // Store subscription so we can clean it up later
-        authSubscription = subscription;
-        
-        // THEN check for existing session
-        const { data: { session } } = await supabase.auth.getSession();
 
         // Load initial user data if session exists
         if (session?.user) {
-          console.log("[AuthInit] Existing session found, loading initial user data");
-          await updateUserData(session.user.id);
-        } else {
-          console.log("[AuthInit] No existing session found");
-          // Check for local storage user as fallback
-          const localUser = userService.getStoredUser();
-          if (localUser) {
-            console.log("[AuthInit] Found user in local storage, attempting to restore session");
-            // We found a user in local storage but no active session
-            // This indicates a potential sync issue - clear the local storage
-            userService.logout();
-            toast.info("Your session has expired. Please sign in again.");
+          const userData = await userService.getUserProfile(session.user.id);
+          setUser(userData);
+          
+          // Also trigger avatar update event on initial load
+          if (userData) {
+            console.log("[AuthContext] Loaded initial user, triggering avatar refresh");
+            window.dispatchEvent(new CustomEvent('avatar-updated', { 
+              detail: { 
+                avatarData: userData.avatar, 
+                timestamp: Date.now(),
+                source: 'initial-load'
+              }
+            }));
           }
         }
         
         // Load linked cards
-        try {
-          // Fix: Use an async/await pattern and then set state with the resolved value
-          const cards = await bankCardService.getCards();
-          setLinkedCards(cards);
-        } catch (cardError) {
-          console.error("[AuthInit] Error loading card data:", cardError);
-          // Don't block initialization due to card loading failures
-          setLinkedCards([]);
-        }
+        const cards = bankCardService.getCards();
+        setLinkedCards(cards);
+        
+        setInitialized(true);
       } catch (error) {
-        console.error("[AuthInit] Error initializing auth:", error);
+        console.error("[AuthContext] Error initializing auth:", error);
         localStorage.removeItem("finsight_user");
         localStorage.removeItem("finsight_linked_cards");
       } finally {
-        // Clear timeout if we're done before the circuit breaker kicks in
-        if (timeoutId) window.clearTimeout(timeoutId);
-        
         setLoading(false);
         setInitialized(true);
       }
     };
 
     initializeAuth();
-    
-    // Cleanup function
-    return () => {
-      if (timeoutId) window.clearTimeout(timeoutId);
-      if (authSubscription) authSubscription.unsubscribe();
-    };
-  }, [userService, bankCardService, updateUserData]);
+  }, []);
 
   // Check if biometrics are supported
   useEffect(() => {
@@ -158,20 +110,16 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
   useEffect(() => {
     const checkBiometricStatus = async () => {
       if (user && isBiometricsSupported) {
-        try {
-          const canUseBiometrics = await authService.canUseBiometrics(user);
-          setIsBiometricsRegistered(canUseBiometrics);
-        } catch (error) {
-          console.error("[AuthInit] Error checking biometrics:", error);
-          setIsBiometricsRegistered(false);
-        }
+        // Now correctly calling the async method and awaiting result
+        const canUseBiometrics = await authService.canUseBiometrics(user);
+        setIsBiometricsRegistered(canUseBiometrics);
       } else {
         setIsBiometricsRegistered(false);
       }
     };
 
     checkBiometricStatus();
-  }, [user, isBiometricsSupported, authService]);
+  }, [user, isBiometricsSupported]);
 
   return {
     user, 
