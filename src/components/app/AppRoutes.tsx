@@ -11,14 +11,38 @@ import Profile from "@/pages/Profile";
 import Chat from "@/pages/Chat";
 import AccountSetup from "@/pages/AccountSetup";
 import Documents from "@/pages/Documents";
-import OnboardingModal from "@/components/onboarding/OnboardingModal";
+import { useState, useEffect } from "react";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, needsAccountSetup } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  useEffect(() => {
+    if (isAuthenticated && !needsAccountSetup) {
+      // Check if this is the user's first time using the app
+      const hasCompletedOnboarding = localStorage.getItem('finsight_onboarding_completed') === 'true';
+      if (!hasCompletedOnboarding) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [isAuthenticated, needsAccountSetup]);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('finsight_onboarding_completed', 'true');
+  };
 
   return (
     <>
-      {isAuthenticated && <OnboardingModal />}
+      {isAuthenticated && showOnboarding && (
+        <OnboardingModal 
+          open={showOnboarding}
+          onOpenChange={setShowOnboarding}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
+      
       <Routes>
         <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
