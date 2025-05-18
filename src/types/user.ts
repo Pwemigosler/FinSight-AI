@@ -20,8 +20,8 @@ export interface UserPreferences {
   appNotifications?: boolean;
   language?: string;
   speechEnabled?: boolean;
-  billingAddress?: string; // Added for account setup
-  phoneNumber?: string; // Added for account setup
+  billingAddress?: string;
+  phoneNumber?: string;
 }
 
 export interface User {
