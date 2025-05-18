@@ -1,158 +1,130 @@
-
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
-import { useAvatar } from "@/contexts/AvatarContext";
-import { User } from "@/types/user";
-import { AccountSetupData } from "@/contexts/auth/types";
+import { useAvatar } from "@/hooks/profile";
+
+type FormData = {
+  fullName: string;
+  address: string;
+  phone: string;
+  emailNotifications: boolean;
+  appNotifications: boolean;
+  currency: string;
+  language: string;
+  assistantCharacter: string;
+};
+
+type Errors = {
+  fullName?: string;
+  address?: string;
+  phone?: string;
+};
+
+const defaultFormData: FormData = {
+  fullName: "",
+  address: "",
+  phone: "",
+  emailNotifications: true,
+  appNotifications: true,
+  currency: "USD",
+  language: "en",
+  assistantCharacter: "jarvis",
+};
 
 export const useAccountSetupForm = () => {
-  const { user, updateUserProfile, completeAccountSetup } = useAuth();
-  const { characterId, setCharacterId } = useAvatar();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: user?.name || "",
-    avatar: user?.avatar || "",
-    currency: user?.preferences?.currencyFormat || "usd",
-    language: user?.preferences?.language || "en",
-    emailNotifications: user?.preferences?.emailNotifications !== false,
-    appNotifications: user?.preferences?.appNotifications !== false,
-    assistantCharacter: user?.preferences?.assistantCharacter || characterId || "fin",
-    address: "", // Added missing property
-    phone: ""    // Added missing property
-  });
+  const navigate = useNavigate();
+  const auth = useAuth();
+  const [formData, setFormData] = useState<FormData>(defaultFormData);
+  const [errors, setErrors] = useState<Errors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const avatarHandler = useAvatar();
 
-  // Update local state when user changes
-  useEffect(() => {
-    if (user) {
-      setFormData(prev => ({
+  const validateForm = useCallback(() => {
+    let newErrors: Errors = {};
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name is required";
+    }
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required";
+    }
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [formData.fullName, formData.address, formData.phone]);
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const { name, value, type, checked } = e.target;
+      setFormData((prev) => ({
         ...prev,
-        fullName: user.name || "",
-        avatar: user.avatar || "",
-        currency: user.preferences?.currencyFormat || "usd",
-        language: user.preferences?.language || "en",
-        emailNotifications: user.preferences?.emailNotifications !== false,
-        appNotifications: user.preferences?.appNotifications !== false,
-        assistantCharacter: user.preferences?.assistantCharacter || characterId || "fin"
+        [name]: type === "checkbox" ? checked : value,
       }));
-    }
-  }, [user, characterId]);
+      // Clear error for the field being changed
+      setErrors((prevErrors) => {
+        const { [name]: omit, ...rest } = prevErrors;
+        return rest;
+      });
+    },
+    []
+  );
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-    
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData(prev => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
+  const handleNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      handleInputChange(e);
+      avatarHandler.generateAvatarFromName(e.target.value);
+    },
+    [handleInputChange, avatarHandler]
+  );
 
-  const handleCharacterSelect = (characterId: string) => {
-    setFormData(prev => ({
+  const handleCharacterSelect = useCallback((characterId: string) => {
+    setFormData((prev) => ({
       ...prev,
-      assistantCharacter: characterId
+      assistantCharacter: characterId,
     }));
-    setCharacterId(characterId);
-  };
+  }, []);
 
-  const completeSetup = async (avatarHandler: any): Promise<boolean> => {
-    setLoading(true);
+  const completeProfileSetup = async () => {
+    if (!auth.completeAccountSetup) return false;
+    
+    setIsSubmitting(true);
+    
     try {
-      // Prepare the final user data with all fields and preferences
-      const finalUserData: Partial<User> = {
-        name: formData.fullName,
-        preferences: {
-          currencyFormat: formData.currency,
-          language: formData.language,
-          emailNotifications: formData.emailNotifications,
-          appNotifications: formData.appNotifications,
-          assistantCharacter: formData.assistantCharacter,
-        },
-        // We'll set this flag separately after profile update succeeds
-        // Do not set hasCompletedSetup here to avoid race conditions
-      };
+      const success = await auth.completeAccountSetup({
+        billingAddress: formData.address || "", // Ensure we're passing billingAddress
+        phoneNumber: formData.phone || "",      // Ensure we're passing phoneNumber
+      });
       
-      // Add avatar data if it was uploaded or modified
-      if (avatarHandler.avatarModified && avatarHandler.previewImage) {
-        finalUserData.avatar = avatarHandler.previewImage;
+      if (success) {
+        // Redirect or show success message
+        navigate("/dashboard");
       }
       
-      // Add avatar settings if either the avatar was modified or its position/zoom was adjusted
-      if ((avatarHandler.avatarModified || avatarHandler.avatarAdjusted) && avatarHandler.previewImage) {
-        finalUserData.avatarSettings = {
-          zoom: avatarHandler.zoomLevel,
-          position: avatarHandler.imagePosition
-        };
-        
-        console.log("[AccountSetup] Saving avatar settings:", 
-          "Zoom:", avatarHandler.zoomLevel,
-          "Position X:", avatarHandler.imagePosition.x,
-          "Position Y:", avatarHandler.imagePosition.y);
-      }
-      
-      console.log("[AccountSetup] Saving profile data:", 
-        "Name:", finalUserData.name,
-        "Has avatar:", !!finalUserData.avatar,
-        "Avatar length:", finalUserData.avatar?.length || 0);
-      
-      // First update the user profile with all data
-      await updateUserProfile(finalUserData);
-      
-      // Wait to ensure the data is saved in localStorage
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      // Set the character in avatar context
-      setCharacterId(formData.assistantCharacter);
-      
-      // Mark setup as complete with separate call to ensure the most recent data is used
-      // Pass the account setup data
-      const setupData: AccountSetupData = {
-        billingAddress: formData.address,
-        phoneNumber: formData.phone
-      };
-      
-      await completeAccountSetup(setupData);
-      
-      // Explicitly dispatch avatar update event to force UI refresh
-      // This ensures the header and other components update immediately
-      if (finalUserData.avatar) {
-        console.log("[AccountSetup] Manually dispatching avatar-updated event after setup");
-        window.dispatchEvent(new CustomEvent('avatar-updated', { 
-          detail: { 
-            avatarData: finalUserData.avatar,
-            timestamp: Date.now(),
-            source: 'account-setup'
-          }
-        }));
-        
-        // Add a short delay and send an additional "final" event to ensure components catch it
-        setTimeout(() => {
-          console.log("[AccountSetup] Dispatching final avatar update event");
-          window.dispatchEvent(new CustomEvent('avatar-updated', { 
-            detail: { 
-              avatarData: finalUserData.avatar,
-              timestamp: Date.now() + 100,
-              source: 'account-setup-final'
-            }
-          }));
-        }, 300);
-      }
-      
-      return true;
+      return success;
     } catch (error) {
-      console.error("[AccountSetup] Error completing setup:", error);
+      console.error("Error completing account setup:", error);
       return false;
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  const handleSubmit = useCallback(async () => {
+    if (validateForm()) {
+      return await completeProfileSetup();
+    }
+    return false;
+  }, [validateForm, completeProfileSetup]);
 
   return {
     formData,
-    loading,
+    errors,
+    isSubmitting,
+    avatarHandler,
     handleInputChange,
+    handleNameChange,
     handleCharacterSelect,
-    completeSetup
+    handleSubmit,
   };
 };

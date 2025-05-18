@@ -103,6 +103,7 @@ export const useProfileManagement = ({
     if (profileData.billingAddress) {
       userUpdates.preferences = {
         ...(user.preferences || {}),
+        // Now using the updated UserPreferences type that includes billingAddress
         billingAddress: profileData.billingAddress
       };
     }
@@ -111,6 +112,7 @@ export const useProfileManagement = ({
     if (profileData.phoneNumber) {
       userUpdates.preferences = {
         ...(userUpdates.preferences || user.preferences || {}),
+        // Now using the updated UserPreferences type that includes phoneNumber
         phoneNumber: profileData.phoneNumber
       };
     }

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { User } from "../../../types/user";
 import { BankCard } from "../types";
 import { UserService } from "../UserService";
-import { BankCardService } from "../BankCardService";
+import { BankCardService } from "../services/BankCardService";
 import { AuthService } from "../services/AuthService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
   
   // Initialize services
   const userService = new UserService();
-  const bankCardService = new BankCardService();
+  const bankCardService = new BankCardService(""); // Fix: Pass empty string as userId
   const authService = new AuthService();
 
   // Function to load and update user data
@@ -119,7 +119,8 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
         
         // Load linked cards
         try {
-          const cards = bankCardService.getCards();
+          // Fix: Use an async/await pattern and then set state with the resolved value
+          const cards = await bankCardService.getCards();
           setLinkedCards(cards);
         } catch (cardError) {
           console.error("[AuthInit] Error loading card data:", cardError);
