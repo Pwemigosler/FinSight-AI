@@ -1,4 +1,3 @@
-
 import { User } from "../../../types/user";
 import { toast } from "sonner";
 import { DefaultsService } from "./DefaultsService";
@@ -27,7 +26,9 @@ export class AuthenticationService {
   async login(email: string, password: string): Promise<User | null> {
     try {
       if (!email || !password) {
-        toast("Please enter both email and password");
+        toast.error("Invalid credentials", { 
+          description: "Please enter both email and password"
+        });
         return null;
       }
       
@@ -41,13 +42,26 @@ export class AuthenticationService {
       
       if (supabaseError) {
         console.error("[AuthService] Supabase login failed:", supabaseError);
-        toast(supabaseError.message || "Login failed");
+        
+        // Handle specific error messages
+        if (supabaseError.message.includes("Email not confirmed")) {
+          toast.error("Email not verified", {
+            description: "Please check your inbox for the verification email."
+          });
+        } else {
+          toast.error("Login failed", { 
+            description: supabaseError.message || "Please check your credentials." 
+          });
+        }
+        
         return null;
       }
       
       if (!supabaseData.user) {
         console.error("[AuthService] No user returned from Supabase");
-        toast("Login failed. Please try again.");
+        toast.error("Login failed", {
+          description: "Authentication succeeded but no user data was returned."
+        });
         return null;
       }
       
@@ -86,11 +100,20 @@ export class AuthenticationService {
       // Also store a login timestamp
       localStorage.setItem("finsight_login_timestamp", Date.now().toString());
       
-      toast("Successfully logged in");
+      toast.success("Successfully logged in");
       return mockUser;
     } catch (error) {
       console.error("[AuthService] Login failed with error:", error);
-      toast("Login failed. Please try again.");
+      
+      // Determine if it's a network error
+      const errorMessage = error instanceof Error && error.message.includes("fetch")
+        ? "Network error. Please check your internet connection."
+        : "An unexpected error occurred. Please try again.";
+      
+      toast.error("Login failed", { 
+        description: errorMessage
+      });
+      
       return null;
     }
   }

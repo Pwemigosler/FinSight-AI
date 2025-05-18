@@ -44,9 +44,16 @@ export const useAuthentication = ({
       return false;
     } catch (e) {
       console.error("[useAuthentication] Unexpected login error:", e);
+      
+      // Determine if it's a network error for more specific messaging
+      const errorMessage = e instanceof Error && e.message.includes("fetch")
+        ? "Network error. Please check your internet connection."
+        : "An unexpected error occurred. Please try again later.";
+      
       toast.error("Login failed", {
-        description: "An unexpected error occurred. Please try again later.",
+        description: errorMessage,
       });
+      
       return false;
     } finally {
       // Always reset the loading state when login completes (success or failure)

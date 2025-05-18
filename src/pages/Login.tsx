@@ -73,18 +73,52 @@ const Login = () => {
       // Normalize email to handle case sensitivity issues
       const normalizedEmail = email.toLowerCase();
       
-      let success;
       if (isLogin) {
         console.log("[Login] Attempting to login with email:", normalizedEmail);
-        success = await login(normalizedEmail, password);
+        
+        // Direct Supabase call to check for email verification issues
+        const { data: directAuthData, error: directAuthError } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password
+        });
+        
+        if (directAuthError) {
+          console.error("[Login] Supabase auth error:", directAuthError);
+          
+          // Handle specific error cases
+          if (directAuthError.message.includes("Email not confirmed")) {
+            setErrorMessage("Your email address is not verified. Please check your inbox for a verification email, or try signing up again.");
+            toast.error("Email not verified", {
+              description: "Please check your inbox for the verification email."
+            });
+            setIsFormLoading(false);
+            return;
+          }
+          
+          // Handle general auth errors
+          setErrorMessage(directAuthError.message || "Login failed. Please check your credentials and try again.");
+          toast.error("Login failed", {
+            description: directAuthError.message || "Please check your credentials and try again."
+          });
+          setIsFormLoading(false);
+          return;
+        }
+        
+        // If no direct auth error, continue with the app's login flow
+        const success = await login(normalizedEmail, password);
         if (!success) {
           setErrorMessage("Login failed. Please check your credentials and try again.");
+          setIsFormLoading(false);
+          return;
         }
+        
+        console.log("[Login] Authentication successful, redirecting to home");
+        navigate("/");
       } else {
         // Verify passwords match for signup
         if (password !== confirmPassword) {
           setErrorMessage("Passwords don't match");
-          toast("Passwords don't match", {
+          toast.error("Passwords don't match", {
             description: "Please make sure your passwords match."
           });
           setIsFormLoading(false);
@@ -92,26 +126,32 @@ const Login = () => {
         }
         
         console.log("[Login] Attempting to signup with email:", normalizedEmail);
-        success = await signup(name, normalizedEmail, password);
+        const success = await signup(name, normalizedEmail, password);
+        
         if (!success) {
           setErrorMessage("Signup failed. This email might already be in use or there was a server error.");
-        } else {
-          toast("Account created successfully!", {
-            description: "Please complete your account setup."
-          });
+          setIsFormLoading(false);
+          return;
         }
-      }
-      
-      if (success) {
-        console.log("[Login] Authentication successful, redirecting to home");
-        navigate("/");
+        
+        toast.success("Account created successfully!", {
+          description: "Please complete your account setup."
+        });
+        
+        // Navigate happens in the useEffect based on isAuthenticated state
       }
     } catch (error) {
       console.error("[Login] Error during authentication:", error);
-      const errorText = "An unexpected error occurred. Please try again.";
-      setErrorMessage(isLogin ? "Login failed. " + errorText : "Signup failed. " + errorText);
-      toast(isLogin ? "Login failed" : "Signup failed", {
-        description: errorText
+      
+      // Determine if it's a network error
+      const errorMessage = error instanceof Error && error.message.includes("fetch")
+        ? "Network error. Please check your internet connection and try again."
+        : "An unexpected error occurred. Please try again.";
+      
+      setErrorMessage(isLogin ? `Login failed. ${errorMessage}` : `Signup failed. ${errorMessage}`);
+      
+      toast.error(isLogin ? "Login failed" : "Signup failed", {
+        description: errorMessage
       });
     } finally {
       // Always reset our local loading state when finished
@@ -121,7 +161,9 @@ const Login = () => {
 
   const handleBiometricLogin = async () => {
     if (!email) {
-      toast("Please enter your email address");
+      toast.error("Email required", {
+        description: "Please enter your email address"
+      });
       return;
     }
     
@@ -132,6 +174,8 @@ const Login = () => {
     }
     
     setBiometricLoading(true);
+    setErrorMessage("");
+    
     try {
       const normalizedEmail = email.toLowerCase();
       console.log("[Login] Attempting biometric login with email:", normalizedEmail);
@@ -142,10 +186,16 @@ const Login = () => {
         navigate("/");
       } else {
         setErrorMessage("Biometric authentication failed. Please try again or use password.");
+        toast.error("Biometric login failed", {
+          description: "Please try again or use your password"
+        });
       }
     } catch (error) {
       console.error("[Login] Biometric authentication error:", error);
       setErrorMessage("Biometric authentication failed. Please use your password instead.");
+      toast.error("Biometric login failed", {
+        description: "Please use your password instead"
+      });
     } finally {
       // Always reset biometric loading state when login completes (success or failure)
       setBiometricLoading(false);
@@ -177,7 +227,7 @@ const Login = () => {
         <CardContent className="space-y-4">
           {errorMessage && (
             <div className="p-3 text-sm bg-red-50 border border-red-200 rounded flex items-center gap-2 text-red-700">
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
