@@ -1,11 +1,24 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, LogIn, UserPlus, AlertCircle, Info, Fingerprint } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Lock,
+  LogIn,
+  UserPlus,
+  AlertCircle,
+  Info,
+  Fingerprint,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,17 +32,17 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isBiometricsAvailable, setIsBiometricsAvailable] = useState(false);
   const [isBiometricLoading, setBiometricLoading] = useState(false);
-  
-  const { 
-    login, 
-    signup, 
-    loading: authLoading, 
+
+  const {
+    login,
+    signup,
+    loading: authLoading,
     loginWithBiometrics,
-    isAuthenticated 
+    isAuthenticated,
   } = useAuth();
-  
+
   const navigate = useNavigate();
-  
+
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
@@ -37,7 +50,7 @@ const Login = () => {
       navigate("/");
     }
   }, [isAuthenticated, navigate]);
-  
+
   useEffect(() => {
     // Check if WebAuthn is supported by the browser
     if (window.PublicKeyCredential !== undefined) {
@@ -57,104 +70,112 @@ const Login = () => {
     }
   }, []);
 
+  // --- UPDATED handleSubmit with robust error handling ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Prevent submitting while already loading
+
     if (isFormLoading || authLoading) {
-      console.log("[Login] Form submission prevented - already loading");
       return;
     }
-    
+
     setIsFormLoading(true);
     setErrorMessage("");
-    
+
     try {
-      // Normalize email to handle case sensitivity issues
       const normalizedEmail = email.toLowerCase();
-      
+
       if (isLogin) {
-        console.log("[Login] Attempting to login with email:", normalizedEmail);
-        
-        // Direct Supabase call to check for email verification issues
-        const { data: directAuthData, error: directAuthError } = await supabase.auth.signInWithPassword({
-          email: normalizedEmail,
-          password
-        });
-        
+        // 1. Try Supabase login directly (for better error visibility)
+        const { error: directAuthError } =
+          await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password,
+          });
+
         if (directAuthError) {
-          console.error("[Login] Supabase auth error:", directAuthError);
-          
-          // Handle specific error cases
-          if (directAuthError.message.includes("Email not confirmed")) {
-            setErrorMessage("Your email address is not verified. Please check your inbox for a verification email, or try signing up again.");
+          // Email not confirmed (special case)
+          if (
+            directAuthError.message.toLowerCase().includes("email not confirmed")
+          ) {
+            setErrorMessage(
+              "Your email address is not verified. Please check your inbox for the verification email."
+            );
             toast.error("Email not verified", {
-              description: "Please check your inbox for the verification email."
+              description:
+                "Please check your inbox for the verification email.",
             });
-            setIsFormLoading(false);
-            return;
+          } else {
+            setErrorMessage(
+              directAuthError.message ||
+                "Login failed. Please check your credentials and try again."
+            );
+            toast.error("Login failed", {
+              description:
+                directAuthError.message ||
+                "Please check your credentials and try again.",
+            });
           }
-          
-          // Handle general auth errors
-          setErrorMessage(directAuthError.message || "Login failed. Please check your credentials and try again.");
+          return; // Don't continue to context login
+        }
+
+        // 2. Context login (may trigger more setup)
+        try {
+          const success = await login(normalizedEmail, password);
+          if (!success) {
+            setErrorMessage(
+              "Login failed. Please check your credentials and try again."
+            );
+            toast.error("Login failed", {
+              description: "Please check your credentials and try again.",
+            });
+          } else {
+            navigate("/");
+          }
+        } catch (loginError) {
+          setErrorMessage("Login failed. Unexpected error—please try again.");
           toast.error("Login failed", {
-            description: directAuthError.message || "Please check your credentials and try again."
+            description: "Unexpected error—please try again.",
           });
-          setIsFormLoading(false);
-          return;
         }
-        
-        // If no direct auth error, continue with the app's login flow
-        const success = await login(normalizedEmail, password);
-        if (!success) {
-          setErrorMessage("Login failed. Please check your credentials and try again.");
-          setIsFormLoading(false);
-          return;
-        }
-        
-        console.log("[Login] Authentication successful, redirecting to home");
-        navigate("/");
       } else {
-        // Verify passwords match for signup
+        // Signup flow
         if (password !== confirmPassword) {
-          setErrorMessage("Passwords don't match");
+          setErrorMessage("Passwords don't match.");
           toast.error("Passwords don't match", {
-            description: "Please make sure your passwords match."
+            description: "Please make sure your passwords match.",
           });
-          setIsFormLoading(false);
           return;
         }
-        
-        console.log("[Login] Attempting to signup with email:", normalizedEmail);
-        const success = await signup(name, normalizedEmail, password);
-        
-        if (!success) {
-          setErrorMessage("Signup failed. This email might already be in use or there was a server error.");
-          setIsFormLoading(false);
-          return;
+
+        try {
+          const success = await signup(name, normalizedEmail, password);
+          if (!success) {
+            setErrorMessage(
+              "Signup failed. Email might already be in use or there was a server error."
+            );
+            toast.error("Signup failed", {
+              description: "Email might be in use or server error.",
+            });
+          } else {
+            toast.success("Account created successfully!", {
+              description: "Please check your inbox for verification email.",
+            });
+          }
+          // navigate happens in useEffect
+        } catch (signupError) {
+          setErrorMessage("Signup failed. Unexpected error—please try again.");
+          toast.error("Signup failed", {
+            description: "Unexpected error—please try again.",
+          });
         }
-        
-        toast.success("Account created successfully!", {
-          description: "Please complete your account setup."
-        });
-        
-        // Navigate happens in the useEffect based on isAuthenticated state
       }
     } catch (error) {
-      console.error("[Login] Error during authentication:", error);
-      
-      // Determine if it's a network error
-      const errorMessage = error instanceof Error && error.message.includes("fetch")
-        ? "Network error. Please check your internet connection and try again."
-        : "An unexpected error occurred. Please try again.";
-      
-      setErrorMessage(isLogin ? `Login failed. ${errorMessage}` : `Signup failed. ${errorMessage}`);
-      
+      // This should only catch truly unexpected errors (network, etc)
+      setErrorMessage("An unexpected error occurred. Please try again.");
       toast.error(isLogin ? "Login failed" : "Signup failed", {
-        description: errorMessage
+        description: "Unexpected error. Please try again.",
       });
     } finally {
-      // Always reset our local loading state when finished
       setIsFormLoading(false);
     }
   };
@@ -162,47 +183,44 @@ const Login = () => {
   const handleBiometricLogin = async () => {
     if (!email) {
       toast.error("Email required", {
-        description: "Please enter your email address"
+        description: "Please enter your email address",
       });
       return;
     }
-    
-    // Prevent multiple biometric login attempts
+
     if (isBiometricLoading || authLoading) {
-      console.log("[Login] Biometric login prevented - already loading");
       return;
     }
-    
+
     setBiometricLoading(true);
     setErrorMessage("");
-    
+
     try {
       const normalizedEmail = email.toLowerCase();
-      console.log("[Login] Attempting biometric login with email:", normalizedEmail);
       const success = await loginWithBiometrics(normalizedEmail);
-      
+
       if (success) {
-        console.log("[Login] Biometric authentication successful, redirecting to home");
         navigate("/");
       } else {
-        setErrorMessage("Biometric authentication failed. Please try again or use password.");
+        setErrorMessage(
+          "Biometric authentication failed. Please try again or use password."
+        );
         toast.error("Biometric login failed", {
-          description: "Please try again or use your password"
+          description: "Please try again or use your password",
         });
       }
     } catch (error) {
-      console.error("[Login] Biometric authentication error:", error);
-      setErrorMessage("Biometric authentication failed. Please use your password instead.");
+      setErrorMessage(
+        "Biometric authentication failed. Please use your password instead."
+      );
       toast.error("Biometric login failed", {
-        description: "Please use your password instead"
+        description: "Please use your password instead",
       });
     } finally {
-      // Always reset biometric loading state when login completes (success or failure)
       setBiometricLoading(false);
     }
   };
 
-  // The button should be disabled if either our local loading state or the auth hook's loading state is true
   const isButtonDisabled = isFormLoading || authLoading;
   const isBiometricButtonDisabled = isBiometricLoading || authLoading;
 
@@ -212,7 +230,8 @@ const Login = () => {
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
             <h1 className="text-2xl font-bold text-finsight-purple-dark">
-              FinSight<span className="ml-1 text-finsight-purple">AI</span>
+              FinSight
+              <span className="ml-1 text-finsight-purple">AI</span>
             </h1>
           </div>
           <CardTitle className="text-2xl font-semibold text-center">
@@ -231,17 +250,17 @@ const Login = () => {
               <span>{errorMessage}</span>
             </div>
           )}
-          
+
           {isLogin && (
             <div className="p-3 text-sm bg-blue-50 border border-blue-100 rounded flex items-center gap-2 text-blue-700">
               <Info className="h-4 w-4 flex-shrink-0" />
               <span>
-                If your email hasn't been verified, please check your inbox for the verification email 
-                or try signing up with a new account.
+                If your email hasn't been verified, please check your inbox for
+                the verification email or try signing up with a new account.
               </span>
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
@@ -259,7 +278,7 @@ const Login = () => {
                 />
               </div>
             )}
-            
+
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 Email
@@ -274,7 +293,7 @@ const Login = () => {
                 disabled={isButtonDisabled}
               />
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label htmlFor="password" className="text-sm font-medium">
@@ -303,7 +322,10 @@ const Login = () => {
 
             {!isLogin && (
               <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium">
+                <label
+                  htmlFor="confirmPassword"
+                  className="text-sm font-medium"
+                >
                   Confirm Password
                 </label>
                 <Input
@@ -317,7 +339,7 @@ const Login = () => {
                 />
               </div>
             )}
-            
+
             <Button
               type="submit"
               className="w-full bg-finsight-purple hover:bg-finsight-purple-dark"
@@ -344,7 +366,7 @@ const Login = () => {
                 </span>
               )}
             </Button>
-            
+
             {isLogin && isBiometricsAvailable && (
               <div className="mt-4">
                 <Button
@@ -367,7 +389,8 @@ const Login = () => {
                   )}
                 </Button>
                 <p className="mt-1 text-xs text-center text-gray-500">
-                  Use your fingerprint, face recognition or security key for faster login
+                  Use your fingerprint, face recognition or security key for
+                  faster login
                 </p>
               </div>
             )}
@@ -385,7 +408,7 @@ const Login = () => {
               setPassword("");
               setConfirmPassword("");
               setErrorMessage("");
-              setIsFormLoading(false); // Reset loading state when toggling between login/signup
+              setIsFormLoading(false); // Reset loading state when toggling
             }}
             disabled={isButtonDisabled || isBiometricButtonDisabled}
           >
