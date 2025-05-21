@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MoreHorizontal, Pencil, Receipt, Trash2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
@@ -10,17 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-export type TransactionItemType = {
-  id: string;
-  name: string;
-  category: string;
-  date: string;
-  amount: number;
-  icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
-};
+import { TransactionItemType } from '@/hooks/transactions/types';
 
 type TransactionItemProps = {
   transaction: TransactionItemType;

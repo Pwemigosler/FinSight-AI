@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { TransactionItemType } from './TransactionItem';
+import { TransactionItemType } from '@/hooks/transactions/types';
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
