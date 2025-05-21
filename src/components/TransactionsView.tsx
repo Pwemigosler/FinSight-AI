@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from '@/contexts/auth';
 import { toast } from 'sonner';
 
@@ -14,8 +14,8 @@ import TransactionFilters from './transactions/TransactionFilters';
 import DeleteTransactionDialog from './transactions/DeleteTransactionDialog';
 import ReceiptDialog from './transactions/ReceiptDialog';
 import BankCardBanner from './transactions/BankCardBanner';
-import ManageLinkedCardsDialog from './ManageLinkedCardsDialog';
-import LinkBankCardDialog from './LinkBankCardDialog';
+import ManageLinkedCardsDialog from './cards/ManageLinkedCardsDialog';
+import LinkBankCardDialog from './cards/LinkBankCardDialog';
 
 const TransactionsView = () => {
   const { linkedCards, user } = useAuth();
@@ -98,13 +98,11 @@ const TransactionsView = () => {
             
             <LinkBankCardDialog />
             
-            <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-              <DialogTrigger asChild>
-                <Button onClick={handleAddTransaction}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Transaction
-                </Button>
-              </DialogTrigger>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <Button onClick={handleAddTransaction}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Transaction
+              </Button>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{isEditMode ? "Edit Transaction" : "Add New Transaction"}</DialogTitle>
