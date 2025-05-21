@@ -34,7 +34,7 @@ export class AuthService {
   /**
    * Logs out the user
    */
-  logout(): void {
+  async logout(): Promise<void> {
     return this.authenticationService.logout();
   }
 
