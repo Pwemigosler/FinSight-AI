@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/auth';
@@ -6,7 +5,8 @@ import { TransactionItemType, FormValues } from './transactions/types';
 import { fetchTransactions, setupRealtimeSubscription } from './transactions/dataFetching';
 import { addTransaction, updateTransaction, deleteTransaction, getFormValuesFromTransaction } from './transactions/transactionOperations';
 
-export { TransactionItemType } from './transactions/types';
+// Change from 'export' to 'export type' to fix the TypeScript isolatedModules error
+export type { TransactionItemType } from './transactions/types';
 
 export const useTransactions = () => {
   const [transactions, setTransactions] = useState<TransactionItemType[]>([]);
