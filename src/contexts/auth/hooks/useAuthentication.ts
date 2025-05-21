@@ -107,7 +107,7 @@ export const useAuthentication = ({
 
   const logout = async () => {
     await supabase.auth.signOut();
-    authService.logout(); // Clear local storage
+    await authService.logout(); // Clear local storage
     setUser(null);
   };
 
