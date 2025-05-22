@@ -1,6 +1,7 @@
 
 import { demoTransactions } from './demoData';
 import { User } from '@/types/user';
+import { supabase } from "@/integrations/supabase/client";
 
 export const fetchTransactions = async (user: User | null) => {
   if (!user) {
@@ -40,15 +41,24 @@ export const setupRealtimeSubscription = (user: User | null,
   
   console.log('Setting up real-time subscription for transactions');
   
-  // In a real app, this would subscribe to changes on the transactions table
-  // For now, we'll fake the connection status
-  const timer = setTimeout(() => {
-    callback(true);
-  }, 1000);
+  // Set up Supabase realtime subscription for receipts
+  const channel = supabase
+    .channel('receipts-changes')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'receipts' },
+      (payload) => {
+        console.log('Receipt change detected:', payload);
+        // We'll handle this event in the UI components
+      }
+    )
+    .subscribe((status) => {
+      console.log('Realtime subscription status:', status);
+      callback(status === 'SUBSCRIBED');
+    });
   
   return () => {
     console.log('Cleaning up real-time subscription');
-    clearTimeout(timer);
+    supabase.removeChannel(channel);
     callback(false);
   };
 };

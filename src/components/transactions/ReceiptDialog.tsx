@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/tabs";
 import ReceiptGallery from '../receipts/ReceiptGallery';
 import ReceiptUploader from '../receipts/ReceiptUploader';
+import MobileReceiptScanner from '../receipts/MobileReceiptScanner';
+import { useCallback } from 'react';
 
 type ReceiptDialogProps = {
   isOpen: boolean;
@@ -25,6 +27,10 @@ type ReceiptDialogProps = {
 
 const ReceiptDialog = ({ isOpen, onOpenChange, transaction }: ReceiptDialogProps) => {
   const [receiptRefreshTrigger, setReceiptRefreshTrigger] = useState(0);
+  const [isMobile, setIsMobile] = useState(() => {
+    // Simple mobile detection
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  });
   
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -40,12 +46,12 @@ const ReceiptDialog = ({ isOpen, onOpenChange, transaction }: ReceiptDialogProps
     });
   };
 
-  const handleReceiptUploadComplete = (success: boolean) => {
+  const handleReceiptUploadComplete = useCallback((success: boolean) => {
     if (success) {
       // Increment to trigger a refresh of ReceiptGallery
       setReceiptRefreshTrigger(prev => prev + 1);
     }
-  };
+  }, []);
 
   if (!transaction) return null;
 
@@ -79,9 +85,10 @@ const ReceiptDialog = ({ isOpen, onOpenChange, transaction }: ReceiptDialogProps
           </div>
           
           <Tabs defaultValue="gallery">
-            <TabsList className="grid grid-cols-2 mb-4">
+            <TabsList className="grid grid-cols-3 mb-4">
               <TabsTrigger value="gallery">Receipts</TabsTrigger>
-              <TabsTrigger value="upload">Upload New</TabsTrigger>
+              <TabsTrigger value="upload">Upload</TabsTrigger>
+              {isMobile && <TabsTrigger value="scan">Scan</TabsTrigger>}
             </TabsList>
             <TabsContent value="gallery">
               <ReceiptGallery 
@@ -95,6 +102,14 @@ const ReceiptDialog = ({ isOpen, onOpenChange, transaction }: ReceiptDialogProps
                 onUploadComplete={handleReceiptUploadComplete}
               />
             </TabsContent>
+            {isMobile && (
+              <TabsContent value="scan">
+                <MobileReceiptScanner
+                  transactionId={transaction.id}
+                  onUploadComplete={handleReceiptUploadComplete}
+                />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </DialogContent>
