@@ -16,7 +16,11 @@ export class FinancialService {
       throw error;
     }
     
-    return data || [];
+    // Type cast the data to ensure proper typing
+    return (data || []).map(account => ({
+      ...account,
+      account_type: account.account_type as Account['account_type']
+    }));
   }
 
   static async createAccount(account: Omit<Account, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<Account> {
@@ -34,7 +38,10 @@ export class FinancialService {
       throw error;
     }
     
-    return data;
+    return {
+      ...data,
+      account_type: data.account_type as Account['account_type']
+    };
   }
 
   static async updateAccount(id: string, updates: Partial<Account>): Promise<Account> {
@@ -50,7 +57,10 @@ export class FinancialService {
       throw error;
     }
     
-    return data;
+    return {
+      ...data,
+      account_type: data.account_type as Account['account_type']
+    };
   }
 
   static async deleteAccount(id: string): Promise<void> {
@@ -84,7 +94,11 @@ export class FinancialService {
       throw error;
     }
     
-    return data || [];
+    // Type cast the data to ensure proper typing
+    return (data || []).map(transaction => ({
+      ...transaction,
+      transaction_type: transaction.transaction_type as Transaction['transaction_type']
+    }));
   }
 
   static async createTransaction(transaction: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<Transaction> {
@@ -102,7 +116,10 @@ export class FinancialService {
       throw error;
     }
     
-    return data;
+    return {
+      ...data,
+      transaction_type: data.transaction_type as Transaction['transaction_type']
+    };
   }
 
   static async updateTransaction(id: string, updates: Partial<Transaction>): Promise<Transaction> {
@@ -118,7 +135,10 @@ export class FinancialService {
       throw error;
     }
     
-    return data;
+    return {
+      ...data,
+      transaction_type: data.transaction_type as Transaction['transaction_type']
+    };
   }
 
   static async deleteTransaction(id: string): Promise<void> {
