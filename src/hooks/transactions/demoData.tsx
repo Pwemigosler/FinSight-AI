@@ -7,6 +7,7 @@ import { TransactionItemType } from './types';
 export const demoTransactions: TransactionItemType[] = [
   {
     id: 't1',
+    account_id: 'demo-account-1',
     name: 'Whole Foods Market',
     category: 'Groceries',
     date: '2023-08-21',
@@ -17,6 +18,7 @@ export const demoTransactions: TransactionItemType[] = [
   },
   {
     id: 't2',
+    account_id: 'demo-account-1',
     name: 'Rent Payment',
     category: 'Housing',
     date: '2023-08-15',
@@ -27,6 +29,7 @@ export const demoTransactions: TransactionItemType[] = [
   },
   {
     id: 't3',
+    account_id: 'demo-account-1',
     name: 'Salary Deposit',
     category: 'Income',
     date: '2023-08-10',
