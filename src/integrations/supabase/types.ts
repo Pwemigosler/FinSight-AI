@@ -9,6 +9,156 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      account_balances: {
+        Row: {
+          account_id: string
+          available_balance: number | null
+          balance: number
+          balance_date: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          account_id: string
+          available_balance?: number | null
+          balance: number
+          balance_date: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          account_id?: string
+          available_balance?: number | null
+          balance?: number
+          balance_date?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_balances_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounts: {
+        Row: {
+          account_name: string
+          account_number_encrypted: string
+          account_number_last4: string
+          account_type: string
+          available_balance: number | null
+          created_at: string
+          currency_code: string
+          current_balance: number
+          id: string
+          institution_name: string
+          is_active: boolean
+          last_synced_at: string | null
+          plaid_access_token_encrypted: string | null
+          plaid_account_id: string | null
+          routing_number_encrypted: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_name: string
+          account_number_encrypted: string
+          account_number_last4: string
+          account_type: string
+          available_balance?: number | null
+          created_at?: string
+          currency_code?: string
+          current_balance?: number
+          id?: string
+          institution_name: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          plaid_access_token_encrypted?: string | null
+          plaid_account_id?: string | null
+          routing_number_encrypted?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_name?: string
+          account_number_encrypted?: string
+          account_number_last4?: string
+          account_type?: string
+          available_balance?: number | null
+          created_at?: string
+          currency_code?: string
+          current_balance?: number
+          id?: string
+          institution_name?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          plaid_access_token_encrypted?: string | null
+          plaid_account_id?: string | null
+          routing_number_encrypted?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          operation: string
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          operation: string
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          operation?: string
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bills: {
         Row: {
           amount: number
@@ -149,6 +299,65 @@ export type Database = {
         }
         Relationships: []
       }
+      plaid_items: {
+        Row: {
+          created_at: string
+          cursor: string | null
+          error_code: string | null
+          error_message: string | null
+          id: string
+          institution_id: string
+          institution_name: string
+          is_active: boolean
+          last_successful_sync: string | null
+          plaid_access_token_encrypted: string
+          plaid_item_id: string
+          updated_at: string
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          cursor?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          institution_id: string
+          institution_name: string
+          is_active?: boolean
+          last_successful_sync?: string | null
+          plaid_access_token_encrypted: string
+          plaid_item_id: string
+          updated_at?: string
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          cursor?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          institution_id?: string
+          institution_name?: string
+          is_active?: boolean
+          last_successful_sync?: string | null
+          plaid_access_token_encrypted?: string
+          plaid_item_id?: string
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plaid_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar: string | null
@@ -215,6 +424,90 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          account_id: string
+          amount: number
+          category: string
+          created_at: string
+          currency_code: string
+          description: string
+          id: string
+          location_address: string | null
+          location_city: string | null
+          location_country: string | null
+          location_state: string | null
+          merchant_name: string | null
+          pending: boolean
+          plaid_transaction_id: string | null
+          posted_date: string | null
+          subcategory: string | null
+          transaction_date: string
+          transaction_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          category: string
+          created_at?: string
+          currency_code?: string
+          description: string
+          id?: string
+          location_address?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
+          merchant_name?: string | null
+          pending?: boolean
+          plaid_transaction_id?: string | null
+          posted_date?: string | null
+          subcategory?: string | null
+          transaction_date: string
+          transaction_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          category?: string
+          created_at?: string
+          currency_code?: string
+          description?: string
+          id?: string
+          location_address?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
+          merchant_name?: string | null
+          pending?: boolean
+          plaid_transaction_id?: string | null
+          posted_date?: string | null
+          subcategory?: string | null
+          transaction_date?: string
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_biometrics: {
         Row: {
           created_at: string
@@ -253,6 +546,14 @@ export type Database = {
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
+      }
+      decrypt_sensitive_data: {
+        Args: { encrypted_data: string }
+        Returns: string
+      }
+      encrypt_sensitive_data: {
+        Args: { data: string }
+        Returns: string
       }
       halfvec_avg: {
         Args: { "": number[] }
