@@ -16,19 +16,11 @@ export const useAuth = () => {
   return context;
 };
 
-// --- Mapping helper: ensures hasCompletedSetup is always present ---
-function mapProfileFields(profile: any): User | null {
-  if (!profile) return null;
-  return {
-    ...profile,
-    hasCompletedSetup: profile.hasCompletedSetup ?? profile.has_completed_setup,
-  };
-}
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // Use custom hooks to manage different aspects of authentication
+  // State for the last profile update time
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
 
+  // Get basic auth/user/card state from custom hooks
   const {
     user,
     linkedCards,
@@ -38,59 +30,66 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isBiometricsRegistered,
   } = useAuthInitialization();
 
-  // Use mapped version so camelCase is always available
-  const [userData, setUserData] = useState<User | null>(mapProfileFields(user));
+  // Context-level user/card state that can be updated by profile management
+  const [userData, setUserData] = useState<User | null>(user);
   const [linkedCardsData, setLinkedCardsData] = useState<BankCard[]>(linkedCards);
 
-  // Update state when initialization completes
+  // Keep userData/linkedCardsData in sync with initialization
   useEffect(() => {
     if (initialized) {
-      setUserData(mapProfileFields(user));
+      setUserData(user);
       setLinkedCardsData(linkedCards);
     }
   }, [initialized, user, linkedCards]);
 
+  // --- UPDATE: Pass setUserData to useProfileManagement
   const { updateUserProfile, completeAccountSetup } = useProfileManagement({
     user: userData,
     lastUpdateTime,
-    setLastUpdateTime
+    setLastUpdateTime,
+    setUser: setUserData, // <-- ensures account setup updates context state!
   });
 
-  const { addBankCard, removeBankCard, setDefaultCard, refreshCards, isLoading: cardsLoading } = useCardManagement({
+  const {
+    addBankCard,
+    removeBankCard,
+    setDefaultCard,
+    refreshCards,
+    isLoading: cardsLoading,
+  } = useCardManagement({
     setLinkedCards: setLinkedCardsData,
-    userId: userData?.id || null
+    userId: userData?.id || null,
   });
 
-  // When userId changes, refresh cards to ensure they're properly encrypted
+  // Refresh cards when the userId changes
   useEffect(() => {
     if (userData?.id) {
       refreshCards().catch(console.error);
     }
   }, [userData?.id, refreshCards]);
 
+  // Auth actions (login, signup, logout, biometrics, etc.)
   const {
     login,
     signup,
     logout,
     loginWithBiometrics,
     registerBiometrics,
-    removeBiometrics
+    removeBiometrics,
   } = useAuthentication({
-    setUser: (user: User | null) => setUserData(mapProfileFields(user))
+    setUser: setUserData,
   });
 
-  // Debug log for troubleshooting
-  console.log("AuthContext userData:", userData);
-
-  // Check if user needs to complete account setup
+  // Should the user be forced through account setup?
   const needsAccountSetup = userData !== null && userData.hasCompletedSetup !== true;
 
-  // Only render children once we've checked localStorage and Supabase
+  // Wait for initialization (prevents flashing/loading bugs)
   if (!initialized) {
-    return null; // Or a loading spinner
+    return null; // or a loading spinner if you prefer
   }
 
-  const value = {
+  // Everything the app needs in the auth context
+  const value: AuthContextType = {
     user: userData,
     login,
     signup,
@@ -109,7 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loginWithBiometrics,
     removeBiometrics,
     isBiometricsSupported,
-    isBiometricsRegistered
+    isBiometricsRegistered,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
