@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { User } from "../../../types/user";
 import { BankCard } from "../types";
@@ -6,6 +5,15 @@ import { UserService } from "../UserService";
 import { BankCardService } from "../BankCardService";
 import { AuthService } from "../services/AuthService";
 import { supabase } from "@/integrations/supabase/client";
+
+// --- Mapping function to fix snake_case to camelCase
+function mapProfileFields(profile: any): User | null {
+  if (!profile) return null;
+  return {
+    ...profile,
+    hasCompletedSetup: profile.has_completed_setup,
+  };
+}
 
 type UseAuthInitializationResult = {
   user: User | null;
@@ -25,7 +33,7 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
   const [isBiometricsSupported, setIsBiometricsSupported] = useState(false);
   const [isBiometricsRegistered, setIsBiometricsRegistered] = useState(false);
-  
+
   // Initialize services
   const userService = new UserService();
   const bankCardService = new BankCardService();
@@ -38,22 +46,20 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
       try {
         // Get the current session
         const { data: { session } } = await supabase.auth.getSession();
-        
+
         // Set up auth change listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (_event, newSession) => {
             if (newSession?.user) {
               // Get profile data from Supabase when auth state changes
               const userData = await userService.getUserProfile(newSession.user.id);
-              setUser(userData);
-              
+              setUser(mapProfileFields(userData)); // <--- FIXED
               // Force update avatar state when user is updated
               if (userData) {
                 console.log("[AuthContext] Updated user from auth state change, triggering avatar refresh");
-                // Use a custom event to notify components about avatar updates
-                window.dispatchEvent(new CustomEvent('avatar-updated', { 
-                  detail: { 
-                    avatarData: userData.avatar, 
+                window.dispatchEvent(new CustomEvent('avatar-updated', {
+                  detail: {
+                    avatarData: userData.avatar,
                     timestamp: Date.now(),
                     source: 'auth-state-change'
                   }
@@ -68,25 +74,24 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
         // Load initial user data if session exists
         if (session?.user) {
           const userData = await userService.getUserProfile(session.user.id);
-          setUser(userData);
-          
+          setUser(mapProfileFields(userData)); // <--- FIXED
           // Also trigger avatar update event on initial load
           if (userData) {
             console.log("[AuthContext] Loaded initial user, triggering avatar refresh");
-            window.dispatchEvent(new CustomEvent('avatar-updated', { 
-              detail: { 
-                avatarData: userData.avatar, 
+            window.dispatchEvent(new CustomEvent('avatar-updated', {
+              detail: {
+                avatarData: userData.avatar,
                 timestamp: Date.now(),
                 source: 'initial-load'
               }
             }));
           }
         }
-        
+
         // Load linked cards
         const cards = bankCardService.getCards();
         setLinkedCards(cards);
-        
+
         setInitialized(true);
       } catch (error) {
         console.error("[AuthContext] Error initializing auth:", error);
@@ -122,11 +127,11 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
   }, [user, isBiometricsSupported]);
 
   return {
-    user, 
-    linkedCards, 
-    initialized, 
-    loading, 
-    isBiometricsSupported, 
+    user,
+    linkedCards,
+    initialized,
+    loading,
+    isBiometricsSupported,
     isBiometricsRegistered,
     lastUpdateTime
   };
