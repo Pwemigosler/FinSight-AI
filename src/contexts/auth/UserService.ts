@@ -1,4 +1,3 @@
-
 import { User } from "../../types/user";
 import { supabase } from "@/integrations/supabase/client";
 import { DefaultsService } from "./services/DefaultsService";
@@ -45,56 +44,38 @@ export class UserService {
       // Get auth user data for email
       const { data: authUser } = await supabase.auth.getUser();
       
-      // Properly cast the JSON data to our TypeScript types
-      // We need to ensure proper typing for avatar_settings and preferences
       const user: User = {
         id: profile.id,
         email: authUser?.user?.email || '',
         name: profile.name,
         avatar: profile.avatar,
-        // Type cast avatar_settings from Json to AvatarSettings
         avatarSettings: profile.avatar_settings as unknown as User['avatarSettings'],
-        // Type cast preferences from Json to UserPreferences
         preferences: profile.preferences as unknown as User['preferences'],
         hasCompletedSetup: profile.has_completed_setup
       };
 
-      // Save user data to localStorage for offline access
+      console.log("[getUserProfile] Profile loaded:", user);
       this.storageService.saveUser(user);
-      
       return user;
     } catch (error) {
       console.error("[UserService] Error fetching user profile:", error);
-      
       // Fall back to stored user if available
       return this.getStoredUser();
     }
   }
 
-  /**
-   * Retrieves the stored user from localStorage
-   */
   getStoredUser(): User | null {
     return this.storageService.getStoredUser();
   }
 
-  /**
-   * Updates the user profile with new values
-   */
   async updateProfile(currentUser: User | null, updates: Partial<User>): Promise<User | null> {
     return this.profileService.updateProfile(currentUser, updates);
   }
 
-  /**
-   * Marks the account setup as complete
-   */
   async completeAccountSetup(currentUser: User | null): Promise<User | null> {
     return this.profileService.completeAccountSetup(currentUser);
   }
 
-  /**
-   * Logs out the user
-   */
   logout(): void {
     this.storageService.clearUserData();
   }
