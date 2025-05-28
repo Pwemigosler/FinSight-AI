@@ -39,24 +39,23 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
   const bankCardService = new BankCardService();
   const authService = new AuthService();
 
-  // Initialize auth state with Supabase session
   useEffect(() => {
     const initializeAuth = async () => {
       setLoading(true);
       try {
         // Get the current session
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("[useAuthInitialization] Supabase session:", session);
 
         // Set up auth change listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (_event, newSession) => {
+            console.log("[useAuthInitialization] Auth state changed:", _event, newSession);
             if (newSession?.user) {
-              // Get profile data from Supabase when auth state changes
               const userData = await userService.getUserProfile(newSession.user.id);
-              setUser(mapProfileFields(userData)); // <--- FIXED
-              // Force update avatar state when user is updated
+              console.log("[useAuthInitialization] Got user profile from state change:", userData);
+              setUser(mapProfileFields(userData));
               if (userData) {
-                console.log("[AuthContext] Updated user from auth state change, triggering avatar refresh");
                 window.dispatchEvent(new CustomEvent('avatar-updated', {
                   detail: {
                     avatarData: userData.avatar,
@@ -74,10 +73,9 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
         // Load initial user data if session exists
         if (session?.user) {
           const userData = await userService.getUserProfile(session.user.id);
-          setUser(mapProfileFields(userData)); // <--- FIXED
-          // Also trigger avatar update event on initial load
+          console.log("[useAuthInitialization] Got initial user profile:", userData);
+          setUser(mapProfileFields(userData));
           if (userData) {
-            console.log("[AuthContext] Loaded initial user, triggering avatar refresh");
             window.dispatchEvent(new CustomEvent('avatar-updated', {
               detail: {
                 avatarData: userData.avatar,
@@ -86,6 +84,8 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
               }
             }));
           }
+        } else {
+          console.log("[useAuthInitialization] No session user found.");
         }
 
         // Load linked cards
@@ -94,7 +94,7 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
 
         setInitialized(true);
       } catch (error) {
-        console.error("[AuthContext] Error initializing auth:", error);
+        console.error("[useAuthInitialization] Error initializing auth:", error);
         localStorage.removeItem("finsight_user");
         localStorage.removeItem("finsight_linked_cards");
       } finally {
@@ -115,7 +115,6 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
   useEffect(() => {
     const checkBiometricStatus = async () => {
       if (user && isBiometricsSupported) {
-        // Now correctly calling the async method and awaiting result
         const canUseBiometrics = await authService.canUseBiometrics(user);
         setIsBiometricsRegistered(canUseBiometrics);
       } else {
@@ -125,6 +124,11 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
 
     checkBiometricStatus();
   }, [user, isBiometricsSupported]);
+
+  // LOG current user info:
+  useEffect(() => {
+    console.log("[useAuthInitialization] Final user:", user);
+  }, [user]);
 
   return {
     user,
