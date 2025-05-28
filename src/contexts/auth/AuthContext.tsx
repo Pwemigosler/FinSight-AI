@@ -83,6 +83,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Should the user be forced through account setup?
   const needsAccountSetup = userData !== null && userData.hasCompletedSetup !== true;
 
+  // LOG current state every render:
+  console.log("[AuthProvider] userData:", userData, "needsAccountSetup:", needsAccountSetup);
+
   // Wait for initialization (prevents flashing/loading bugs)
   if (!initialized) {
     return null; // or a loading spinner if you prefer
