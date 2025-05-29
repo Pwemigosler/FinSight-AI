@@ -4,10 +4,6 @@ import { DefaultsService } from "./services/DefaultsService";
 import { UserStorageService } from "./services/UserStorageService";
 import { ProfileUpdateService } from "./services/ProfileUpdateService";
 
-/**
- * Main service that coordinates user-related operations
- * Acts as a facade for the specialized services
- */
 export class UserService {
   private defaultsService: DefaultsService;
   private storageService: UserStorageService;
@@ -19,12 +15,8 @@ export class UserService {
     this.profileService = new ProfileUpdateService();
   }
 
-  /**
-   * Retrieves the user profile from Supabase
-   */
   async getUserProfile(userId: string): Promise<User | null> {
     try {
-      // Get user data from Supabase
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -41,9 +33,8 @@ export class UserService {
         return null;
       }
       
-      // Get auth user data for email
       const { data: authUser } = await supabase.auth.getUser();
-      
+
       const user: User = {
         id: profile.id,
         email: authUser?.user?.email || '',
@@ -54,12 +45,13 @@ export class UserService {
         hasCompletedSetup: profile.has_completed_setup
       };
 
-      console.log("[getUserProfile] Profile loaded:", user);
+      console.log("[UserService] Returning user profile:", user);
+
       this.storageService.saveUser(user);
+      
       return user;
     } catch (error) {
       console.error("[UserService] Error fetching user profile:", error);
-      // Fall back to stored user if available
       return this.getStoredUser();
     }
   }
