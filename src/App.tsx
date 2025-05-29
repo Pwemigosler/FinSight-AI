@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,14 +22,13 @@ const queryClient = new QueryClient();
 // App initialization component
 const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [imagesInitialized, setImagesInitialized] = useState(false);
-  
+
   useEffect(() => {
     // Initialize character avatars when app starts
     const init = async () => {
       try {
         console.log("Starting Supabase storage initialization...");
         await initializeCharacterAvatars();
-        
         // Upload characters to Supabase on app start
         console.log("Starting character image upload to Supabase...");
         await uploadCharacterImages();
@@ -42,27 +40,33 @@ const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) =
         setImagesInitialized(true);
       }
     };
-    
+
     init();
-    
+
     // Set up periodic check for image availability
     const imageCheckInterval = setInterval(() => {
       if (imagesInitialized) {
         uploadCharacterImages().catch(console.error);
       }
     }, 30 * 60 * 1000); // Check every 30 minutes
-    
+
     return () => clearInterval(imageCheckInterval);
   }, [imagesInitialized]);
-  
+
   return <>{children}</>;
 };
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, needsAccountSetup, loading } = useAuth();
-  
-  // Show loading state
+
+  // DEBUG: Log state every render for troubleshooting
+  console.log(
+    "[ProtectedRoute] isAuthenticated:", isAuthenticated,
+    "| needsAccountSetup:", needsAccountSetup,
+    "| loading:", loading
+  );
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -70,24 +74,31 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   // Redirect users who need to complete account setup
   if (needsAccountSetup) {
+    console.log("[ProtectedRoute] Redirecting to /setup");
     return <Navigate to="/setup" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
 // Setup route component
 const SetupRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, needsAccountSetup, loading } = useAuth();
-  
-  // Show loading state
+
+  // DEBUG: Log state every render for troubleshooting
+  console.log(
+    "[SetupRoute] isAuthenticated:", isAuthenticated,
+    "| needsAccountSetup:", needsAccountSetup,
+    "| loading:", loading
+  );
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -95,16 +106,17 @@ const SetupRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   // If setup is already completed, redirect to home
   if (!needsAccountSetup) {
+    console.log("[SetupRoute] Setup completed, redirecting to /");
     return <Navigate to="/" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
@@ -119,7 +131,7 @@ const Settings = () => {
 
 const AppRoutes = () => {
   const { isAuthenticated, loading } = useAuth();
-  
+
   // Show loading state during initial auth check
   if (loading) {
     return (
@@ -128,7 +140,7 @@ const AppRoutes = () => {
       </div>
     );
   }
-  
+
   return (
     <Routes>
       <Route 
