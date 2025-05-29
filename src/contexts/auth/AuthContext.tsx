@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user: userData,
     lastUpdateTime,
     setLastUpdateTime,
-    setUser: setUserData, // <-- ensures account setup updates context state!
+    setUser: setUserData, // ensures account setup updates context state!
   });
 
   const {
@@ -83,8 +83,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Should the user be forced through account setup?
   const needsAccountSetup = userData !== null && userData.hasCompletedSetup !== true;
 
-  // LOG current state every render:
-  console.log("[AuthProvider] userData:", userData, "needsAccountSetup:", needsAccountSetup);
+  // --- LOGGING: Show state every render for debugging ---
+  console.log(
+    "[AuthProvider] userData:", userData,
+    "| needsAccountSetup:", needsAccountSetup,
+    "| initialized:", initialized
+  );
 
   // Wait for initialization (prevents flashing/loading bugs)
   if (!initialized) {
