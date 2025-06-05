@@ -70,7 +70,7 @@ export const analyze = (text: string): { score: number; comparative: number; tok
   // Convert to lowercase and split into words
   const tokens = text
     .toLowerCase()
-    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '')
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '')
     .split(/\s+/);
 
   let score = 0;

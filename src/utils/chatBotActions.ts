@@ -7,13 +7,13 @@ import {
   updateCategoryAmount,
 } from "@/services/fundAllocationService";
 import { BudgetCategory } from "@/types/budget";
-import { ActionResult, FinancialInsight } from "@/types/chat";
+import { ActionResult, ActionDetails, FinancialInsight } from "@/types/chat";
 import { handleReceiptAction } from "./receiptBotActions";
 
 export interface ChatAction {
   type: string;
   status: "success" | "error";
-  details?: any;
+  details?: ActionDetails;
 }
 
 // Mock financial data - in a real app, this would come from your data service
