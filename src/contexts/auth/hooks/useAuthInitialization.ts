@@ -7,7 +7,7 @@ import { AuthService } from "../services/AuthService";
 import { supabase } from "@/integrations/supabase/client";
 
 // --- Mapping function to fix snake_case to camelCase
-function mapProfileFields(profile: any): User | null {
+function mapProfileFields(profile: Record<string, unknown>): User | null {
   if (!profile) return null;
   return {
     ...profile,

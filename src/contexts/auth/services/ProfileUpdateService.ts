@@ -24,7 +24,7 @@ export class ProfileUpdateService {
       }
       this.logUpdateDetails(updates);
 
-      const supabaseUpdates: any = {};
+      const supabaseUpdates: Record<string, unknown> = {};
       if (updates.name !== undefined) supabaseUpdates.name = updates.name;
       if (updates.avatar !== undefined) supabaseUpdates.avatar = updates.avatar;
       if (updates.avatarSettings) supabaseUpdates.avatar_settings = updates.avatarSettings;
@@ -79,7 +79,8 @@ export class ProfileUpdateService {
     this.updatePreferences(updatedUser, updates);
     Object.keys(updates).forEach(key => {
       if (key !== "avatar" && key !== "avatarSettings" && key !== "preferences") {
-        (updatedUser as any)[key] = (updates as any)[key];
+        (updatedUser as Record<string, unknown>)[key] =
+          (updates as Record<string, unknown>)[key];
       }
     });
     return updatedUser;

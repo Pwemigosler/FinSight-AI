@@ -138,7 +138,7 @@ export class WebAuthnProvider implements BiometricProvider {
         }
         
         return { success: true };
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("[WebAuthnProvider] Error creating credential:", error);
         
         // Handle specific origin errors that occur in iframes or cross-origin contexts
@@ -152,7 +152,7 @@ export class WebAuthnProvider implements BiometricProvider {
         
         throw error; // Re-throw for the outer catch block
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[WebAuthnProvider] Error registering credential:", error);
       
       // Provide more specific error messages for common errors
@@ -267,7 +267,7 @@ export class WebAuthnProvider implements BiometricProvider {
       await this.storageService.updateLastUsed(userId, authenticatedCredentialId);
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[WebAuthnProvider] Error verifying credential:", error);
       
       if (error.name === "NotAllowedError") {

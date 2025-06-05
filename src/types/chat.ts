@@ -1,6 +1,19 @@
 
 import { BudgetCategory } from "@/services/fundAllocationService";
 
+// Unified type for details returned by chatbot actions
+export type ActionDetails =
+  | BudgetCategory[]
+  | {
+      success: boolean;
+      message: string;
+      category?: BudgetCategory;
+      fromCategory?: BudgetCategory;
+      toCategory?: BudgetCategory;
+      receipts?: ReceiptInfo[];
+    }
+  | { insights: FinancialInsight[] };
+
 export interface Message {
   id: string;
   content: string;
@@ -9,7 +22,7 @@ export interface Message {
   action?: {
     type: string;
     status: "success" | "error";
-    details?: any;
+    details?: ActionDetails;
   };
   receipts?: ReceiptInfo[];
 }
@@ -18,16 +31,7 @@ export interface ActionResult {
   action: {
     type: string;
     status: "success" | "error";
-    details?: BudgetCategory[] | {
-      success: boolean;
-      message: string;
-      category?: BudgetCategory;
-      fromCategory?: BudgetCategory;
-      toCategory?: BudgetCategory;
-      receipts?: ReceiptInfo[];
-    } | {
-      insights: FinancialInsight[];
-    };
+    details?: ActionDetails;
   };
   response: string;
   receipts?: ReceiptInfo[];

@@ -47,11 +47,11 @@ export class BiometricAuthService {
       } else {
         return result;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[BiometricAuthService] Biometric registration failed:", error);
-      return { 
-        success: false, 
-        error: error.message || "Biometric setup failed. Please try again." 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Biometric setup failed. Please try again."
       };
     }
   }
@@ -96,7 +96,7 @@ export class BiometricAuthService {
         });
         return null;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[BiometricAuthService] Biometric login failed:", error);
       toast("Biometric login failed. Please try again or use password.");
       return null;
@@ -116,7 +116,7 @@ export class BiometricAuthService {
       await this.biometricService.removeCredential(user.id);
       toast("Biometric authentication removed");
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[BiometricAuthService] Failed to remove biometrics:", error);
       toast("Failed to remove biometric authentication");
       return false;
