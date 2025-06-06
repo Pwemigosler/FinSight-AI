@@ -37,9 +37,9 @@ export class ProfileUpdateService {
 
       const { data, error } = await supabase
         .from('profiles')
-        .update(supabaseUpdates)
-        .eq('id', currentUser.id)
-        .select();
+        .upsert({ id: currentUser.id, ...supabaseUpdates }, { onConflict: 'id' })
+        .select()
+        .single();
       
       if (error) {
         console.error("[ProfileUpdateService] Supabase update error:", error);
@@ -115,9 +115,12 @@ export class ProfileUpdateService {
       }
       const { data, error } = await supabase
         .from('profiles')
-        .update({ has_completed_setup: true })
-        .eq('id', currentUser.id)
-        .select();
+        .upsert(
+          { id: currentUser.id, has_completed_setup: true },
+          { onConflict: 'id' }
+        )
+        .select()
+        .single();
       if (error) {
         console.error("[ProfileUpdateService] Supabase update error:", error);
         throw error;

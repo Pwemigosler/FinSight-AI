@@ -2,7 +2,7 @@
 import { BudgetCategory } from "@/types/budget";
 
 // Mock database of budget categories that would normally come from an API
-export let budgetCategories: BudgetCategory[] = [
+export const budgetCategories: BudgetCategory[] = [
   {
     id: 'housing',
     name: 'Housing',
