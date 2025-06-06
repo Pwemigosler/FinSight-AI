@@ -5,14 +5,17 @@ import { UserStorageService } from "./UserStorageService";
 import { BiometricService } from "./BiometricService";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "../../../types/user";
+import { UserService } from "../UserService";
 
 export class AuthenticationService {
   private defaultsService: DefaultsService;
   private storageService: UserStorageService;
+  private userService: UserService;
 
   constructor() {
     this.defaultsService = new DefaultsService();
     this.storageService = new UserStorageService();
+    this.userService = new UserService();
   }
 
   /**
@@ -39,22 +42,33 @@ export class AuthenticationService {
         return null;
       }
 
-      const mockUser: User = {
-        id: supabaseData.user.id,
-        name: supabaseData.user.user_metadata?.name || email.split('@')[0] || "User",
-        email: email,
-        avatar: "",
-        avatarSettings: this.defaultsService.getDefaultAvatarSettings(),
-        hasCompletedSetup: false
-      };
+      let loggedInUser: User | null = null;
 
-      console.log("[AuthService] User successfully authenticated", mockUser);
+      try {
+        loggedInUser = await this.userService.getUserProfile(supabaseData.user.id);
+      } catch (profileError) {
+        console.error("[AuthService] Error fetching user profile after login:", profileError);
+      }
 
-      this.storageService.saveUser(mockUser);
+      if (!loggedInUser) {
+        // Fallback to a minimal user object if profile fetch failed
+        loggedInUser = {
+          id: supabaseData.user.id,
+          name: supabaseData.user.user_metadata?.name || email.split('@')[0] || "User",
+          email: email,
+          avatar: "",
+          avatarSettings: this.defaultsService.getDefaultAvatarSettings(),
+          hasCompletedSetup: false,
+        };
+      }
+
+      console.log("[AuthService] User successfully authenticated", loggedInUser);
+
+      this.storageService.saveUser(loggedInUser);
       localStorage.setItem("finsight_login_timestamp", Date.now().toString());
 
       toast.success("Successfully logged in");
-      return mockUser;
+      return loggedInUser;
 
     } catch (error) {
       console.error("[AuthService] Unexpected error during login:", error);
