@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 import { User } from "../../../types/user";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,7 +54,7 @@ export class ProfileUpdateService {
       const updatedUser = this.applyUserUpdates(currentUser, updates);
       this.storageService.saveUser(updatedUser);
       toast("Profile updated successfully");
-      console.log("[ProfileUpdateService] Profile updated and saved:", updatedUser);
+      debugLog("[ProfileUpdateService] Profile updated and saved:", updatedUser);
 
       return updatedUser;
     } catch (error) {
@@ -64,7 +65,7 @@ export class ProfileUpdateService {
   }
 
   private logUpdateDetails(updates: Partial<User>): void {
-    console.log("[ProfileUpdateService] Updating user profile with:", 
+    debugLog("[ProfileUpdateService] Updating user profile with:", 
       updates.avatar ? `avatar (length: ${updates.avatar.length})` : "no avatar", 
       updates.avatarSettings ? `avatarSettings zoom:${updates.avatarSettings.zoom}` : "no avatarSettings",
       updates.preferences ? `preferences: ${JSON.stringify(updates.preferences)}` : "no preferences",
@@ -125,7 +126,7 @@ export class ProfileUpdateService {
       const updatedUser = { ...currentUser };
       updatedUser.hasCompletedSetup = true;
       this.storageService.saveUser(updatedUser);
-      console.log("[ProfileUpdateService] Account setup completed successfully:", updatedUser);
+      debugLog("[ProfileUpdateService] Account setup completed successfully:", updatedUser);
       toast("Account setup completed!");
       return updatedUser;
     } catch (error) {

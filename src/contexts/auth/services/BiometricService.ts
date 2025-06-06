@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { BiometricStorageService } from "./BiometricStorageService";
 import { BiometricProviderFactory, BiometricProviderResult } from "./biometrics/BiometricProvider";
@@ -75,7 +76,7 @@ export class BiometricService {
       };
     }
     
-    console.log("[BiometricService] Registering credential for", userId);
+    debugLog("[BiometricService] Registering credential for", userId);
     return this.provider.registerCredential(userId, username);
   }
 
@@ -90,7 +91,7 @@ export class BiometricService {
       };
     }
     
-    console.log("[BiometricService] Verifying credential for", userId);
+    debugLog("[BiometricService] Verifying credential for", userId);
     return this.provider.verifyCredential(userId);
   }
 
@@ -102,7 +103,7 @@ export class BiometricService {
       return false;
     }
     
-    console.log("[BiometricService] Removing credential for", userId);
+    debugLog("[BiometricService] Removing credential for", userId);
     return this.provider.removeCredential(userId);
   }
 
@@ -114,7 +115,7 @@ export class BiometricService {
       return false;
     }
     
-    console.log("[BiometricService] Checking for registered credential for", userId);
+    debugLog("[BiometricService] Checking for registered credential for", userId);
     return this.provider.hasRegisteredCredential(userId);
   }
 }

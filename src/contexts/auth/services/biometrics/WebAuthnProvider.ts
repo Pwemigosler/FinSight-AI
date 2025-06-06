@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { BiometricProvider, BiometricProviderResult } from './BiometricProvider';
 import { BiometricStorageService } from '../BiometricStorageService';
@@ -98,14 +99,14 @@ export class WebAuthnProvider implements BiometricProvider {
       };
 
       try {
-        console.log("Creating credential with options:", createCredentialOptions);
+        debugLog("Creating credential with options:", createCredentialOptions);
 
         // Create a credential
         const credential = await navigator.credentials.create({ 
           publicKey: createCredentialOptions
         }) as PublicKeyCredential;
 
-        console.log("Credential created:", credential);
+        debugLog("Credential created:", credential);
 
         if (!credential) {
           return {
@@ -245,14 +246,14 @@ export class WebAuthnProvider implements BiometricProvider {
         timeout: 60000
       };
 
-      console.log("Verifying credential with options:", getCredentialOptions);
+      debugLog("Verifying credential with options:", getCredentialOptions);
 
       // Request the credential
       const credential = await navigator.credentials.get({
         publicKey: getCredentialOptions
       }) as PublicKeyCredential;
       
-      console.log("Credential verified:", credential);
+      debugLog("Credential verified:", credential);
       
       if (!credential) {
         return { success: false, error: "Authentication failed" };

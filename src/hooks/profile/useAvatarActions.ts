@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { toast } from "sonner";
 import { ImagePosition } from "@/components/profile/types/avatar-types";
@@ -19,7 +20,7 @@ export const useAvatarActions = (
     updateAvatarKey: () => void
   ) => {
     try {
-      console.log("[Profile] Removing profile picture");
+      debugLog("[Profile] Removing profile picture");
       
       await updateUserProfile({
         avatar: null,
@@ -50,7 +51,7 @@ export const useAvatarActions = (
   ) => {
     if (!previewImage) return;
     
-    console.log("[Profile] Uploading profile picture with settings:",
+    debugLog("[Profile] Uploading profile picture with settings:",
       "Zoom:", zoomLevel,
       "Position:", JSON.stringify(imagePosition)
     );
@@ -63,7 +64,7 @@ export const useAvatarActions = (
         position: imagePosition
       }
     }).then(() => {
-      console.log("[Profile] Profile picture updated successfully");
+      debugLog("[Profile] Profile picture updated successfully");
       setIsDialogOpen(false);
       toast("Profile picture updated successfully");
       

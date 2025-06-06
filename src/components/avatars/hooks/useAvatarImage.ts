@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useState, useRef, useEffect } from 'react';
 import { getCharacterImageUrl } from '../utils/avatar-utils';
@@ -19,7 +20,7 @@ export const useAvatarImage = (characterId: string) => {
   }, [characterId]);
   
   const handleImageLoad = () => {
-    console.log(`Successfully loaded image for character: ${characterId}`);
+    debugLog(`Successfully loaded image for character: ${characterId}`);
     setIsLoaded(true);
     setSupabaseLoadError(false);
     setLocalLoadError(false);
@@ -31,14 +32,14 @@ export const useAvatarImage = (characterId: string) => {
     
     if (!supabaseLoadError) {
       // First error - we assume this was the Supabase URL that failed
-      console.log(`Supabase URL failed for ${characterId}, trying local file fallback`);
+      debugLog(`Supabase URL failed for ${characterId}, trying local file fallback`);
       setSupabaseLoadError(true);
       
       // Force an immediate re-render to try local file
       setRetryCount(prev => prev + 1);
     } else if (!localLoadError) {
       // Second error - local file also failed
-      console.log(`Local file fallback failed for ${characterId}`);
+      debugLog(`Local file fallback failed for ${characterId}`);
       setLocalLoadError(true);
       
       if (retryCount < 2) {
@@ -46,7 +47,7 @@ export const useAvatarImage = (characterId: string) => {
         setTimeout(() => {
           const img = new Image();
           const localPath = `/characters/${characterId.toLowerCase()}.png?t=${Date.now()}&retry=${retryCount + 1}`;
-          console.log(`Trying one final attempt with ${localPath}`);
+          debugLog(`Trying one final attempt with ${localPath}`);
           img.src = localPath;
           img.onload = handleImageLoad;
           img.onerror = () => {

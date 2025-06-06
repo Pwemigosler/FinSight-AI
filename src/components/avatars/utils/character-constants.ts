@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { CharacterData } from "../CharacterOption";
 import { characterImages } from "./avatar-utils";
@@ -11,7 +12,7 @@ const getFullThumbnailPath = (characterId: string): string => {
     const supabaseUrl = getPublicUrl(imagePath);
     
     if (supabaseUrl) {
-      console.log(`Using Supabase URL for character ${characterId}`);
+      debugLog(`Using Supabase URL for character ${characterId}`);
       return supabaseUrl;
     }
   } catch (error) {

@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,7 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
       setRetryCount(prev => prev + 1);
       
       const localUrl = `/characters/${character.id.toLowerCase()}.png?t=${Date.now()}`;
-      console.log(`Trying local file URL: ${localUrl}`);
+      debugLog(`Trying local file URL: ${localUrl}`);
       setImageSrc(localUrl);
     } else if (!localImageError && retryCount < 2) {
       // If local path failed once, try again with force refresh
@@ -54,7 +55,7 @@ const CharacterOption: React.FC<CharacterOptionProps> = ({
       
       // Try with explicit cache buster
       const fallbackUrl = `/characters/${character.id.toLowerCase()}.png?nocache=true&t=${Date.now()}&retry=${retryCount}`;
-      console.log(`Trying local URL with cache busting: ${fallbackUrl}`);
+      debugLog(`Trying local URL with cache busting: ${fallbackUrl}`);
       setImageSrc(fallbackUrl);
     } else {
       // Both Supabase and local attempts failed

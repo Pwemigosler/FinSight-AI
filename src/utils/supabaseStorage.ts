@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -38,7 +39,7 @@ export const getImageUrl = async (path: string): Promise<string | null> => {
   
   // Check if image URL is in cache and not expired
   if (imageCache[path] && imageCache[path].expiresAt > now) {
-    console.log(`Using cached URL for ${path}`);
+    debugLog(`Using cached URL for ${path}`);
     return imageCache[path].url;
   }
   
@@ -136,10 +137,10 @@ export const initializeCharacterAvatars = async (): Promise<void> => {
     const exists = await checkFileExists(path);
     
     if (!exists) {
-      console.log(`Character ${character} not found in storage. Will need to be uploaded.`);
+      debugLog(`Character ${character} not found in storage. Will need to be uploaded.`);
       // Note: The actual file upload would happen elsewhere (admin panel, etc.)
     } else {
-      console.log(`Character ${character} already exists in storage.`);
+      debugLog(`Character ${character} already exists in storage.`);
     }
   }
 };

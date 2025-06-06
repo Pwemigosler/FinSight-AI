@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth';
@@ -33,7 +34,7 @@ const BillsView: React.FC = () => {
     
     if (connectionError) {
       interval = setInterval(() => {
-        console.log('Connection error detected, auto-refreshing bills...');
+        debugLog('Connection error detected, auto-refreshing bills...');
         refreshBills();
       }, 30000); // Refresh every 30 seconds if there's a connection error
     }
@@ -73,7 +74,7 @@ const BillsView: React.FC = () => {
   // Ensure we update the UI if the connection status changes
   useEffect(() => {
     if (realtimeConnected) {
-      console.log('Real-time connection established, refreshing bills');
+      debugLog('Real-time connection established, refreshing bills');
       refreshBills();
     }
   }, [realtimeConnected, refreshBills]);

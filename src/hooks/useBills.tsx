@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +24,7 @@ const useBills = () => {
     
     try {
       setIsLoading(true);
-      console.log('Fetching bills for user:', user.id);
+      debugLog('Fetching bills for user:', user.id);
       
       const { data, error } = await supabase
         .from('bills')
@@ -42,7 +43,7 @@ const useBills = () => {
       })) || [];
       
       setBills(typedData);
-      console.log('Bills fetched successfully:', typedData.length);
+      debugLog('Bills fetched successfully:', typedData.length);
     } catch (error) {
       console.error('Error fetching bills:', error);
       toast.error('Failed to load bills');
@@ -58,7 +59,7 @@ const useBills = () => {
     }
     
     try {
-      console.log('Adding bill:', bill);
+      debugLog('Adding bill:', bill);
       
       const { data, error } = await supabase
         .from('bills')
@@ -79,7 +80,7 @@ const useBills = () => {
       setBills(prevBills => [...prevBills, newBill]);
       toast.success('Bill added successfully');
       
-      console.log('Bill added:', newBill);
+      debugLog('Bill added:', newBill);
       return newBill;
     } catch (error: any) {
       console.error('Error adding bill:', error);
@@ -90,7 +91,7 @@ const useBills = () => {
   
   const updateBill = async (id: string, updates: Partial<Bill>) => {
     try {
-      console.log('Updating bill:', id, updates);
+      debugLog('Updating bill:', id, updates);
       
       const { data, error } = await supabase
         .from('bills')
@@ -114,7 +115,7 @@ const useBills = () => {
       );
       
       toast.success('Bill updated successfully');
-      console.log('Bill updated:', updatedBill);
+      debugLog('Bill updated:', updatedBill);
       return updatedBill;
     } catch (error: any) {
       console.error('Error updating bill:', error);
@@ -125,7 +126,7 @@ const useBills = () => {
   
   const deleteBill = async (id: string) => {
     try {
-      console.log('Deleting bill:', id);
+      debugLog('Deleting bill:', id);
       
       const { error } = await supabase
         .from('bills')
@@ -137,7 +138,7 @@ const useBills = () => {
       // Immediately remove the bill from the local state
       setBills(prevBills => prevBills.filter(bill => bill.id !== id));
       toast.success('Bill deleted successfully');
-      console.log('Bill deleted:', id);
+      debugLog('Bill deleted:', id);
       return true;
     } catch (error: any) {
       console.error('Error deleting bill:', error);
@@ -148,7 +149,7 @@ const useBills = () => {
   
   // Mark a bill as paid
   const markAsPaid = async (id: string) => {
-    console.log('Marking bill as paid:', id);
+    debugLog('Marking bill as paid:', id);
     return updateBill(id, { status: 'paid' });
   };
   
@@ -179,15 +180,15 @@ const useBills = () => {
   // Subscribe to real-time updates from Supabase with improved error handling
   const subscribeToUpdates = useCallback(() => {
     if (!user) {
-      console.log('Cannot subscribe to updates: No user logged in');
+      debugLog('Cannot subscribe to updates: No user logged in');
       return null;
     }
     
-    console.log('Setting up real-time subscription for bills');
+    debugLog('Setting up real-time subscription for bills');
     
     // Clean up any existing subscription first
     if (channelRef.current) {
-      console.log('Cleaning up existing channel subscription');
+      debugLog('Cleaning up existing channel subscription');
       supabase.removeChannel(channelRef.current);
     }
     
@@ -201,12 +202,12 @@ const useBills = () => {
           filter: `user_id=eq.${user.id}`
         }, 
         (payload) => {
-          console.log('Real-time update received:', payload);
+          debugLog('Real-time update received:', payload);
           
           // Handle different event types
           if (payload.eventType === 'INSERT') {
             const newBill = payload.new as Bill;
-            console.log('Inserting new bill via realtime:', newBill);
+            debugLog('Inserting new bill via realtime:', newBill);
             setBills(prevBills => {
               // Check if bill already exists to avoid duplicates
               const exists = prevBills.some(bill => bill.id === newBill.id);
@@ -220,7 +221,7 @@ const useBills = () => {
           } 
           else if (payload.eventType === 'UPDATE') {
             const updatedBill = payload.new as Bill;
-            console.log('Updating bill via realtime:', updatedBill);
+            debugLog('Updating bill via realtime:', updatedBill);
             setBills(prevBills => 
               prevBills.map(bill => bill.id === updatedBill.id ? {
                 ...updatedBill,
@@ -231,7 +232,7 @@ const useBills = () => {
           } 
           else if (payload.eventType === 'DELETE') {
             const deletedBill = payload.old as Bill;
-            console.log('Deleting bill via realtime:', deletedBill);
+            debugLog('Deleting bill via realtime:', deletedBill);
             setBills(prevBills => prevBills.filter(bill => bill.id !== deletedBill.id));
           }
           
@@ -246,7 +247,7 @@ const useBills = () => {
         }
       )
       .subscribe((status) => {
-        console.log('Realtime subscription status:', status);
+        debugLog('Realtime subscription status:', status);
         
         if (status === 'SUBSCRIBED') {
           setRealtimeConnected(true);
@@ -266,9 +267,9 @@ const useBills = () => {
           
           // Attempt to reconnect after a delay
           if (!reconnectTimeoutRef.current) {
-            console.log('Scheduling reconnection attempt in 5 seconds');
+            debugLog('Scheduling reconnection attempt in 5 seconds');
             reconnectTimeoutRef.current = setTimeout(() => {
-              console.log('Attempting to reconnect...');
+              debugLog('Attempting to reconnect...');
               subscribeToUpdates();
               reconnectTimeoutRef.current = null;
             }, 5000);
@@ -281,9 +282,9 @@ const useBills = () => {
           
           // Attempt to reconnect after a delay
           if (!reconnectTimeoutRef.current) {
-            console.log('Scheduling reconnection attempt in 5 seconds');
+            debugLog('Scheduling reconnection attempt in 5 seconds');
             reconnectTimeoutRef.current = setTimeout(() => {
-              console.log('Attempting to reconnect...');
+              debugLog('Attempting to reconnect...');
               subscribeToUpdates();
               reconnectTimeoutRef.current = null;
             }, 5000);
@@ -297,7 +298,7 @@ const useBills = () => {
   
   // Handle initial data loading and subscribe to updates
   useEffect(() => {
-    console.log('useBills hook initialized or user changed');
+    debugLog('useBills hook initialized or user changed');
     fetchBills();
     
     // Set up real-time subscription
@@ -306,7 +307,7 @@ const useBills = () => {
     // Cleanup subscription on unmount
     return () => {
       if (channel) {
-        console.log('Cleaning up real-time subscription');
+        debugLog('Cleaning up real-time subscription');
         supabase.removeChannel(channel);
       }
       

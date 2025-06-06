@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { uploadFile, checkFileExists } from './supabaseStorage';
 
@@ -10,7 +11,7 @@ const defaultCharacters = ['fin', 'luna', 'oliver', 'zoe'];
  */
 export const uploadCharacterImages = async (): Promise<void> => {
   try {
-    console.log("Starting character image uploads...");
+    debugLog("Starting character image uploads...");
     
     for (const character of defaultCharacters) {
       const fileName = `${character}.png`;
@@ -20,10 +21,10 @@ export const uploadCharacterImages = async (): Promise<void> => {
         const exists = await checkFileExists(fileName);
         
         if (!exists) {
-          console.log(`Character ${character} doesn't exist in storage, uploading from public folder...`);
+          debugLog(`Character ${character} doesn't exist in storage, uploading from public folder...`);
           await uploadCharacterFromLocal(character, fileName);
         } else {
-          console.log(`Character ${character} already exists in storage, verifying accessibility...`);
+          debugLog(`Character ${character} already exists in storage, verifying accessibility...`);
           
           // Verify the file is accessible by trying to get its URL
           const verifyUrl = await fetch(`/api/verify-image?character=${character}`);
@@ -39,7 +40,7 @@ export const uploadCharacterImages = async (): Promise<void> => {
       }
     }
     
-    console.log("Character image upload process completed");
+    debugLog("Character image upload process completed");
   } catch (error) {
     console.error("Error in uploadCharacterImages:", error);
   }
@@ -63,7 +64,7 @@ async function uploadCharacterFromLocal(character: string, fileName: string): Pr
         console.error(`Failed to fetch local character image for ${character}: ${response.status} ${response.statusText}`);
         retryCount++;
         if (retryCount < maxRetries) {
-          console.log(`Retrying fetch for ${character} (attempt ${retryCount + 1})...`);
+          debugLog(`Retrying fetch for ${character} (attempt ${retryCount + 1})...`);
           await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
           continue;
         }
@@ -76,13 +77,13 @@ async function uploadCharacterFromLocal(character: string, fileName: string): Pr
       const success = await uploadFile(fileName, blob, 'image/png');
       
       if (success) {
-        console.log(`Successfully uploaded ${character} to storage`);
+        debugLog(`Successfully uploaded ${character} to storage`);
         return true;
       } else {
         console.error(`Failed to upload ${character} to storage`);
         retryCount++;
         if (retryCount < maxRetries) {
-          console.log(`Retrying upload for ${character} (attempt ${retryCount + 1})...`);
+          debugLog(`Retrying upload for ${character} (attempt ${retryCount + 1})...`);
           await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
         }
       }
@@ -90,7 +91,7 @@ async function uploadCharacterFromLocal(character: string, fileName: string): Pr
       console.error(`Error fetching/uploading ${character} image (attempt ${retryCount + 1}):`, fetchError);
       retryCount++;
       if (retryCount < maxRetries) {
-        console.log(`Retrying after error for ${character}...`);
+        debugLog(`Retrying after error for ${character}...`);
         await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
       }
     }

@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 import { toast } from "sonner";
 import { User } from "../../../types/user";
 import { DefaultsService } from "./DefaultsService";
@@ -42,13 +43,13 @@ export class UserStorageService {
     
     // Ensure avatar settings are initialized properly
     if (updatedUser.avatar && !updatedUser.avatarSettings) {
-      console.log("[UserStorageService] Initializing default avatarSettings for existing avatar");
+      debugLog("[UserStorageService] Initializing default avatarSettings for existing avatar");
       updatedUser.avatarSettings = this.defaultsService.getDefaultAvatarSettings();
     }
     
     // Ensure preferences are initialized properly
     if (!updatedUser.preferences) {
-      console.log("[UserStorageService] Initializing default preferences");
+      debugLog("[UserStorageService] Initializing default preferences");
       updatedUser.preferences = this.defaultsService.getDefaultPreferences();
     }
     
@@ -64,7 +65,7 @@ export class UserStorageService {
     this.lastSaveTimestamp = saveTime;
     
     // Log save operation details
-    console.log("[UserStorageService] Saving user at timestamp", saveTime, ":", 
+    debugLog("[UserStorageService] Saving user at timestamp", saveTime, ":", 
       "Name:", user.name,
       "Avatar exists:", !!user.avatar, 
       "Avatar length:", user.avatar?.length || 0,
@@ -87,19 +88,19 @@ export class UserStorageService {
             // If current data is newer (has completed setup) and we're trying to save data that hasn't,
             // we should merge the data instead of overwriting
             if (currentUser.hasCompletedSetup && !user.hasCompletedSetup) {
-              console.log("[UserStorageService] Merging with more recent user data");
+              debugLog("[UserStorageService] Merging with more recent user data");
               // Keep the completed setup flag from the current data
               user.hasCompletedSetup = true;
             }
           }
           
           localStorage.setItem("finsight_user", JSON.stringify(user));
-          console.log("[UserStorageService] User saved successfully at timestamp", saveTime);
+          debugLog("[UserStorageService] User saved successfully at timestamp", saveTime);
         } catch (error) {
           console.error("[UserStorageService] Error saving user:", error);
         }
       } else {
-        console.log("[UserStorageService] Skipped outdated save operation from timestamp", saveTime);
+        debugLog("[UserStorageService] Skipped outdated save operation from timestamp", saveTime);
       }
     }, 10);
   }

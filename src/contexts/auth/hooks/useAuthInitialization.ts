@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 import { useState, useEffect } from "react";
 import { User } from "../../../types/user";
 import { BankCard } from "../types";
@@ -45,15 +46,15 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
       try {
         // Get the current session
         const { data: { session } } = await supabase.auth.getSession();
-        console.log("[useAuthInitialization] Supabase session:", session);
+        debugLog("[useAuthInitialization] Supabase session:", session);
 
         // Set up auth change listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (_event, newSession) => {
-            console.log("[useAuthInitialization] Auth state changed:", _event, newSession);
+            debugLog("[useAuthInitialization] Auth state changed:", _event, newSession);
             if (newSession?.user) {
               const userData = await userService.getUserProfile(newSession.user.id);
-              console.log("[useAuthInitialization] Got user profile from state change:", userData);
+              debugLog("[useAuthInitialization] Got user profile from state change:", userData);
               setUser(mapProfileFields(userData));
               if (userData) {
                 window.dispatchEvent(new CustomEvent('avatar-updated', {
@@ -73,7 +74,7 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
         // Load initial user data if session exists
         if (session?.user) {
           const userData = await userService.getUserProfile(session.user.id);
-          console.log("[useAuthInitialization] Got initial user profile:", userData);
+          debugLog("[useAuthInitialization] Got initial user profile:", userData);
           setUser(mapProfileFields(userData));
           if (userData) {
             window.dispatchEvent(new CustomEvent('avatar-updated', {
@@ -85,7 +86,7 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
             }));
           }
         } else {
-          console.log("[useAuthInitialization] No session user found.");
+          debugLog("[useAuthInitialization] No session user found.");
         }
 
         // Load linked cards
@@ -127,7 +128,7 @@ export const useAuthInitialization = (): UseAuthInitializationResult => {
 
   // LOG current user info:
   useEffect(() => {
-    console.log("[useAuthInitialization] Final user:", user);
+    debugLog("[useAuthInitialization] Final user:", user);
   }, [user]);
 
   return {

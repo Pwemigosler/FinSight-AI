@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { toast } from "sonner";
 import { DefaultsService } from "./DefaultsService";
@@ -48,7 +49,7 @@ export class AuthenticationService {
         hasCompletedSetup: false
       };
 
-      console.log("[AuthService] User successfully authenticated", mockUser);
+      debugLog("[AuthService] User successfully authenticated", mockUser);
 
       this.storageService.saveUser(mockUser);
       localStorage.setItem("finsight_login_timestamp", Date.now().toString());

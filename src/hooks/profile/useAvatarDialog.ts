@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useState } from "react";
 import { ImagePosition } from "@/components/profile/types/avatar-types";
@@ -25,7 +26,7 @@ export const useAvatarDialog = () => {
   ) => {
     // Make sure we're using any existing avatar when opening the dialog
     if (userAvatar && !previewImage) {
-      console.log("[Profile] Setting preview image from user avatar before dialog");
+      debugLog("[Profile] Setting preview image from user avatar before dialog");
       setPreviewImage(userAvatar);
     }
     setIsDialogOpen(true);

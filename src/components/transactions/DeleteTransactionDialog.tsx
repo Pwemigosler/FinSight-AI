@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -32,11 +33,11 @@ const DeleteTransactionDialog = ({
     setError(null);
     
     try {
-      console.log('Confirming transaction deletion');
+      debugLog('Confirming transaction deletion');
       const success = await onConfirm();
       
       if (success) {
-        console.log('Transaction delete operation successful');
+        debugLog('Transaction delete operation successful');
         toast.success('Transaction deleted successfully');
         onOpenChange(false); // Close dialog on success
       } else {

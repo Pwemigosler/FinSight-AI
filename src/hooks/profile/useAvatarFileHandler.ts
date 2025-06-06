@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useState, useRef } from "react";
 import { toast } from "sonner";
@@ -36,7 +37,7 @@ export const useAvatarFileHandler = () => {
 
     // Process the image
     processProfileImage(file, (imageData) => {
-      console.log("[Profile] New image loaded, length:", imageData.length);
+      debugLog("[Profile] New image loaded, length:", imageData.length);
       setPreviewImage(imageData);
     });
   };

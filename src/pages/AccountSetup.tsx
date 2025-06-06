@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -33,7 +34,7 @@ const AccountSetup = () => {
   // Update preview image if user has an avatar
   useEffect(() => {
     if (user?.avatar && !avatarHandler.previewImage) {
-      console.log("[AccountSetup] Setting initial avatar from user, length:", user.avatar.length);
+      debugLog("[AccountSetup] Setting initial avatar from user, length:", user.avatar.length);
       avatarHandler.setPreviewImage(user.avatar);
     }
   }, [user, avatarHandler]);
@@ -72,7 +73,7 @@ const AccountSetup = () => {
       if (isCompleting) return; // Prevent multiple submission attempts
       setIsCompleting(true);
       
-      console.log("[AccountSetup] Final submit with data:", 
+      debugLog("[AccountSetup] Final submit with data:", 
         "Name:", formData.fullName,
         "Avatar exists:", !!avatarHandler.previewImage,
         "Avatar length:", avatarHandler.previewImage?.length || 0);
@@ -85,7 +86,7 @@ const AccountSetup = () => {
         // Show completion message with a more substantial delay
         // This gives time for avatar events to propagate and state to update
         setTimeout(() => {
-          console.log("[AccountSetup] Setup completed successfully, navigating to home");
+          debugLog("[AccountSetup] Setup completed successfully, navigating to home");
           navigate("/");
         }, 1200); // Increased delay for reliable UI updates
       } else {
@@ -103,7 +104,7 @@ const AccountSetup = () => {
     if (validateCurrentStep()) {
       // For the personal details step, save the data immediately
       if (currentStep.id === "personal" && avatarHandler.avatarModified) {
-        console.log("[AccountSetup] Saving avatar during step navigation");
+        debugLog("[AccountSetup] Saving avatar during step navigation");
       }
       
       goToNextStep();

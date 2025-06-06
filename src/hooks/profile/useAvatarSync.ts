@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useEffect } from "react";
 import { User } from "@/types/user";
@@ -23,7 +24,7 @@ export const useAvatarSync = (
   // Update local state when user changes
   useEffect(() => {
     if (user) {
-      console.log("[Profile] User updated:", 
+      debugLog("[Profile] User updated:", 
         "Name:", user.name,
         "Avatar exists:", !!user.avatar,
         "Avatar length:", user.avatar?.length || 0,
@@ -35,9 +36,9 @@ export const useAvatarSync = (
       // Always update preview image when user avatar changes
       if (user.avatar) {
         setPreviewImage(user.avatar);
-        console.log("[Profile] Setting preview image from user avatar, length:", user.avatar.length);
+        debugLog("[Profile] Setting preview image from user avatar, length:", user.avatar.length);
       } else {
-        console.log("[Profile] No avatar found in user data");
+        debugLog("[Profile] No avatar found in user data");
         setPreviewImage(null);
       }
       
@@ -45,7 +46,7 @@ export const useAvatarSync = (
       if (user.avatarSettings) {
         setZoomLevel(user.avatarSettings.zoom);
         setImagePosition(user.avatarSettings.position);
-        console.log("[Profile] Setting zoom and position from user settings");
+        debugLog("[Profile] Setting zoom and position from user settings");
       }
       
       // Force re-render of avatar

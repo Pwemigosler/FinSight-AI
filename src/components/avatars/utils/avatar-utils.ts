@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { AvatarState } from '../types/avatar-types';
 import { getPublicUrl } from '@/utils/supabaseStorage';
@@ -36,7 +37,7 @@ export const getCharacterImageUrl = (characterId: string, useLocalFallback: bool
   try {
     const supabaseUrl = getPublicUrl(imagePath);
     if (supabaseUrl) {
-      console.log(`Loading character ${characterId} from Supabase storage at ${supabaseUrl}`);
+      debugLog(`Loading character ${characterId} from Supabase storage at ${supabaseUrl}`);
       return supabaseUrl;
     }
   } catch (error) {
@@ -45,7 +46,7 @@ export const getCharacterImageUrl = (characterId: string, useLocalFallback: bool
   }
   
   // Return local file path for fallback logic in useAvatarImage hook
-  console.log(`Using local file fallback for character ${finalId}`);
+  debugLog(`Using local file fallback for character ${finalId}`);
   return `/characters/${imagePath}`;
 };
 
