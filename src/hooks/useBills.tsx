@@ -81,9 +81,10 @@ const useBills = () => {
       
       console.log('Bill added:', newBill);
       return newBill;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding bill:', error);
-      toast.error(`Failed to add bill: ${error.message || 'Unknown error'}`);
+      const err = error as { message?: string } | undefined;
+      toast.error(`Failed to add bill: ${err?.message || 'Unknown error'}`);
       return null;
     }
   };
@@ -116,9 +117,10 @@ const useBills = () => {
       toast.success('Bill updated successfully');
       console.log('Bill updated:', updatedBill);
       return updatedBill;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating bill:', error);
-      toast.error(`Failed to update bill: ${error.message || 'Unknown error'}`);
+      const err = error as { message?: string } | undefined;
+      toast.error(`Failed to update bill: ${err?.message || 'Unknown error'}`);
       return null;
     }
   };
@@ -139,9 +141,10 @@ const useBills = () => {
       toast.success('Bill deleted successfully');
       console.log('Bill deleted:', id);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting bill:', error);
-      toast.error(`Failed to delete bill: ${error.message || 'Unknown error'}`);
+      const err = error as { message?: string } | undefined;
+      toast.error(`Failed to delete bill: ${err?.message || 'Unknown error'}`);
       return false;
     }
   };
