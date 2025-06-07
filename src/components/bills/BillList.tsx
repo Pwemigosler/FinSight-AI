@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bill } from '@/types/bill';
+import { Bill, BillFormValues } from '@/types/bill';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ const BillList: React.FC<BillListProps> = ({
   onRefresh 
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [editBill, setEditBill] = useState<{ id: string; values: any } | null>(null);
+  const [editBill, setEditBill] = useState<{ id: string; values: BillFormValues } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedBillId, setSelectedBillId] = useState<string | null>(null);
   const { markAsPaid, deleteBill } = useBills();

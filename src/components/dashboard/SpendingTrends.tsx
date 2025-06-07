@@ -13,7 +13,15 @@ import {
 } from 'recharts';
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({
+  active,
+  payload,
+  label
+}: {
+  active?: boolean;
+  payload?: { value: number }[];
+  label?: string;
+}) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 border border-gray-100 rounded-md shadow-md">

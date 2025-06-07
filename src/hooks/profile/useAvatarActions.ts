@@ -8,8 +8,10 @@ import { ImagePosition } from "@/components/profile/types/avatar-types";
  * @param updateUserProfile Function to update user profile
  * @returns Avatar action methods
  */
+import { type User } from "@/types/user";
+
 export const useAvatarActions = (
-  updateUserProfile: (data: any) => Promise<void>
+  updateUserProfile: (data: Partial<User>) => Promise<void>
 ) => {
   const handleDeleteAvatar = async (
     setPreviewImage: (img: string | null) => void,

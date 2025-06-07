@@ -13,7 +13,7 @@ import { handleReceiptAction } from "./receiptBotActions";
 export interface ChatAction {
   type: string;
   status: "success" | "error";
-  details?: any;
+  details?: unknown;
 }
 
 // Mock financial data - in a real app, this would come from your data service

@@ -62,9 +62,10 @@ const BiometricsSetupStep = () => {
           setBiometricError("Failed to remove biometric authentication");
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error toggling biometrics:", error);
-      setBiometricError(error.message || "Failed to set up biometric authentication");
+      const err = error as { message?: string } | undefined;
+      setBiometricError(err?.message || "Failed to set up biometric authentication");
     } finally {
       setBiometricLoading(false);
     }

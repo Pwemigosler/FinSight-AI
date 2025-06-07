@@ -4,9 +4,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PencilLine } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { type User } from "@/types/user";
 
 interface ProfileHeaderProps {
-  user: any;
+  user: User | null;
   avatarKey: number;
   handleProfilePictureClick: () => void;
 }

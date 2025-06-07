@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { User } from "@/types/user";
+import type { UseAvatarHandlerReturn } from "./useAvatarHandler";
 
 export const useAccountSetupForm = () => {
   const { user, updateUserProfile, completeAccountSetup } = useAuth();
@@ -53,7 +54,9 @@ export const useAccountSetupForm = () => {
     setCharacterId(characterId);
   };
 
-  const completeSetup = async (avatarHandler: any): Promise<boolean> => {
+  const completeSetup = async (
+    avatarHandler: UseAvatarHandlerReturn
+  ): Promise<boolean> => {
     setLoading(true);
     try {
       // Prepare the final user data with all fields and preferences

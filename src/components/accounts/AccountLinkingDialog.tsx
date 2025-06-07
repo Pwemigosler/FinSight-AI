@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFinancialData } from '@/hooks/useFinancialData';
-import { Account } from '@/types/financial';
+import { type Account } from '@/types/financial';
 import { Plus, Building2 } from 'lucide-react';
 
 const AccountLinkingDialog = () => {
@@ -17,7 +17,7 @@ const AccountLinkingDialog = () => {
   const [formData, setFormData] = useState({
     institution_name: '',
     account_name: '',
-    account_type: 'checking' as const,
+    account_type: 'checking' as Account['account_type'],
     account_number_last4: '',
     current_balance: '0'
   });
@@ -97,7 +97,8 @@ const AccountLinkingDialog = () => {
             <Label htmlFor="accountType">Account Type</Label>
             <Select
               value={formData.account_type}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, account_type: value as any }))}
+              onValueChange={(value: Account['account_type']) =>
+                setFormData(prev => ({ ...prev, account_type: value }))}
             >
               <SelectTrigger>
                 <SelectValue />

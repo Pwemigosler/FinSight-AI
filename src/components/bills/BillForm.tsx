@@ -63,7 +63,10 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
     }
   }, [isOpen, editBill]);
   
-  const handleChange = (field: keyof BillFormValues, value: any) => {
+  const handleChange = <K extends keyof BillFormValues>(
+    field: K,
+    value: BillFormValues[K]
+  ) => {
     setFormValues(prev => ({ ...prev, [field]: value }));
   };
   
@@ -120,7 +123,7 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
   };
   
   const validateDueDate = (value: number): number => {
-    let numValue = Number(value);
+    const numValue = Number(value);
     if (isNaN(numValue)) return 1;
     if (numValue < 1) return 1;
     if (numValue > 31) return 31;

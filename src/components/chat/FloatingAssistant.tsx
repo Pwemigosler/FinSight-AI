@@ -1,17 +1,22 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getRandomTip } from "@/utils/financialTips";
 import { LightbulbIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import PixarAvatar from "../avatars/PixarAvatar";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { useSpeech } from "@/hooks/useSpeech";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const FloatingAssistant: React.FC = () => {
   const [showTip, setShowTip] = useState(false);
   const [currentTip, setCurrentTip] = useState("");
   const { avatarState, characterId, setAvatarState, speakMessage, stopSpeaking } = useAvatar();
   const { isThisElementSpeaking, handleSpeak } = useSpeech(currentTip);
+  const isMobile = useIsMobile();
+  const dragStart = useRef({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
   
   // Introduce random expressions periodically when idle
   useEffect(() => {
@@ -85,9 +90,35 @@ const FloatingAssistant: React.FC = () => {
       }, 8000);
     }
   };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isMobile) return;
+    setDragging(true);
+    dragStart.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    dragStart.current = { x: e.clientX, y: e.clientY };
+    setPosition(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+  };
+
+  const handlePointerUp = () => {
+    setDragging(false);
+  };
   
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div
+      className="fixed bottom-6 right-6 z-50"
+      style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+    >
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

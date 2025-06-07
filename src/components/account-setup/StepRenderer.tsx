@@ -5,6 +5,7 @@ import AssistantStep from "./AssistantStep";
 import PreferencesStep from "./PreferencesStep";
 import NotificationsStep from "./NotificationsStep";
 import BiometricsSetupStep from "./BiometricsSetupStep";
+import type { UseAvatarHandlerReturn } from "./hooks/useAvatarHandler";
 
 interface StepRendererProps {
   currentStepId: string;
@@ -16,7 +17,7 @@ interface StepRendererProps {
     language: string;
     assistantCharacter: string;
   };
-  avatarHandler: any;
+  avatarHandler: UseAvatarHandlerReturn;
   onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   onCharacterSelect: (characterId: string) => void;

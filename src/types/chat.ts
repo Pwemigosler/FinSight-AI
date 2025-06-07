@@ -9,7 +9,7 @@ export interface Message {
   action?: {
     type: string;
     status: "success" | "error";
-    details?: any;
+    details?: unknown;
   };
   receipts?: ReceiptInfo[];
 }

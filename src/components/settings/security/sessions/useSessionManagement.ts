@@ -39,12 +39,14 @@ export const useSessionManagement = () => {
       }
       
       // Transform the biometrics data into session objects
-      const sessionData: Session[] = data.map((row: any) => {
+      const sessionData: Session[] = data.map((row: unknown) => {
+        const r = row as Record<string, unknown>;
         // Safely access userAgent property with type checking
-        const deviceInfo = row.device_info || {};
-        const userAgentVal = typeof deviceInfo === 'object' && deviceInfo !== null 
-          ? deviceInfo.userAgent 
-          : 'Unknown';
+        const deviceInfo = r.device_info || {};
+        const userAgentVal =
+          typeof deviceInfo === 'object' && deviceInfo !== null
+            ? (deviceInfo as Record<string, unknown>).userAgent
+            : 'Unknown';
         
         // Parse as string if available
         const userAgent = typeof userAgentVal === 'string' ? userAgentVal : 'Unknown';
@@ -53,10 +55,10 @@ export const useSessionManagement = () => {
         const deviceName = getDeviceFromUserAgent(userAgent);
         
         return {
-          id: row.id || uuidv4(),
+          id: (r.id as string) || uuidv4(),
           deviceName: deviceName || 'Unknown device',
           browser: browser || 'Unknown browser',
-          lastActive: row.last_used_at || row.created_at || new Date().toISOString(),
+          lastActive: (r.last_used_at as string) || (r.created_at as string) || new Date().toISOString(),
           isCurrentSession: false // We'll mark the current session below
         };
       });

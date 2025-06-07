@@ -136,3 +136,5 @@ export const useAvatarHandler = ({
 };
 
 export default useAvatarHandler;
+
+export type UseAvatarHandlerReturn = ReturnType<typeof useAvatarHandler>;
