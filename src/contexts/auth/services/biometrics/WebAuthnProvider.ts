@@ -138,12 +138,15 @@ export class WebAuthnProvider implements BiometricProvider {
         }
         
         return { success: true };
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("[WebAuthnProvider] Error creating credential:", error);
-        
+        const err = error as { name?: string; message?: string };
+
         // Handle specific origin errors that occur in iframes or cross-origin contexts
-        if (error.name === "NotAllowedError" && 
-            (error.message.includes("origin") || error.message.includes("ancestors"))) {
+        if (
+          err.name === "NotAllowedError" &&
+          (err.message?.includes("origin") || err.message?.includes("ancestors"))
+        ) {
           return {
             success: false,
             error: "Security restriction: Biometric authentication cannot run in this environment (try opening in a new tab)"
@@ -152,12 +155,13 @@ export class WebAuthnProvider implements BiometricProvider {
         
         throw error; // Re-throw for the outer catch block
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[WebAuthnProvider] Error registering credential:", error);
-      
+      const err = error as { name?: string; message?: string };
+
       // Provide more specific error messages for common errors
-      if (error.name === "NotAllowedError") {
-        if (error.message.includes("origin") || error.message.includes("ancestors")) {
+      if (err.name === "NotAllowedError") {
+        if (err.message?.includes("origin") || err.message?.includes("ancestors")) {
           return {
             success: false,
             error: "Security restriction: Biometric authentication is not allowed in this context"
@@ -168,12 +172,12 @@ export class WebAuthnProvider implements BiometricProvider {
             error: "Permission denied: The user did not consent to the operation"
           };
         }
-      } else if (error.name === "NotSupportedError") {
+      } else if (err.name === "NotSupportedError") {
         return {
           success: false,
           error: "Your device does not have the required authenticators"
         };
-      } else if (error.name === "SecurityError") {
+      } else if (err.name === "SecurityError") {
         return {
           success: false,
           error: "Security error: The operation is not allowed in this context"
@@ -267,11 +271,12 @@ export class WebAuthnProvider implements BiometricProvider {
       await this.storageService.updateLastUsed(userId, authenticatedCredentialId);
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[WebAuthnProvider] Error verifying credential:", error);
-      
-      if (error.name === "NotAllowedError") {
-        if (error.message.includes("origin") || error.message.includes("ancestors")) {
+      const err = error as { name?: string; message?: string };
+
+      if (err.name === "NotAllowedError") {
+        if (err.message?.includes("origin") || err.message?.includes("ancestors")) {
           return {
             success: false,
             error: "Security restriction: Biometric authentication is not allowed in this context"
@@ -283,10 +288,10 @@ export class WebAuthnProvider implements BiometricProvider {
           };
         }
       }
-      
+
       return {
         success: false,
-        error: error.message || "Unknown error occurred during verification"
+        error: err.message || "Unknown error occurred during verification"
       };
     }
   }
