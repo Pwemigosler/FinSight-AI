@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -46,11 +47,11 @@ const DeleteBillDialog = ({
     setError(null);
 
     try {
-      console.log('Confirming deletion for bill:', billId);
+      debugLog('Confirming deletion for bill:', billId);
       const success = await onConfirm();
       
       if (success) {
-        console.log('Delete operation successful');
+        debugLog('Delete operation successful');
         toast.success('Bill deleted successfully');
         onOpenChange(false); // Close the dialog on success
       } else {

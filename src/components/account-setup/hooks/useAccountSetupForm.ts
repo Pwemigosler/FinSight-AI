@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
@@ -82,13 +83,13 @@ export const useAccountSetupForm = () => {
           position: avatarHandler.imagePosition
         };
         
-        console.log("[AccountSetup] Saving avatar settings:", 
+        debugLog("[AccountSetup] Saving avatar settings:", 
           "Zoom:", avatarHandler.zoomLevel,
           "Position X:", avatarHandler.imagePosition.x,
           "Position Y:", avatarHandler.imagePosition.y);
       }
       
-      console.log("[AccountSetup] Saving profile data:", 
+      debugLog("[AccountSetup] Saving profile data:", 
         "Name:", finalUserData.name,
         "Has avatar:", !!finalUserData.avatar,
         "Avatar length:", finalUserData.avatar?.length || 0);
@@ -108,7 +109,7 @@ export const useAccountSetupForm = () => {
       // Explicitly dispatch avatar update event to force UI refresh
       // This ensures the header and other components update immediately
       if (finalUserData.avatar) {
-        console.log("[AccountSetup] Manually dispatching avatar-updated event after setup");
+        debugLog("[AccountSetup] Manually dispatching avatar-updated event after setup");
         window.dispatchEvent(new CustomEvent('avatar-updated', { 
           detail: { 
             avatarData: finalUserData.avatar,
@@ -119,7 +120,7 @@ export const useAccountSetupForm = () => {
         
         // Add a short delay and send an additional "final" event to ensure components catch it
         setTimeout(() => {
-          console.log("[AccountSetup] Dispatching final avatar update event");
+          debugLog("[AccountSetup] Dispatching final avatar update event");
           window.dispatchEvent(new CustomEvent('avatar-updated', { 
             detail: { 
               avatarData: finalUserData.avatar,

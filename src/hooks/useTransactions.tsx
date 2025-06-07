@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -90,7 +91,7 @@ export const useTransactions = () => {
   };
 
   const handleEditTransaction = (transaction: TransactionItemType) => {
-    console.log('Editing transaction:', transaction);
+    debugLog('Editing transaction:', transaction);
     setSelectedTransaction(transaction);
     setIsEditMode(true);
     setIsDialogOpen(true);
@@ -119,7 +120,7 @@ export const useTransactions = () => {
   };
 
   const handleDeleteTransaction = (transaction: TransactionItemType) => {
-    console.log('Preparing to delete transaction:', transaction);
+    debugLog('Preparing to delete transaction:', transaction);
     setSelectedTransaction(transaction);
     setIsDeleteDialogOpen(true);
   };
@@ -147,20 +148,20 @@ export const useTransactions = () => {
   };
 
   const handleOpenReceiptDialog = (transaction: TransactionItemType) => {
-    console.log('Opening receipt dialog for transaction:', transaction);
+    debugLog('Opening receipt dialog for transaction:', transaction);
     setSelectedTransaction(transaction);
     setIsReceiptDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
-    console.log('Closing dialog');
+    debugLog('Closing dialog');
     setIsDialogOpen(false);
     setIsEditMode(false);
     setSelectedTransaction(null);
   };
 
   const handleFormSubmit = (values: FormValues) => {
-    console.log('Form submitted with values:', values);
+    debugLog('Form submitted with values:', values);
     if (isEditMode) {
       handleUpdateTransactionSubmit(values);
     } else {
@@ -169,7 +170,7 @@ export const useTransactions = () => {
   };
   
   const refreshTransactions = useCallback(() => {
-    console.log('Manually refreshing transactions');
+    debugLog('Manually refreshing transactions');
     return fetchTransactionsData();
   }, [fetchTransactionsData]);
 

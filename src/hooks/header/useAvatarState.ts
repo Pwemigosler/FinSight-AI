@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useState, useRef, useEffect } from "react";
 import { User } from "@/types/user";
@@ -19,18 +20,18 @@ export const useAvatarState = (user: User | null) => {
       // Update cached avatar data
       if (user.avatar) {
         setCachedAvatarData(user.avatar);
-        console.log("[Header] User avatar updated, length:", user.avatar.length);
-        console.log("[Header] Avatar settings:", user.avatarSettings ? 
+        debugLog("[Header] User avatar updated, length:", user.avatar.length);
+        debugLog("[Header] Avatar settings:", user.avatarSettings ? 
           `zoom:${user.avatarSettings.zoom}, pos:(${user.avatarSettings.position.x},${user.avatarSettings.position.y})` : 
           "none");
         
         // Force re-render avatar when user changes
         setAvatarKey(prev => prev + 1);
       } else {
-        console.log("[Header] User updated but no avatar present");
+        debugLog("[Header] User updated but no avatar present");
       }
       
-      console.log("[Header] User updated:", 
+      debugLog("[Header] User updated:", 
         "Name:", user.name,
         "Avatar exists:", !!user.avatar, 
         "Avatar length:", user.avatar?.length || 0,
@@ -59,7 +60,7 @@ export const useAvatarState = (user: User | null) => {
   useEffect(() => {
     const handleAvatarUpdate = (event: CustomEvent) => {
       const { avatarData, timestamp, source } = event.detail;
-      console.log("[Header] Received avatar-updated event:", 
+      debugLog("[Header] Received avatar-updated event:", 
         "Has avatar:", !!avatarData, 
         "Length:", avatarData?.length || 0,
         "Timestamp:", timestamp,
@@ -78,7 +79,7 @@ export const useAvatarState = (user: User | null) => {
       if ((isNewerEvent || isPrioritySource) && avatarData) {
         // Always prioritize account-setup-final, it should override any other event
         if (source === 'account-setup-final') {
-          console.log("[Header] Prioritizing account-setup-final event");
+          debugLog("[Header] Prioritizing account-setup-final event");
           lastAvatarUpdateTime.current = timestamp;
           setCachedAvatarData(avatarData);
           setAvatarError(false);
@@ -93,7 +94,7 @@ export const useAvatarState = (user: User | null) => {
           avatarRetryCount.current = 0;
           setAvatarKey(prev => prev + 1);
         }
-        console.log("[Header] Updated avatar from event, source:", source);
+        debugLog("[Header] Updated avatar from event, source:", source);
       }
     };
 
@@ -117,7 +118,7 @@ export const useAvatarState = (user: User | null) => {
           
           // If localStorage has an avatar but we don't, update
           if (savedUser?.avatar && (!cachedAvatarData || savedUser.avatar.length !== cachedAvatarData.length)) {
-            console.log("[Header] Detected avatar change in localStorage");
+            debugLog("[Header] Detected avatar change in localStorage");
             setCachedAvatarData(savedUser.avatar);
             setAvatarKey(prev => prev + 1);
             setAvatarError(false); // Reset error state when we get new avatar data
@@ -141,7 +142,7 @@ export const useAvatarState = (user: User | null) => {
         if (savedUserJson) {
           const savedUser = JSON.parse(savedUserJson);
           if (savedUser?.avatar) {
-            console.log("[Header] Initial path change - forcing avatar refresh from localStorage");
+            debugLog("[Header] Initial path change - forcing avatar refresh from localStorage");
             setCachedAvatarData(savedUser.avatar);
             setAvatarKey(prev => prev + 100); // Big jump to ensure new key
           }
@@ -162,11 +163,11 @@ export const useAvatarState = (user: User | null) => {
     // Only set error after a few retries
     if (avatarRetryCount.current >= 3) {
       setAvatarError(true);
-      console.log("[Header] Avatar load failed after multiple attempts, showing fallback");
+      debugLog("[Header] Avatar load failed after multiple attempts, showing fallback");
     } else {
       // Try again with a new key after a short delay
       setTimeout(() => {
-        console.log("[Header] Retrying avatar load...");
+        debugLog("[Header] Retrying avatar load...");
         setAvatarKey(prev => prev + 1);
       }, 500);
     }

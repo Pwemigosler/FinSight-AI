@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 import { useState } from "react";
 import { User } from "../../../types/user";
 import { UserService } from "../UserService";
@@ -76,7 +77,7 @@ export const useProfileManagement = ({
       if (setUser) setUser(refreshedUser);
 
       // LOG here:
-      console.log("[completeAccountSetup] Refreshed user after setup:", refreshedUser);
+      debugLog("[completeAccountSetup] Refreshed user after setup:", refreshedUser);
 
       window.dispatchEvent(new CustomEvent('avatar-updated', {
         detail: {

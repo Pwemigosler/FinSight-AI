@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -82,7 +83,7 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
     }
     
     setIsSubmitting(true);
-    console.log('Submitting bill form...', formValues);
+    debugLog('Submitting bill form...', formValues);
     
     try {
       const billData = {
@@ -95,18 +96,18 @@ const BillForm: React.FC<BillFormProps> = ({ isOpen, onOpenChange, editBill }) =
       let success = false;
       
       if (editBill) {
-        console.log('Updating bill:', editBill.id);
+        debugLog('Updating bill:', editBill.id);
         const result = await updateBill(editBill.id, billData);
         success = !!result;
       } else {
-        console.log('Adding new bill:', billData.name);
+        debugLog('Adding new bill:', billData.name);
         const result = await addBill(billData);
         success = !!result;
       }
       
       // Only close the form if the operation was successful
       if (success) {
-        console.log('Form submission successful, closing dialog');
+        debugLog('Form submission successful, closing dialog');
         onOpenChange(false);
       } else {
         console.error('Form submission failed, keeping dialog open');

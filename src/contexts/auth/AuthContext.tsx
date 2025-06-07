@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { User } from "../../types/user";
 import { AuthContextType, BankCard } from "./types";
@@ -84,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const needsAccountSetup = userData !== null && userData.hasCompletedSetup !== true;
 
   // --- LOGGING: Show state every render for debugging ---
-  console.log(
+  debugLog(
     "[AuthProvider] userData:", userData,
     "| needsAccountSetup:", needsAccountSetup,
     "| initialized:", initialized

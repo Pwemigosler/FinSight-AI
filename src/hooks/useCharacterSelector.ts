@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
@@ -36,7 +37,7 @@ export const useCharacterSelector = (
           const supabaseUrl = getPublicUrl(`${character.id}.png`);
           
           if (supabaseUrl) {
-            console.log(`Loaded Supabase URL for ${character.id}: ${supabaseUrl}`);
+            debugLog(`Loaded Supabase URL for ${character.id}: ${supabaseUrl}`);
             return {
               ...character,
               thumbnailUrl: supabaseUrl
@@ -44,7 +45,7 @@ export const useCharacterSelector = (
           }
           
           // Fallback to local path if Supabase URL isn't available
-          console.log(`Using local path for ${character.id}: ${character.thumbnailUrl}`);
+          debugLog(`Using local path for ${character.id}: ${character.thumbnailUrl}`);
           return character;
         } catch (error) {
           console.error(`Error getting URL for ${character.id}:`, error);

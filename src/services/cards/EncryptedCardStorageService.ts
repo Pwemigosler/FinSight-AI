@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { BankCard } from "@/contexts/auth/types";
 import { EncryptionService } from "@/contexts/auth/services/EncryptionService";
@@ -110,9 +111,9 @@ export class EncryptedCardStorageService {
       
       // If migration is needed, encrypt all cards
       if (needsMigration) {
-        console.log("[EncryptedCardStorageService] Migrating unencrypted cards...");
+        debugLog("[EncryptedCardStorageService] Migrating unencrypted cards...");
         await this.saveCards(existingCards as BankCard[], userId);
-        console.log("[EncryptedCardStorageService] Migration complete");
+        debugLog("[EncryptedCardStorageService] Migration complete");
       }
     } catch (error) {
       console.error("[EncryptedCardStorageService] Error migrating cards:", error);

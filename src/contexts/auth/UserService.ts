@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 import { User } from "../../types/user";
 import { supabase } from "@/integrations/supabase/client";
 import { DefaultsService } from "./services/DefaultsService";
@@ -45,7 +46,7 @@ export class UserService {
         hasCompletedSetup: profile.has_completed_setup
       };
 
-      console.log("[UserService] Returning user profile:", user);
+      debugLog("[UserService] Returning user profile:", user);
 
       this.storageService.saveUser(user);
       

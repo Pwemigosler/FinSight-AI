@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,12 +28,12 @@ const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) =
     // Initialize character avatars when app starts
     const init = async () => {
       try {
-        console.log("Starting Supabase storage initialization...");
+        debugLog("Starting Supabase storage initialization...");
         await initializeCharacterAvatars();
         // Upload characters to Supabase on app start
-        console.log("Starting character image upload to Supabase...");
+        debugLog("Starting character image upload to Supabase...");
         await uploadCharacterImages();
-        console.log("Character image upload completed");
+        debugLog("Character image upload completed");
         setImagesInitialized(true);
       } catch (error) {
         console.error("Error initializing images:", error);
@@ -61,7 +62,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, needsAccountSetup, loading } = useAuth();
 
   // DEBUG: Log state every render for troubleshooting
-  console.log(
+  debugLog(
     "[ProtectedRoute] isAuthenticated:", isAuthenticated,
     "| needsAccountSetup:", needsAccountSetup,
     "| loading:", loading
@@ -81,7 +82,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   // Redirect users who need to complete account setup
   if (needsAccountSetup) {
-    console.log("[ProtectedRoute] Redirecting to /setup");
+    debugLog("[ProtectedRoute] Redirecting to /setup");
     return <Navigate to="/setup" replace />;
   }
 
@@ -93,7 +94,7 @@ const SetupRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, needsAccountSetup, loading } = useAuth();
 
   // DEBUG: Log state every render for troubleshooting
-  console.log(
+  debugLog(
     "[SetupRoute] isAuthenticated:", isAuthenticated,
     "| needsAccountSetup:", needsAccountSetup,
     "| loading:", loading
@@ -113,7 +114,7 @@ const SetupRoute = ({ children }: { children: React.ReactNode }) => {
 
   // If setup is already completed, redirect to home
   if (!needsAccountSetup) {
-    console.log("[SetupRoute] Setup completed, redirecting to /");
+    debugLog("[SetupRoute] Setup completed, redirecting to /");
     return <Navigate to="/" replace />;
   }
 

@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 import React, { useState } from 'react';
 import { Bill } from '@/types/bill';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -31,7 +32,7 @@ const BillList: React.FC<BillListProps> = ({
   const { markAsPaid, deleteBill } = useBills();
   
   const handleEdit = (bill: Bill) => {
-    console.log('Opening edit form for bill:', bill.id);
+    debugLog('Opening edit form for bill:', bill.id);
     setEditBill({
       id: bill.id,
       values: {
@@ -42,23 +43,23 @@ const BillList: React.FC<BillListProps> = ({
   };
   
   const handleDelete = (billId: string) => {
-    console.log('Opening delete dialog for bill:', billId);
+    debugLog('Opening delete dialog for bill:', billId);
     setSelectedBillId(billId);
     setDeleteDialogOpen(true);
   };
   
   const confirmDelete = async () => {
     if (selectedBillId) {
-      console.log('Deleting bill:', selectedBillId);
+      debugLog('Deleting bill:', selectedBillId);
       const success = await deleteBill(selectedBillId);
       if (success) {
-        console.log('Delete operation successful');
+        debugLog('Delete operation successful');
         setDeleteDialogOpen(false);
         setSelectedBillId(null);
         
         // If the real-time connection isn't working, manually refresh
         if (!realtimeConnected && onRefresh) {
-          console.log('No real-time connection, manually refreshing bills');
+          debugLog('No real-time connection, manually refreshing bills');
           setTimeout(onRefresh, 300);
         }
       }
@@ -68,12 +69,12 @@ const BillList: React.FC<BillListProps> = ({
   };
   
   const handleMarkAsPaid = async (billId: string) => {
-    console.log('Marking bill as paid:', billId);
+    debugLog('Marking bill as paid:', billId);
     await markAsPaid(billId);
     
     // If the real-time connection isn't working, manually refresh
     if (!realtimeConnected && onRefresh) {
-      console.log('No real-time connection, manually refreshing bills after marking as paid');
+      debugLog('No real-time connection, manually refreshing bills after marking as paid');
       setTimeout(onRefresh, 300);
     }
   };
@@ -241,7 +242,7 @@ const BillList: React.FC<BillListProps> = ({
               setEditBill(null);
               // If the real-time connection isn't working, manually refresh
               if (!realtimeConnected && onRefresh) {
-                console.log('No real-time connection, manually refreshing bills after edit form closed');
+                debugLog('No real-time connection, manually refreshing bills after edit form closed');
                 setTimeout(onRefresh, 300);
               }
             }

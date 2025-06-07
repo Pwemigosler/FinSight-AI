@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { User } from '@/types/user';
 import { supabase } from "@/integrations/supabase/client";
@@ -5,12 +6,12 @@ import { TransactionItemType } from './types';
 
 export const fetchTransactions = async (user: User | null): Promise<TransactionItemType[]> => {
   if (!user) {
-    console.log('No user logged in, returning empty transactions');
+    debugLog('No user logged in, returning empty transactions');
     return [];
   }
   
   try {
-    console.log('Fetching real transactions from database for user:', user.id);
+    debugLog('Fetching real transactions from database for user:', user.id);
     
     // Fetch transactions from the database
     const { data: transactionsData, error } = await supabase
@@ -50,7 +51,7 @@ export const fetchTransactions = async (user: User | null): Promise<TransactionI
       location: [tx.location_city, tx.location_state].filter(Boolean).join(', ') || undefined
     }));
     
-    console.log(`Fetched ${transformedTransactions.length} transactions from database`);
+    debugLog(`Fetched ${transformedTransactions.length} transactions from database`);
     return transformedTransactions;
     
   } catch (error) {
@@ -98,11 +99,11 @@ export const setupRealtimeSubscription = (user: User | null,
   callback: (connected: boolean) => void
 ) => {
   if (!user) {
-    console.log('No user logged in, skipping real-time subscription');
+    debugLog('No user logged in, skipping real-time subscription');
     return;
   }
   
-  console.log('Setting up real-time subscription for transactions');
+  debugLog('Setting up real-time subscription for transactions');
   
   // Set up Supabase realtime subscription for transactions
   const channel = supabase
@@ -115,18 +116,18 @@ export const setupRealtimeSubscription = (user: User | null,
         filter: `user_id=eq.${user.id}`
       },
       (payload) => {
-        console.log('Transaction change detected:', payload);
+        debugLog('Transaction change detected:', payload);
         // Trigger a refresh of transaction data
         window.dispatchEvent(new CustomEvent('transactions-updated'));
       }
     )
     .subscribe((status) => {
-      console.log('Realtime subscription status:', status);
+      debugLog('Realtime subscription status:', status);
       callback(status === 'SUBSCRIBED');
     });
   
   return () => {
-    console.log('Cleaning up real-time subscription');
+    debugLog('Cleaning up real-time subscription');
     supabase.removeChannel(channel);
     callback(false);
   };

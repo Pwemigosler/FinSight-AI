@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 /**
  * Service responsible for session management operations
@@ -25,7 +26,7 @@ export class SessionManagementService {
    */
   terminateSession(sessionId: string) {
     // This would typically send a request to terminate the session
-    console.log(`Terminating session: ${sessionId}`);
+    debugLog(`Terminating session: ${sessionId}`);
     // Mock implementation for now
     return true;
   }
@@ -35,7 +36,7 @@ export class SessionManagementService {
    */
   terminateAllOtherSessions() {
     // This would typically send a request to terminate all other sessions
-    console.log("Terminating all other sessions");
+    debugLog("Terminating all other sessions");
     // Mock implementation for now
     return true;
   }

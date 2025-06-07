@@ -1,3 +1,4 @@
+import { debugLog } from '@/utils/debug';
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -14,7 +15,7 @@ export const SessionSection = () => {
   const handleTerminateAllSessions = async () => {
     // This function would handle terminating all sessions except the current one
     // In a real application, we would implement this feature
-    console.log("Terminate all sessions requested");
+    debugLog("Terminate all sessions requested");
   };
 
   return (
